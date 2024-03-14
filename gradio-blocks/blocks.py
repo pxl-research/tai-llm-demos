@@ -28,6 +28,12 @@ assistant = client.beta.assistants.create(
 thread = client.beta.threads.create()
 
 
+def clear_log():
+    global thread
+    thread = client.beta.threads.create()
+    return "", ""
+
+
 def respond(message, chat_history):
     chat_history.append((message, None))
 
@@ -59,7 +65,7 @@ def respond(message, chat_history):
     messages = client.beta.threads.messages.list(
         thread_id=thread.id
     )
-    print(messages.model_dump_json(indent=2))
+    # print(messages.model_dump_json(indent=2))
 
     bot_message = ""
     for msgData in messages.data:
@@ -72,16 +78,17 @@ def respond(message, chat_history):
 
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
-with gr.Blocks() as blocks_ui:
+with gr.Blocks(fill_height=True) as blocks_ui:
     # UI composition
-    chatbot = gr.Chatbot(label='Log')
+    chatbot = gr.Chatbot(label='Log', scale=1)
     with gr.Row():
         msg = gr.Textbox(label='Prompt', scale=1)
         send = gr.Button('Send', scale=0)
-    clear = gr.ClearButton([msg, chatbot])
+    clear = gr.Button('Clear')
 
     # event handlers
     msg.submit(respond, [msg, chatbot], [msg, chatbot])
     send.click(respond, [msg, chatbot], [msg, chatbot])
+    clear.click(clear_log, None, [msg, chatbot])
 
 blocks_ui.launch()
