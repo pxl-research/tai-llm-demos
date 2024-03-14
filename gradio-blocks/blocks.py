@@ -2,6 +2,7 @@ import os
 import time
 
 import gradio as gr
+import tiktoken
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
@@ -73,10 +74,17 @@ def append_ai(message, chat_history):
             break
     chat_history.append((None, bot_message))
 
-    if run.usage:
-        print(f"Tokens {run.usage.prompt_tokens} (prompt) and {run.usage.completion_tokens} (response)")
+    (token_count, cost_in_cents) = estimate_costs(str(chat_history))
+    print(f"Cost estimate for {token_count} tokens: {cost_in_cents} cents")
 
     return "", chat_history
+
+
+def estimate_costs(string):
+    tokeniser = tiktoken.encoding_for_model("gpt-4")
+    token_count = len(tokeniser.encode(string))
+    cost_in_cents = round(token_count / 1000 * 3, 2)
+    return token_count, cost_in_cents
 
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
