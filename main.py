@@ -1,13 +1,17 @@
 import json
-
 import gradio as gr
 import tiktoken
+import os
+
 from openai import AzureOpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 client = AzureOpenAI(
-    api_key="712afe2b7350430db50c6d13176ae93c",
+    api_key=os.getenv("AOA_API_KEY"),
     api_version="2024-02-15-preview",
-    azure_endpoint="https://timesheets-assistants.openai.azure.com/",
+    azure_endpoint=os.getenv("AOA_ENDPOINT"),
 )
 
 system_instruction = {
