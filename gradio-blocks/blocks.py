@@ -31,12 +31,15 @@ thread = client.beta.threads.create()
 def clear_log():
     global thread
     thread = client.beta.threads.create()
-    return "", ""
+    return ["", ""]
 
 
-def respond(message, chat_history):
+def append_user(message, chat_history):
     chat_history.append((message, None))
+    return chat_history
 
+
+def append_ai(message, chat_history):
     client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
@@ -51,21 +54,18 @@ def respond(message, chat_history):
     start_time = time.time()
     status = run.status
     while status not in ["completed", "cancelled", "expired", "failed"]:
-        time.sleep(5)
+        time.sleep(0.25)
         run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
-        print("Elapsed time: {} minutes {} seconds".format(int((time.time() - start_time) // 60),
-                                                           int((time.time() - start_time) % 60)))
+        time_diff = int((time.time() - start_time))
         status = run.status
-        print(f'Status: {status}')
+        print(f"Elapsed time: {time_diff} seconds, Status: {status}")
 
-    print(f'Status: {status}')
-    print("Elapsed time: {} minutes {} seconds".format(int((time.time() - start_time) // 60),
-                                                       int((time.time() - start_time) % 60)))
+    if run.usage:
+        print(f"Tokens {run.usage.prompt_tokens} (prompt) and {run.usage.completion_tokens} (response)")
 
     messages = client.beta.threads.messages.list(
         thread_id=thread.id
     )
-    # print(messages.model_dump_json(indent=2))
 
     bot_message = ""
     for msgData in messages.data:
@@ -80,15 +80,17 @@ def respond(message, chat_history):
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with gr.Blocks(fill_height=True) as blocks_ui:
     # UI composition
-    chatbot = gr.Chatbot(label='Log', scale=1)
+    tb_log = gr.Chatbot(label='Log', scale=1)
     with gr.Row():
-        msg = gr.Textbox(label='Prompt', scale=1)
-        send = gr.Button('Send', scale=0)
-    clear = gr.Button('Clear')
+        tb_user = gr.Textbox(label='Prompt', scale=1)
+        btn_send = gr.Button('Send', scale=0)
+    btn_clear = gr.Button('Clear')
 
     # event handlers
-    msg.submit(respond, [msg, chatbot], [msg, chatbot])
-    send.click(respond, [msg, chatbot], [msg, chatbot])
-    clear.click(clear_log, None, [msg, chatbot])
+    tb_user.submit(append_user, [tb_user, tb_log], [tb_log]
+                   ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log])
+    btn_send.click(append_user, [tb_user, tb_log], [tb_log]
+                   ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log])
+    btn_clear.click(clear_log, None, [tb_user, tb_log])
 
 blocks_ui.launch()
