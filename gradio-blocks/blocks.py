@@ -14,13 +14,13 @@ client = AzureOpenAI(
     azure_endpoint=os.getenv("AOA_ENDPOINT"),
 )
 
-general_instructions = ("I would like you to take a deep breath before responding."
+general_instructions = ("Be concise, but precise as well."
                         "Always think step by step."
-                        "Try to be concise, but precise as well.")
+                        "Take a deep breath before responding.")
 
 assistant = client.beta.assistants.create(
     name="Professional Assistant",
-    description="You support a team of applied researchers operating in Europe.",
+    description="You support a team of applied researchers operating in Western Europe.",
     instructions=general_instructions,
     model="gpt-4-1106-preview",
     tools=[{"type": "code_interpreter"}],
