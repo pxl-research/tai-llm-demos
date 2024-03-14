@@ -53,4 +53,5 @@ def predict(message, history):
             yield partial_message
 
 
+# https://www.gradio.app/guides/creating-a-chatbot-fast
 gr.ChatInterface(predict).launch()

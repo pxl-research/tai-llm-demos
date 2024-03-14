@@ -11,6 +11,7 @@ def respond(message, chat_history):
     return "", chat_history
 
 
+# https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with gr.Blocks() as blocks_ui:
     # UI composition
     chatbot = gr.Chatbot(label='Log')
