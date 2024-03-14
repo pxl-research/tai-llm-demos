@@ -74,10 +74,11 @@ def append_ai(message, chat_history):
             break
     chat_history.append((None, bot_message))
 
+    # cost estimate
     (token_count, cost_in_cents) = estimate_costs(chat_history)
-    print(f"Cost estimate for {token_count} tokens: {cost_in_cents} cents")
+    debug = f"Cost estimate for {token_count} tokens: {cost_in_cents:.2f} cents"
 
-    return "", chat_history
+    return "", chat_history, debug
 
 
 def estimate_costs(chat_history):
@@ -105,13 +106,15 @@ with gr.Blocks(fill_height=True) as blocks_ui:
     with gr.Row():
         tb_user = gr.Textbox(label='Prompt', scale=1)
         btn_send = gr.Button('Send', scale=0)
-    btn_clear = gr.Button('Clear')
+        btn_clear = gr.Button('Clear', scale=0)
+    with gr.Row():
+        lbl_debug = gr.HTML()
 
     # event handlers
     tb_user.submit(append_user, [tb_user, tb_log], [tb_log]
-                   ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log])
+                   ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log, lbl_debug])
     btn_send.click(append_user, [tb_user, tb_log], [tb_log]
-                   ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log])
+                   ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log, lbl_debug])
     btn_clear.click(clear_log, None, [tb_user, tb_log])
 
 blocks_ui.launch()
