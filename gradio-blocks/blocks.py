@@ -74,17 +74,28 @@ def append_ai(message, chat_history):
             break
     chat_history.append((None, bot_message))
 
-    (token_count, cost_in_cents) = estimate_costs(str(chat_history))
+    (token_count, cost_in_cents) = estimate_costs(chat_history)
     print(f"Cost estimate for {token_count} tokens: {cost_in_cents} cents")
 
     return "", chat_history
 
 
-def estimate_costs(string):
+def estimate_costs(chat_history):
+    prompt_log = ""
+    response_log = ""
+    for user_msg, bot_msg in chat_history:
+        if user_msg:
+            prompt_log = prompt_log + user_msg
+        if bot_msg:
+            response_log = response_log + bot_msg
+
     tokeniser = tiktoken.encoding_for_model("gpt-4")
-    token_count = len(tokeniser.encode(string))
-    cost_in_cents = round(token_count / 1000 * 3, 2)
-    return token_count, cost_in_cents
+    token_count_prompts = len(tokeniser.encode(prompt_log))
+    token_count_responses = len(tokeniser.encode(response_log))
+    cost_prompts = round(token_count_prompts / 1000 * 1, 2)
+    cost_responses = round(token_count_responses / 1000 * 3, 2)
+
+    return (token_count_prompts + token_count_responses), (cost_prompts + cost_responses)
 
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
