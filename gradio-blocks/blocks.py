@@ -60,11 +60,10 @@ def append_ai(message, chat_history):
         status = run.status
         print(f"Elapsed time: {time_diff} seconds, Status: {status}")
 
-    if run.usage:
-        print(f"Tokens {run.usage.prompt_tokens} (prompt) and {run.usage.completion_tokens} (response)")
-
     messages = client.beta.threads.messages.list(
-        thread_id=thread.id
+        thread_id=thread.id,
+        order="desc",
+        limit=1
     )
 
     bot_message = ""
@@ -73,6 +72,9 @@ def append_ai(message, chat_history):
             bot_message = msgData.content[0].text.value
             break
     chat_history.append((None, bot_message))
+
+    if run.usage:
+        print(f"Tokens {run.usage.prompt_tokens} (prompt) and {run.usage.completion_tokens} (response)")
 
     return "", chat_history
 
