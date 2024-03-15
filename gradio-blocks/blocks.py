@@ -37,7 +37,8 @@ def clear_log():
 
 def store_thread(a_thread):
     messages = client.beta.threads.messages.list(
-        thread_id=a_thread.id
+        thread_id=a_thread.id,
+        order="asc"
     )
     log_string = messages.model_dump_json(indent=2)
 
