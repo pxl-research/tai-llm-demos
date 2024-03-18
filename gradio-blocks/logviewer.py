@@ -30,8 +30,8 @@ def file_selected(chosen_file):
     return chat_history
 
 
-with gr.Blocks() as log_ui:
-    log_box = gr.Chatbot()
+with gr.Blocks(fill_height=True) as log_ui:
+    log_box = gr.Chatbot(label='Log', scale=1)
     dd_files = gr.Dropdown(
         file_list,
         label="Log files",
