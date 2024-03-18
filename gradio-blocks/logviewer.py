@@ -1,22 +1,46 @@
 import json
 import os
+from datetime import datetime
 
 import gradio as gr
 
 log_folder = "logs/"
-file_list = []
+dropdown_entries = []
+file_contents = {}
 
 
 def load_files(dropdown):
     files = os.listdir(log_folder)
-    print(file_list)
-    return gr.Dropdown(choices=files)
+    entries = []
+    for file in files:
+        log_file = open(f"{log_folder}{file}", "r")
+        log_content = log_file.read()
+        file_contents[file] = log_content
+        title = get_title(log_content, file)
+        entries.append((title, file))
+
+    return gr.Dropdown(choices=entries)
+
+
+def get_title(log_content, default_title=""):
+    title = default_title
+    messages = json.loads(log_content)
+    if messages["data"] and len(messages["data"]) > 0:
+        first_message = messages["data"][0]
+        if first_message["created_at"]:
+            date_obj = datetime.fromtimestamp(first_message["created_at"])
+            title = f"[{date_obj}]"
+        if first_message["content"] and len(first_message["content"]) > 0:
+            first_content = first_message["content"][0]
+            if first_content["type"] == "text":
+                first_text = first_content['text']['value'][:100]
+                title = f"{title} {first_text}..."
+    return title
 
 
 def file_selected(chosen_file):
     print(chosen_file)
-    log_file = open(f"{log_folder}{chosen_file}", "r")
-    log_content = log_file.read()
+    log_content = file_contents[chosen_file]
 
     messages = json.loads(log_content)
     chat_history = []
@@ -30,10 +54,10 @@ def file_selected(chosen_file):
     return chat_history
 
 
-with gr.Blocks(fill_height=True) as log_ui:
+with gr.Blocks(fill_height=True, title='Log Viewer') as log_ui:
     log_box = gr.Chatbot(label='Log', scale=1)
     dd_files = gr.Dropdown(
-        file_list,
+        dropdown_entries,
         label="Log files",
         info="Select a log file to view the details"
     )
