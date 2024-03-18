@@ -35,6 +35,22 @@ def clear_log():
     return ["", ""]
 
 
+def store_thread(a_thread):
+    messages = client.beta.threads.messages.list(
+        thread_id=a_thread.id,
+        order="asc"
+    )
+    log_string = messages.model_dump_json(indent=2)
+
+    log_folder = "logs/"
+    if not os.path.exists(log_folder):
+        os.makedirs(log_folder)
+
+    log_file = open(f"{log_folder}{a_thread.id}.json", "w")
+    log_file.write(log_string)
+    log_file.close()
+
+
 def append_user(message, chat_history):
     chat_history.append((message, None))
     return chat_history
@@ -78,6 +94,7 @@ def append_ai(message, chat_history):
     (token_count, cost_in_cents) = estimate_costs(chat_history)
     debug = f"Cost estimate for {token_count} tokens: {cost_in_cents:.2f} cents"
 
+    store_thread(thread)
     return "", chat_history, debug
 
 
