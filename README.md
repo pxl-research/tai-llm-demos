@@ -2,8 +2,8 @@
 
 ## What's in this repository?
 This repository contains two "chatbot" examples using the Azure OpenAI as LLM under the hood:
-- `gradio-chat` a basic chat app with "Completions API"
-- `gradio-blocks` a better chat app with "Assistant API"
+- `gradio-chat` a basic chat app using the "Completions API"
+- `gradio-blocks` a chat app using the "Assistant API", including a chat history viewer
 
 ## Configuration
 To install the necessary libraries use `pip install -r requirements.txt`
@@ -22,8 +22,17 @@ Surf to the generated address in your browser to use the (Gradio) web UI
 
 ## Screenshots
 
-### gradio-chat
+### chat.py
+`/gradio-chat`
+
 ![gradio-chat.png](assets/screenshots/gradio-chat.png)
 
-### gradio-blocks
+### blocks.py
+`/gradio-blocks`
+
 ![gradio-blocks.png](assets/screenshots/gradio-blocks.png)
+
+### logviewer.py
+`/gradio-blocks`
+
+![gradio-logviewer.png](assets/screenshots/gradio-logviewer.png)
