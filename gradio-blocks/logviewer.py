@@ -11,6 +11,7 @@ file_contents = {}
 
 def load_files(dropdown):
     files = os.listdir(log_folder)
+    files.sort(key=lambda f: os.path.getmtime(f"{log_folder}{f}"), reverse=True)
     entries = []
     for file in files:
         log_file = open(f"{log_folder}{file}", "r")
@@ -54,8 +55,8 @@ def file_selected(chosen_file):
     return chat_history
 
 
-with gr.Blocks(fill_height=True, title='Log Viewer') as log_ui:
-    log_box = gr.Chatbot(label='Log', scale=1)
+with gr.Blocks(fill_height=True, title='Chat history') as history_ui:
+    log_box = gr.Chatbot(label='History', scale=1)
     dd_files = gr.Dropdown(
         dropdown_entries,
         label="Log files",
@@ -68,4 +69,4 @@ with gr.Blocks(fill_height=True, title='Log Viewer') as log_ui:
     btn_refresh.click(load_files, [dd_files], [dd_files])
     dd_files.input(file_selected, [dd_files], [log_box])
 
-log_ui.launch()
+history_ui.launch()
