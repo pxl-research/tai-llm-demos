@@ -117,7 +117,7 @@ def estimate_costs(chat_history):
 
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
-with gr.Blocks(fill_height=True) as blocks_ui:
+with gr.Blocks(fill_height=True, title='PXL CheapGPT') as blocks_ui:
     # UI composition
     tb_log = gr.Chatbot(label='Log', scale=1)
     with gr.Row():
