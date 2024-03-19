@@ -72,4 +72,4 @@ with gr.Blocks(fill_height=True, title='Chat history') as history_ui:
     btn_refresh.click(load_files, [dd_files], [dd_files])
     dd_files.input(file_selected, [dd_files], [log_box])
 
-history_ui.launch()
+# history_ui.launch()

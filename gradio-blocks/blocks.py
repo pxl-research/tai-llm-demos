@@ -135,4 +135,4 @@ with gr.Blocks(fill_height=True, title='PXL CheapGPT') as llm_client_ui:
                    ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log, lbl_debug])
     btn_clear.click(clear_log, None, [tb_user, tb_log])
 
-llm_client_ui.launch()
+# llm_client_ui.launch()
