@@ -16,8 +16,11 @@ def show_live():
         cb_live: gr.Chatbot(visible=True),
         gr_live: gr.Group(visible=True),
         row_live: gr.Row(visible=True),
+        btn_live: gr.Button(interactive=False),
+
         cb_history: gr.Chatbot(visible=False),
-        gr_history: gr.Group(visible=False)
+        gr_history: gr.Group(visible=False),
+        btn_history: gr.Button(interactive=True)
     }
 
 
@@ -26,8 +29,11 @@ def show_history():
         cb_live: gr.Chatbot(visible=False),
         gr_live: gr.Group(visible=False),
         row_live: gr.Row(visible=False),
+        btn_live: gr.Button(interactive=True),
+
         cb_history: gr.Chatbot(visible=True),
         gr_history: gr.Group(visible=True),
+        btn_history: gr.Button(interactive=False)
     }
 
 
@@ -70,12 +76,12 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT') as llm_client_ui:
 
     # toggle UI
     with gr.Row():
-        btn_live = gr.Button('Chat', icon='../assets/icons/chat.png')
+        btn_live = gr.Button('Chat', icon='../assets/icons/chat.png', interactive=False)
         btn_history = gr.Button('History', icon='../assets/icons/history.png')
 
     # event handlers
-    btn_live.click(show_live, [], [cb_live, gr_live, row_live, cb_history, gr_history])
-    btn_history.click(show_history, [], [cb_live, gr_live, row_live, cb_history, gr_history])
+    btn_live.click(show_live, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
+    btn_history.click(show_history, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
 
 llm_client_ui.launch()
 
