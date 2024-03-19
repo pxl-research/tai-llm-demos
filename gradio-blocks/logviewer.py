@@ -57,14 +57,17 @@ def file_selected(chosen_file):
 
 with gr.Blocks(fill_height=True, title='Chat history') as history_ui:
     log_box = gr.Chatbot(label='History', scale=1)
-    dd_files = gr.Dropdown(
-        dropdown_entries,
-        label="Log files",
-        info="Select a log file to view the details"
-    )
-    with gr.Row():
-        btn_refresh = gr.Button('Reload', scale=1)
-        btn_clear = gr.ClearButton([log_box], scale=1)
+
+    with gr.Group():
+        with gr.Row():
+            dd_files = gr.Dropdown(
+                dropdown_entries,
+                show_label=False,
+                info="Select a log file to view the details",
+                scale=10
+            )
+            btn_refresh = gr.Button('Reload', scale=0, min_width=64)
+            btn_clear = gr.ClearButton([log_box], scale=0, min_width=64)
 
     btn_refresh.click(load_files, [dd_files], [dd_files])
     dd_files.input(file_selected, [dd_files], [log_box])
