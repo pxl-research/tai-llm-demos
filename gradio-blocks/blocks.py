@@ -120,10 +120,11 @@ def estimate_costs(chat_history):
 with gr.Blocks(fill_height=True, title='PXL CheapGPT') as llm_client_ui:
     # UI composition
     tb_log = gr.Chatbot(label='Chat', scale=1)
-    with gr.Row():
-        tb_user = gr.Textbox(label='Prompt', scale=1)
-        btn_send = gr.Button('Send', scale=0)
-        btn_clear = gr.Button('Clear', scale=0)
+    with gr.Group():
+        with gr.Row():
+            tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
+            btn_send = gr.Button('Send', scale=0, min_width=64)
+            btn_clear = gr.Button('Clear', scale=0, min_width=64)
     with gr.Row():
         lbl_debug = gr.HTML()
 
@@ -134,4 +135,4 @@ with gr.Blocks(fill_height=True, title='PXL CheapGPT') as llm_client_ui:
                    ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log, lbl_debug])
     btn_clear.click(clear_log, None, [tb_user, tb_log])
 
-llm_client_ui.launch()
+# llm_client_ui.launch()
