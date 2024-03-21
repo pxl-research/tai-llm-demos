@@ -53,4 +53,4 @@ def decode_64(encoded_string):
     return decoded_bytes.decode(default_encoding)
 
 # Uncomment this line to manually add a user:
-# def add_user("John", "zD73t4Jyw5RVTYxEgpfXGM"):
+# add_user("pxl", "YQhPEN826TJ4uey9sjDKWt")
