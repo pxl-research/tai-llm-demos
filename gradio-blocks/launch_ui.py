@@ -1,13 +1,17 @@
 import gradio as gr
 
-from blocks import (
+from auth import (
+    auth_method
+)
+from blocks_live_chat import (
     append_user,
     append_ai,
     clear_log
 )
-from logviewer import (
+from blocks_history import (
     load_files,
-    file_selected
+    file_selected,
+    set_folder
 )
 
 
@@ -16,8 +20,11 @@ def show_live():
         cb_live: gr.Chatbot(visible=True),
         gr_live: gr.Group(visible=True),
         row_live: gr.Row(visible=True),
+        btn_live: gr.Button(interactive=False),
+
         cb_history: gr.Chatbot(visible=False),
-        gr_history: gr.Group(visible=False)
+        gr_history: gr.Group(visible=False),
+        btn_history: gr.Button(interactive=True)
     }
 
 
@@ -26,8 +33,11 @@ def show_history():
         cb_live: gr.Chatbot(visible=False),
         gr_live: gr.Group(visible=False),
         row_live: gr.Row(visible=False),
+        btn_live: gr.Button(interactive=True),
+
         cb_history: gr.Chatbot(visible=True),
         gr_history: gr.Group(visible=True),
+        btn_history: gr.Button(interactive=False)
     }
 
 
@@ -36,9 +46,9 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT') as llm_client_ui:
     cb_live = gr.Chatbot(label='Chat', scale=1)
     with gr.Group() as gr_live:
         with gr.Row():
-            tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
-            btn_send = gr.Button('Send', scale=0, min_width=64)
-            btn_clear = gr.Button('Clear', scale=0, min_width=64)
+            tb_user = gr.Textbox(lines=2, show_label=False, placeholder='Enter prompt here...', scale=10)
+            btn_send = gr.Button('', scale=0, min_width=64, icon='../assets/icons/send.png')
+            btn_clear = gr.Button('', scale=0, min_width=64, icon='../assets/icons/disposal.png')
     with gr.Row() as row_live:
         lbl_debug = gr.HTML()
 
@@ -60,8 +70,9 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT') as llm_client_ui:
                 info="Select a log file to view the details",
                 scale=10
             )
-            btn_refresh = gr.Button('Reload', scale=0, min_width=64)
-            btn_clear = gr.ClearButton([cb_history], scale=0, min_width=64)
+            btn_refresh = gr.Button('', scale=0, min_width=64, icon='../assets/icons/refresh.png')
+            btn_clear = gr.ClearButton(value='', components=[cb_history], scale=0, min_width=64,
+                                       icon='../assets/icons/disposal.png')
 
     # event handlers
     btn_refresh.click(load_files, [dd_files], [dd_files])
@@ -69,11 +80,14 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT') as llm_client_ui:
 
     # toggle UI
     with gr.Row():
-        btn_live = gr.Button('Chat')
-        btn_history = gr.Button('History')
+        btn_live = gr.Button('Chat', icon='../assets/icons/chat.png', interactive=False)
+        btn_history = gr.Button('History', icon='../assets/icons/history.png')
 
     # event handlers
-    btn_live.click(show_live, [], [cb_live, gr_live, row_live, cb_history, gr_history])
-    btn_history.click(show_history, [], [cb_live, gr_live, row_live, cb_history, gr_history])
+    btn_live.click(show_live, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
+    btn_history.click(show_history, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
+    llm_client_ui.load(set_folder, None, None)
 
-llm_client_ui.launch()
+llm_client_ui.launch(auth=auth_method)
+
+# <a target="_blank" href="https://icons8.com/icon/90293/update-left-rotation">Refresh</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>

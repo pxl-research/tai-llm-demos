@@ -6,6 +6,10 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
+from blocks_history import (
+    get_folder
+)
+
 load_dotenv()
 
 client = AzureOpenAI(
@@ -42,7 +46,7 @@ def store_thread(a_thread):
     )
     log_string = messages.model_dump_json(indent=2)
 
-    log_folder = "logs/"
+    log_folder = get_folder()
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
