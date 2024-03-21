@@ -36,3 +36,6 @@ Surf to the generated address in your browser to use the (Gradio) web UI
 `/gradio-blocks`
 
 ![gradio-logviewer.png](assets/screenshots/gradio-logviewer.png)
+
+### License
+Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
