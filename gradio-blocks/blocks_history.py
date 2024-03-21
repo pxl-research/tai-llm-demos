@@ -13,7 +13,7 @@ log_folder = default_folder
 def set_folder(request: gr.Request):
     global log_folder
     user_folder = request.username.strip().lower()
-    log_folder = f"{log_folder}{user_folder}/"
+    log_folder = f"{default_folder}{user_folder}/"
     return None
 
 
@@ -21,7 +21,7 @@ def get_folder():
     return log_folder
 
 
-def load_files(dropdown):
+def load_files():
     files = os.listdir(log_folder)
     files.sort(key=lambda f: os.path.getmtime(f"{log_folder}{f}"), reverse=True)
     entries = []
@@ -52,10 +52,9 @@ def get_title(log_content, default_title=""):
 
 
 def file_selected(chosen_file):
-    print(chosen_file)
     log_content = file_contents[chosen_file]
-
     messages = json.loads(log_content)
+
     chat_history = []
     for message in messages["data"]:
         if message["role"] == "user" and message["content"][0]["type"] == "text":
@@ -63,8 +62,15 @@ def file_selected(chosen_file):
         elif message["role"] == "assistant" and message["content"][0]["type"] == "text":
             chat_history.append((None, message["content"][0]["text"]["value"]))
 
-    # TODO: load the log into the chat window
     return chat_history
+
+
+def remove_file(chosen_file):
+    full_path = f"{log_folder}{chosen_file}"
+    print(full_path)
+    if os.path.exists(full_path):
+        os.remove(full_path)
+    return load_files()
 
 
 with gr.Blocks(fill_height=True, title='Chat history') as history_ui:
@@ -79,9 +85,9 @@ with gr.Blocks(fill_height=True, title='Chat history') as history_ui:
                 scale=10
             )
             btn_refresh = gr.Button('Reload', scale=0, min_width=64)
-            btn_clear = gr.ClearButton([log_box], scale=0, min_width=64)
+            btn_remove = gr.ClearButton([log_box], scale=0, min_width=64)
 
-    btn_refresh.click(load_files, [dd_files], [dd_files])
+    btn_refresh.click(load_files, [], [dd_files])
     dd_files.input(file_selected, [dd_files], [log_box])
 
 # history_ui.launch()
