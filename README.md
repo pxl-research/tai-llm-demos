@@ -4,7 +4,7 @@ emoji: 💬
 colorFrom: blue
 colorTo: red
 sdk: gradio
-app_file: gradio-blocks/launch-ui.py
+app_file: gradio-blocks/launch_ui.py
 pinned: true
 ---
 
