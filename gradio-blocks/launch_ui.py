@@ -1,9 +1,13 @@
 import gradio as gr
 
+from auth import (
+    auth_method
+)
 from blocks import (
     append_user,
     append_ai,
-    clear_log
+    clear_log,
+    set_folder
 )
 from logviewer import (
     load_files,
@@ -82,7 +86,8 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT') as llm_client_ui:
     # event handlers
     btn_live.click(show_live, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
     btn_history.click(show_history, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
+    llm_client_ui.load(set_folder, None, None)
 
-llm_client_ui.launch()
+llm_client_ui.launch(auth=auth_method)
 
 # <a target="_blank" href="https://icons8.com/icon/90293/update-left-rotation">Refresh</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>

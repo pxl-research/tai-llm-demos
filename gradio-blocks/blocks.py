@@ -27,6 +27,15 @@ assistant = client.beta.assistants.create(
 )
 
 thread = client.beta.threads.create()
+default_folder = "logs/"
+log_folder = default_folder
+
+
+def set_folder(request: gr.Request):
+    global log_folder
+    log_folder = f"{log_folder}{request.username}/"
+    print(log_folder)
+    return None
 
 
 def clear_log():
@@ -42,7 +51,6 @@ def store_thread(a_thread):
     )
     log_string = messages.model_dump_json(indent=2)
 
-    log_folder = "logs/"
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
