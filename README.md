@@ -1,3 +1,13 @@
+---
+title: TransformAI LLM Chat
+emoji: 💬
+colorFrom: blue
+colorTo: red
+sdk: gradio
+app_file: gradio-blocks/launch-ui.py
+pinned: true
+---
+
 # TransformAI LLM Chat
 
 ## What's in this repository?
