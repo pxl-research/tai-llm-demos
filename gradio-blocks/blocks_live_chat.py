@@ -6,6 +6,10 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
+from blocks_history import (
+    log_folder
+)
+
 load_dotenv()
 
 client = AzureOpenAI(
@@ -27,15 +31,6 @@ assistant = client.beta.assistants.create(
 )
 
 thread = client.beta.threads.create()
-default_folder = "logs/"
-log_folder = default_folder
-
-
-def set_folder(request: gr.Request):
-    global log_folder
-    log_folder = f"{log_folder}{request.username}/"
-    print(log_folder)
-    return None
 
 
 def clear_log():

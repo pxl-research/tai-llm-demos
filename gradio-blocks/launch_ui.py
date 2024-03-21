@@ -6,12 +6,12 @@ from auth import (
 from blocks_live_chat import (
     append_user,
     append_ai,
-    clear_log,
-    set_folder
+    clear_log
 )
 from blocks_history import (
     load_files,
-    file_selected
+    file_selected,
+    set_folder
 )
 
 

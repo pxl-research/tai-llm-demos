@@ -4,9 +4,17 @@ from datetime import datetime
 
 import gradio as gr
 
-log_folder = "logs/"
 dropdown_entries = []
 file_contents = {}
+default_folder = "logs/"
+log_folder = default_folder
+
+
+def set_folder(request: gr.Request):
+    global log_folder
+    log_folder = f"{log_folder}{request.username}/"
+    print(log_folder)
+    return None
 
 
 def load_files(dropdown):
