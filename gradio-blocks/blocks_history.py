@@ -12,9 +12,13 @@ log_folder = default_folder
 
 def set_folder(request: gr.Request):
     global log_folder
-    log_folder = f"{log_folder}{request.username}/"
-    print(log_folder)
+    user_folder = request.username.strip().lower()
+    log_folder = f"{log_folder}{user_folder}/"
     return None
+
+
+def get_folder():
+    return log_folder
 
 
 def load_files(dropdown):
