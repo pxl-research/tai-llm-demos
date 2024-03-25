@@ -77,7 +77,7 @@ def append_ai(message, chat_history):
     while status not in ["completed", "cancelled", "expired", "failed"]:
         time.sleep(0.25)
         run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
-        time_diff = int((time.time() - start_time))
+        time_diff = round((time.time() - start_time), 1)
         status = run.status
         print(f"Elapsed time: {time_diff} seconds, Status: {status}")
 
