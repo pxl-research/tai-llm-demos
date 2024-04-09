@@ -95,4 +95,4 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
     llm_client_ui.load(set_folder, None, None)
 
 # To create a public link, set `share=True` in `launch()`.
-llm_client_ui.launch(auth=auth_method)
+llm_client_ui.launch(auth=auth_method, server_name='0.0.0.0')
