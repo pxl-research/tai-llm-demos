@@ -1,18 +1,17 @@
 from pprint import pprint
 
 import chromadb
-from pypdf import PdfReader
+import fitz
 
 page_texts = []
 names = []
 count = 0
-reader = PdfReader("documents/ArbeidsreglementV8.pdf")
+reader = fitz.open("documents/ArbeidsreglementV8.pdf")
 
 # process the file
-for page in reader.pages:
-    text = page.extract_text()  # get page from pdf
+for page in reader:
+    text = page.get_text()  # get page from pdf
     page_texts.append(text)
-
     count = count + 1
     names.append(f"page_{count}")
 print(f"Converted {count} pages from pdf to text")
