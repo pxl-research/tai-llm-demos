@@ -21,8 +21,8 @@ def add_pdf_to_db(cdb_client, collection_name, file_name):
         ids=chunk_ids,
         metadatas=meta_infos
     )
-    duration = (time.time() - start_time) * 1000  # convert to ms
-    print(f"Added {len(chunk_ids)} chunks to chroma db ({round(duration)}ms)")
+    duration = (time.time() - start_time)  # convert to ms
+    print(f"Added {len(chunk_ids)} chunks to chroma db ({round(duration)} sec)")
 
 
 # cdb_client = chromadb.Client()  # in memory
