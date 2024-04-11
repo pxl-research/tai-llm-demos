@@ -3,38 +3,19 @@ from pprint import pprint
 
 import chromadb
 
-from pdf_utils import (pdf_to_text)
-
-
-def pdf_to_chunks(filename):
-    chunk_list = []
-    chunk_meta_list = []
-    chunk_id_list = []
-    page_nr = 0
-
-    page_list = pdf_to_text(filename)
-
-    for page_text in page_list:  # estimate about 4ms per page
-        page_nr = page_nr + 1  # count pages
-
-        chunks = page_text.split('.')
-        chunk_nr = 0
-        for chunk in chunks:
-            if len(chunk) > 5:  # no tiny chunks please
-                chunk_nr = chunk_nr + 1
-                chunk_list.append(chunk)
-                meta = {'page': page_nr, 'chunk': chunk_nr}
-                chunk_meta_list.append(meta)
-                chunk_id_list.append(f"p{page_nr}_c{chunk_nr}")
-        # TODO: add summary or other meta info
-    print(f"Converted {page_nr} pages from '{filename}' into {len(chunk_id_list)} chunks")
-    return chunk_list, chunk_id_list, chunk_meta_list
+from pdf_utils import (pdf_to_text, pages_to_chunks)
 
 
 def add_pdf_to_db(cdb_client, collection_name, file_name):
     start_time = time.time()  # estimate about 220ms per chunk
+
+    page_list = pdf_to_text(file_name)
+    print(f"Extracted {len(page_list)} pages from '{file_name}'")
+
+    chunks, chunk_ids, meta_infos = pages_to_chunks(page_list)
+    print(f"Split {len(page_list)} pages into {len(chunk_ids)} chunks")
+
     new_collection = cdb_client.create_collection(collection_name)
-    chunks, chunk_ids, meta_infos = pdf_to_chunks(file_name)
     new_collection.add(
         documents=chunks,
         ids=chunk_ids,
