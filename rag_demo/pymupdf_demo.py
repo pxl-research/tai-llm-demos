@@ -2,21 +2,22 @@ import time
 from pprint import pprint
 
 import chromadb
-import fitz
+
+from pdf_utils import (pdf_to_text)
 
 
-def convert_pdf(filename):
+def pdf_to_chunks(filename):
     chunk_list = []
     chunk_meta_list = []
     chunk_id_list = []
     page_nr = 0
 
-    reader = fitz.open(filename)
-    for page in reader:  # estimate about 4ms per page
-        page_nr = page_nr + 1  # count pages
-        text = page.get_text()  # convert page from pdf to text
+    page_list = pdf_to_text(filename)
 
-        chunks = text.split('.')
+    for page_text in page_list:  # estimate about 4ms per page
+        page_nr = page_nr + 1  # count pages
+
+        chunks = page_text.split('.')
         chunk_nr = 0
         for chunk in chunks:
             if len(chunk) > 5:  # no tiny chunks please
@@ -33,7 +34,7 @@ def convert_pdf(filename):
 def add_pdf_to_db(cdb_client, collection_name, file_name):
     start_time = time.time()  # estimate about 220ms per chunk
     new_collection = cdb_client.create_collection(collection_name)
-    chunks, chunk_ids, meta_infos = convert_pdf(file_name)
+    chunks, chunk_ids, meta_infos = pdf_to_chunks(file_name)
     new_collection.add(
         documents=chunks,
         ids=chunk_ids,
