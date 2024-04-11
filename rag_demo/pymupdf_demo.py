@@ -10,7 +10,7 @@ def convert_pdf(filename):
     count = 0
     reader = fitz.open(filename)
 
-    for page in reader:
+    for page in reader:  # estimate about 4ms per page
         text = page.get_text()  # convert page from pdf to text
         page_texts.append(text)
         count = count + 1
@@ -27,6 +27,7 @@ cdb_client = chromadb.Client()
 # cdb_client = chromadb.PersistentClient(path="store/")
 collection = cdb_client.create_collection("arbeidsreglenemnt")
 
+# estimate about 320ms per page (!)
 collection.add(
     documents=page_texts,
     ids=names
@@ -36,6 +37,7 @@ print(f"Added {len(names)} pages to chroma db")
 # perform a search on the vector database
 query = "Hoeveel uur per dag mag ik werken?"
 print(f"Query: '{query}'")
+# estimate about 200ms per query
 results = collection.query(
     query_texts=[query],
     n_results=3,
