@@ -161,3 +161,6 @@ cython_debug/
 
 logs/
 .passwd
+
+*/documents/
+*/store/
