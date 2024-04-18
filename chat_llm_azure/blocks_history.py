@@ -7,21 +7,15 @@ import gradio as gr
 dropdown_entries = []
 file_contents = {}
 default_folder = "logs/"
-log_folder = default_folder # TODO this is a bug, should be gr.State instead of global var
 
 
 def set_folder(request: gr.Request):
-    global log_folder
     user_folder = request.username.strip().lower()
     log_folder = f"{default_folder}{user_folder}/"
-    return None
-
-
-def get_folder():
     return log_folder
 
 
-def load_files():
+def load_files(log_folder):
     files = os.listdir(log_folder)
     files.sort(key=lambda f: os.path.getmtime(f"{log_folder}{f}"), reverse=True)
     entries = []
@@ -65,29 +59,9 @@ def file_selected(chosen_file):
     return chat_history
 
 
-def remove_file(chosen_file):
+def remove_file(chosen_file, log_folder):
     full_path = f"{log_folder}{chosen_file}"
     print(full_path)
     if os.path.exists(full_path):
         os.remove(full_path)
-    return load_files()
-
-
-with gr.Blocks(fill_height=True, title='Chat history') as history_ui:
-    log_box = gr.Chatbot(label='History', scale=1)
-
-    with gr.Group():
-        with gr.Row():
-            dd_files = gr.Dropdown(
-                dropdown_entries,
-                show_label=False,
-                info="Select a log file to view the details",
-                scale=10
-            )
-            btn_refresh = gr.Button('Reload', scale=0, min_width=64)
-            btn_remove = gr.ClearButton([log_box], scale=0, min_width=64)
-
-    btn_refresh.click(load_files, [], [dd_files])
-    dd_files.input(file_selected, [dd_files], [log_box])
-
-# history_ui.launch()
+    return load_files(log_folder)

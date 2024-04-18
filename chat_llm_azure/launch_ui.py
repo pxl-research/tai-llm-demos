@@ -46,7 +46,9 @@ css = """
 .danger {background: red;} 
 """
 
+# https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
+    log_folder = gr.State("logs/")
     # live client UI
     cb_live = gr.Chatbot(label='Chat', scale=1)
     with gr.Group() as gr_live:
@@ -59,9 +61,9 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
 
     # event handlers
     tb_user.submit(append_user, [tb_user, cb_live], [cb_live]
-                   ).then(append_ai, [tb_user, cb_live], [tb_user, cb_live, lbl_debug])
+                   ).then(append_ai, [tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
     btn_send.click(append_user, [tb_user, cb_live], [cb_live]
-                   ).then(append_ai, [tb_user, cb_live], [tb_user, cb_live, lbl_debug])
+                   ).then(append_ai, [tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
     btn_remove.click(clear_log, None, [tb_user, cb_live])
 
     # log viewer UI
@@ -80,8 +82,8 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
                                    elem_classes='danger')
 
     # event handlers
-    btn_refresh.click(load_files, [], [dd_files])
-    btn_remove.click(remove_file, [dd_files], [dd_files])
+    btn_refresh.click(load_files, [log_folder], [dd_files])
+    btn_remove.click(remove_file, [dd_files, log_folder], [dd_files])
     dd_files.input(file_selected, [dd_files], [cb_history])
 
     # toggle UI
@@ -92,7 +94,7 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
     # event handlers
     btn_live.click(show_live, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
     btn_history.click(show_history, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
-    llm_client_ui.load(set_folder, None, None)
+    llm_client_ui.load(set_folder, None, log_folder)
 
 # To create a public link, set `share=True` in `launch()`.
 llm_client_ui.launch(auth=auth_method, server_name='0.0.0.0')

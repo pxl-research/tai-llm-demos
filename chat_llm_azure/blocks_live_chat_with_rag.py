@@ -2,12 +2,10 @@ import json
 import os
 import time
 
-import gradio as gr
 import tiktoken
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-from blocks_history import (get_folder)
 from functions_rag import (
     lookup_in_company_docs,
     descriptor_lookup_in_company_docs
@@ -45,14 +43,13 @@ def clear_log():
     return ["", ""]
 
 
-def store_thread(a_thread):
+def store_thread(a_thread, log_folder):
     messages = client.beta.threads.messages.list(
         thread_id=a_thread.id,
         order="asc"
     )
     log_string = messages.model_dump_json(indent=2)
 
-    log_folder = get_folder()
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
@@ -95,7 +92,7 @@ def call_to_action(run):
     )
 
 
-def append_ai(message, chat_history):
+def append_ai(message, chat_history, log_folder):
     client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
@@ -135,7 +132,7 @@ def append_ai(message, chat_history):
     (token_count, cost_in_cents) = estimate_costs(chat_history)
     debug = f"Cost estimate for {token_count} tokens: {cost_in_cents:.2f} cents"
 
-    store_thread(thread)
+    store_thread(thread, log_folder)
     return "", chat_history, debug
 
 
@@ -155,25 +152,3 @@ def estimate_costs(chat_history):
     cost_responses = round(token_count_responses / 1000 * 3, 2)
 
     return (token_count_prompts + token_count_responses), (cost_prompts + cost_responses)
-
-
-# https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
-with gr.Blocks(fill_height=True, title='PXL CheapGPT') as llm_client_ui:
-    # UI composition
-    tb_log = gr.Chatbot(label='Chat', scale=1)
-    with gr.Group():
-        with gr.Row():
-            tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
-            btn_send = gr.Button('Send', scale=0, min_width=64)
-            btn_clear = gr.Button('Clear', scale=0, min_width=64)
-    with gr.Row():
-        lbl_debug = gr.HTML()
-
-    # event handlers
-    tb_user.submit(append_user, [tb_user, tb_log], [tb_log]
-                   ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log, lbl_debug])
-    btn_send.click(append_user, [tb_user, tb_log], [tb_log]
-                   ).then(append_ai, [tb_user, tb_log], [tb_user, tb_log, lbl_debug])
-    btn_clear.click(clear_log, None, [tb_user, tb_log])
-
-# llm_client_ui.launch()
