@@ -7,7 +7,7 @@ import gradio as gr
 dropdown_entries = []
 file_contents = {}
 default_folder = "logs/"
-log_folder = default_folder
+log_folder = default_folder # TODO this is a bug, should be gr.State instead of global var
 
 
 def set_folder(request: gr.Request):
