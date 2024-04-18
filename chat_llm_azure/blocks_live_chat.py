@@ -29,7 +29,7 @@ assistant = client.beta.assistants.create(
 def clear_log(thread):
     thread = client.beta.threads.create()
     # TODO: return thread?
-    return ["", ""]
+    return ["", "", thread]
 
 
 def store_thread(thread, log_folder):

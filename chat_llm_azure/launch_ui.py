@@ -75,7 +75,7 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
                    ).then(append_ai, [thread, tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
     btn_send.click(append_user, [tb_user, cb_live], [cb_live]
                    ).then(append_ai, [thread, tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
-    btn_remove.click(clear_log, [thread], [tb_user, cb_live])
+    btn_remove.click(clear_log, [thread], [tb_user, cb_live, thread])
 
     # log viewer UI
     cb_history = gr.Chatbot(label='History', scale=1, visible=False)
