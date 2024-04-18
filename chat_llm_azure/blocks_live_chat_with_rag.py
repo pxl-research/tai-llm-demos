@@ -1,9 +1,15 @@
+import json
 import os
 import time
 
 import tiktoken
 from dotenv import load_dotenv
 from openai import AzureOpenAI
+
+from functions_rag import (
+    lookup_in_company_docs,
+    descriptor_lookup_in_company_docs
+)
 
 load_dotenv()
 
@@ -17,24 +23,29 @@ general_instructions = ("Be concise, but precise as well."
                         "Always think step by step."
                         "Take a deep breath before responding.")
 
+tools = [{"type": "code_interpreter"}]
+tools.append(descriptor_lookup_in_company_docs)
+
 assistant = client.beta.assistants.create(
     name="Professional Assistant",
     description="You support a team of applied researchers operating in Western Europe.",
     instructions=general_instructions,
     model="gpt-4-1106-preview",
-    tools=[{"type": "code_interpreter"}],
+    tools=tools,
 )
 
+thread = client.beta.threads.create()
 
-def clear_log(thread):
+
+def clear_log():
+    global thread
     thread = client.beta.threads.create()
-    # TODO: return thread?
-    return ["", "", thread]
+    return ["", ""]
 
 
-def store_thread(thread, log_folder):
+def store_thread(a_thread, log_folder):
     messages = client.beta.threads.messages.list(
-        thread_id=thread.id,
+        thread_id=a_thread.id,
         order="asc"
     )
     log_string = messages.model_dump_json(indent=2)
@@ -42,7 +53,7 @@ def store_thread(thread, log_folder):
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
-    log_file = open(f"{log_folder}{thread.id}.json", "w")
+    log_file = open(f"{log_folder}{a_thread.id}.json", "w")
     log_file.write(log_string)
     log_file.close()
 
@@ -52,7 +63,36 @@ def append_user(message, chat_history):
     return chat_history
 
 
-def append_ai(thread, message, chat_history, log_folder):
+def call_to_action(run):
+    function_calls = run.required_action.submit_tool_outputs.tool_calls
+    function_results = {}
+    for function_call in function_calls:
+        function_name = function_call.function.name
+        print(f"Function name: {function_name}")
+
+        if function_name == "lookup_in_company_docs":
+            query = json.loads(function_call.function.arguments)["query"]
+            result = lookup_in_company_docs(query)
+            function_results[function_call.id] = result
+        else:
+            print(f"Unknown function name: {function_name}")
+
+    # submit function responses
+    outputs = []
+    for function_call in function_calls:
+        outputs.append({
+            "tool_call_id": function_call.id,
+            "output": json.dumps(function_results[function_call.id]),
+        })
+
+    client.beta.threads.runs.submit_tool_outputs(
+        thread_id=thread.id,
+        run_id=run.id,
+        tool_outputs=outputs,
+    )
+
+
+def append_ai(message, chat_history, log_folder):
     client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
@@ -72,6 +112,8 @@ def append_ai(thread, message, chat_history, log_folder):
         time_diff = round((time.time() - start_time), 1)
         status = run.status
         print(f"Elapsed time: {time_diff} seconds, Status: {status}")
+        if run.status == "requires_action":
+            call_to_action(run)
 
     messages = client.beta.threads.messages.list(
         thread_id=thread.id,
