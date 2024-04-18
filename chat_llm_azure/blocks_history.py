@@ -9,8 +9,7 @@ file_contents = {}
 default_folder = "logs/"
 
 
-def set_folder(request: gr.Request):
-    user_folder = request.username.strip().lower()
+def set_folder(user_folder):
     log_folder = f"{default_folder}{user_folder}/"
 
     if not os.path.exists(log_folder):

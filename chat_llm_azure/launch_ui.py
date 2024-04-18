@@ -12,7 +12,8 @@ from blocks_history import (
 from blocks_live_chat import (
     append_user,
     append_ai,
-    clear_log
+    clear_log,
+    client
 )
 
 
@@ -42,13 +43,23 @@ def show_history():
     }
 
 
+def on_login(request: gr.Request):
+    user_folder = request.username.strip().lower()
+    new_thread = client.beta.threads.create()
+    print(f"Created a thread with id: {new_thread.id} for user {user_folder}")
+    return [set_folder(user_folder), new_thread]
+
+
 css = """
 .danger {background: red;} 
 """
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
+    # state that is unique to each user
     log_folder = gr.State("logs/")
+    thread = gr.State()
+
     # live client UI
     cb_live = gr.Chatbot(label='Chat', scale=1)
     with gr.Group() as gr_live:
@@ -61,10 +72,10 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
 
     # event handlers
     tb_user.submit(append_user, [tb_user, cb_live], [cb_live]
-                   ).then(append_ai, [tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
+                   ).then(append_ai, [thread, tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
     btn_send.click(append_user, [tb_user, cb_live], [cb_live]
-                   ).then(append_ai, [tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
-    btn_remove.click(clear_log, None, [tb_user, cb_live])
+                   ).then(append_ai, [thread, tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
+    btn_remove.click(clear_log, [thread], [tb_user, cb_live])
 
     # log viewer UI
     cb_history = gr.Chatbot(label='History', scale=1, visible=False)
@@ -94,7 +105,7 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
     # event handlers
     btn_live.click(show_live, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
     btn_history.click(show_history, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
-    llm_client_ui.load(set_folder, None, log_folder)
+    llm_client_ui.load(on_login, None, [log_folder, thread])
 
 # To create a public link, set `share=True` in `launch()`.
 llm_client_ui.launch(auth=auth_method, server_name='0.0.0.0')

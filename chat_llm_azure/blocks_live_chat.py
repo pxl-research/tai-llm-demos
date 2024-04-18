@@ -25,18 +25,16 @@ assistant = client.beta.assistants.create(
     tools=[{"type": "code_interpreter"}],
 )
 
-thread = client.beta.threads.create()
 
-
-def clear_log():
-    global thread
+def clear_log(thread):
     thread = client.beta.threads.create()
+    # TODO: return thread?
     return ["", ""]
 
 
-def store_thread(a_thread, log_folder):
+def store_thread(thread, log_folder):
     messages = client.beta.threads.messages.list(
-        thread_id=a_thread.id,
+        thread_id=thread.id,
         order="asc"
     )
     log_string = messages.model_dump_json(indent=2)
@@ -44,7 +42,7 @@ def store_thread(a_thread, log_folder):
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
-    log_file = open(f"{log_folder}{a_thread.id}.json", "w")
+    log_file = open(f"{log_folder}{thread.id}.json", "w")
     log_file.write(log_string)
     log_file.close()
 
@@ -54,7 +52,7 @@ def append_user(message, chat_history):
     return chat_history
 
 
-def append_ai(message, chat_history, log_folder):
+def append_ai(thread, message, chat_history, log_folder):
     client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
