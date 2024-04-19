@@ -1,6 +1,6 @@
 import gradio as gr
 
-from auth import (
+from fn_auth import (
     auth_method
 )
 from blocks_history import (
