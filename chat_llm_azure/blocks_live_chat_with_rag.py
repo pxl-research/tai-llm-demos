@@ -34,18 +34,16 @@ assistant = client.beta.assistants.create(
     tools=tools,
 )
 
-thread = client.beta.threads.create()
 
-
-def clear_log():
-    global thread
+def clear_log(thread):
     thread = client.beta.threads.create()
-    return ["", ""]
+    # TODO: return thread?
+    return ["", "", thread]
 
 
-def store_thread(a_thread, log_folder):
+def store_thread(thread, log_folder):
     messages = client.beta.threads.messages.list(
-        thread_id=a_thread.id,
+        thread_id=thread.id,
         order="asc"
     )
     log_string = messages.model_dump_json(indent=2)
@@ -53,7 +51,7 @@ def store_thread(a_thread, log_folder):
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
-    log_file = open(f"{log_folder}{a_thread.id}.json", "w")
+    log_file = open(f"{log_folder}{thread.id}.json", "w")
     log_file.write(log_string)
     log_file.close()
 
@@ -63,7 +61,7 @@ def append_user(message, chat_history):
     return chat_history
 
 
-def call_to_action(run):
+def call_to_action(run, thread):
     function_calls = run.required_action.submit_tool_outputs.tool_calls
     function_results = {}
     for function_call in function_calls:
@@ -92,7 +90,7 @@ def call_to_action(run):
     )
 
 
-def append_ai(message, chat_history, log_folder):
+def append_ai(thread, message, chat_history, log_folder):
     client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
@@ -113,7 +111,7 @@ def append_ai(message, chat_history, log_folder):
         status = run.status
         print(f"Elapsed time: {time_diff} seconds, Status: {status}")
         if run.status == "requires_action":
-            call_to_action(run)
+            call_to_action(run, thread)
 
     messages = client.beta.threads.messages.list(
         thread_id=thread.id,
