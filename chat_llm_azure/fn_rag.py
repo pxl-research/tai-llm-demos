@@ -8,8 +8,9 @@ descriptor_lookup_in_company_docs = {
     "function": {
         "name": "lookup_in_company_docs",
         "description": "Get snippets from documentation of company procedures. Use this as a search engine and put in natural language questions or statements as search queries. "
-                       "The method will return an array of JSON objects, containing a 'documents' part with the associated text, and a 'metadatas' object with some info about the text chunks (e.g. page number). "
-                       "Please always include the page number when referencing this documentation.",
+                       "The method will return an array of JSON objects, containing a 'documents' part with the associated text, "
+                       "and a 'metadatas' object with some info about the text chunks: document name, page number, and section (chunk) number. "
+                       "Please always include the document name and page number when referencing this documentation.",
         "parameters": {
             "type": "object",
             "properties": {
