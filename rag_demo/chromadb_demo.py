@@ -26,28 +26,40 @@ def add_pdf_to_db(cdb_client, collection_name, file_path):
     print(f"Added {len(chunk_ids)} chunks to chroma db ({round(duration)} sec)")
 
 
+def query_all_documents(cdb_client, queries):
+    collections = cdb_client.list_collections()
+    all_results = []
+    for collection in collections:
+        print(f"Looking up in '{collection.name}'")
+        cdb_client.get_collection(collection.name)
+        results = collection.query(
+            query_texts=queries,
+            n_results=3,
+        )
+        all_results.append(results)
+
+    return all_results
+
+
 # cdb_client = chromadb.Client()  # in memory
 cdb_client = chromadb.PersistentClient(path="store/")  # on disk
-collection_name = "arbeidsregelement"
 
-# add_pdf_to_db(cdb_client, collection_name, "documents/ArbeidsreglementV8.pdf")
+# add_pdf_to_db(cdb_client, "focusproject", "documents/focusproject.pdf")
+# add_pdf_to_db(cdb_client, "dienstverlening", "documents/dienstverlening.pdf")
+# add_pdf_to_db(cdb_client, "speerpuntprojecten", "documents/speerpuntprojecten.pdf")
+# add_pdf_to_db(cdb_client, "onderwijsinnovatiefonds", "documents/onderwijsinnovatiefonds.pdf")
+# add_pdf_to_db(cdb_client, "arbeidsregelement", "documents/arbeidsreglement.pdf")
 
 # perform a search on the vector database
-queries = ["Hoeveel uur per dag mag ik werken?",
+queries = ["Wat is een focusproject precies?",
            "Wat is de prijs van 1kg aardappelen?",
-           "Een telefoonnummer?"]
-pprint(queries)  # estimate about 200ms per query
+           "Hoeveel uur mag ik werken per dag?"]
+pprint(queries)
 
-collection = cdb_client.get_collection(collection_name)
-results = collection.query(
-    query_texts=queries,
-    n_results=5,
-)
+results = query_all_documents(cdb_client, queries)
+pprint(results)
 
-pprint(results['distances'])
-pprint(results['ids'])
-
-first_ids = []
-for ids in results['ids']:
-    print(ids[0])
-    pprint(collection.get(ids=[ids[0]]))
+# for result in results:
+#     pprint(result['distances'])
+#     pprint(result['metadatas'])
+#     print('------------------')
