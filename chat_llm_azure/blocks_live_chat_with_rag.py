@@ -6,7 +6,7 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-from functions_rag import (
+from fn_rag import (
     lookup_in_company_docs,
     descriptor_lookup_in_company_docs
 )
