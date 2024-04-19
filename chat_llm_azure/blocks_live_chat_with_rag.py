@@ -105,7 +105,7 @@ def append_ai(thread, message, chat_history, log_folder):
     start_time = time.time()
     status = run.status
     while status not in ["completed", "cancelled", "expired", "failed"]:
-        time.sleep(0.25)
+        time.sleep(0.33)
         run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
         time_diff = round((time.time() - start_time), 1)
         status = run.status

@@ -9,7 +9,7 @@ from blocks_history import (
     set_folder,
     remove_file
 )
-from blocks_live_chat import (
+from blocks_live_chat_with_rag import (
     append_user,
     append_ai,
     clear_log,
