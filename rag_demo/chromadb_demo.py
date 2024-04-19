@@ -6,15 +6,16 @@ import chromadb
 from pdf_utils import (pdf_to_text, pages_to_chunks)
 
 
-def add_pdf_to_db(cdb_client, collection_name, file_name):
+def add_pdf_to_db(cdb_client, collection_name, file_path):
     start_time = time.time()  # estimate about 220ms per chunk
 
-    page_list = pdf_to_text(file_name)
-    print(f"Extracted {len(page_list)} pages from '{file_name}'")
+    page_list = pdf_to_text(file_path)
+    print(f"Extracted {len(page_list)} pages from '{file_path}'")
 
-    chunks, chunk_ids, meta_infos = pages_to_chunks(page_list)
+    chunks, chunk_ids, meta_infos = pages_to_chunks(page_list, collection_name)
     print(f"Split {len(page_list)} pages into {len(chunk_ids)} chunks")
 
+    # https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections
     new_collection = cdb_client.create_collection(collection_name)
     new_collection.add(
         documents=chunks,
@@ -33,8 +34,8 @@ collection_name = "arbeidsregelement"
 
 # perform a search on the vector database
 queries = ["Hoeveel uur per dag mag ik werken?",
-           "Wat is de prijs van 1kg aardappelen",
-           "Wat is een Toezichthoudend personeelslid?"]
+           "Wat is de prijs van 1kg aardappelen?",
+           "Een telefoonnummer?"]
 pprint(queries)  # estimate about 200ms per query
 
 collection = cdb_client.get_collection(collection_name)
