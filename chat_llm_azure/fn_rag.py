@@ -1,5 +1,7 @@
 import chromadb
 
+from rag_demo.fn_chromadb import query_all_documents
+
 cdb_client = chromadb.PersistentClient(path="../rag_demo/store/")  # on disk
 
 descriptor_lookup_in_company_docs = {
@@ -25,15 +27,5 @@ descriptor_lookup_in_company_docs = {
 
 def lookup_in_company_docs(query):
     print(f"Searching in company docs: '{query}'")
-    collections = cdb_client.list_collections()
-    all_results = []
-    for collection in collections:
-        print(f"Looking up in '{collection.name}'")
-        cdb_client.get_collection(collection.name)
-        results = collection.query(
-            query_texts=[query],
-            n_results=3,
-        )
-        all_results.append(results)
-    # TODO: grab surrounding chunks
-    return all_results
+    results = query_all_documents(cdb_client, query)
+    return results[:5]
