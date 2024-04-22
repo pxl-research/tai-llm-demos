@@ -1,5 +1,5 @@
+import json
 import time
-from pprint import pprint
 
 import chromadb
 
@@ -26,19 +26,38 @@ def add_pdf_to_db(cdb_client, collection_name, file_path):
     print(f"Added {len(chunk_ids)} chunks to chroma db ({round(duration)} sec)")
 
 
-def query_all_documents(cdb_client, queries):
+def query_all_documents(cdb_client, query):
     collections = cdb_client.list_collections()
     all_results = []
     for collection in collections:
         print(f"Looking up in '{collection.name}'")
         cdb_client.get_collection(collection.name)
-        results = collection.query(
-            query_texts=queries,
-            n_results=3,
+        result = collection.query(
+            query_texts=[query],
+            n_results=5,
         )
-        all_results.append(results)
+        repacked = repack_results(result)
+        all_results = all_results + repacked
 
-    return all_results
+    # sort results by distance
+    return sorted(all_results, key=lambda r: r['distances'])
+
+
+def repack_results(result):
+    fields = ['distances', 'metadatas', 'embeddings', 'documents', 'uris', 'data']
+    length = len(result['ids'][0])  # ids are always returned
+    repacked = []
+    for r in range(length):
+        repacked_result = {'ids': result['ids'][0][r]}
+        for field in fields:
+            if result[field] is not None:
+                repacked_result[field] = result[field][0][r]
+        repacked.append(repacked_result)
+    return repacked
+
+
+def pretty_print(json_obj):
+    print(json.dumps(json_obj, indent=2))
 
 
 # cdb_client = chromadb.Client()  # in memory
@@ -51,15 +70,10 @@ cdb_client = chromadb.PersistentClient(path="store/")  # on disk
 # add_pdf_to_db(cdb_client, "arbeidsregelement", "documents/arbeidsreglement.pdf")
 
 # perform a search on the vector database
-queries = ["Wat is een focusproject precies?",
-           "Wat is de prijs van 1kg aardappelen?",
-           "Hoeveel uur mag ik werken per dag?"]
-pprint(queries)
+# query = "Wat is een focusproject precies?"
+# query = "Wat is de prijs van 1kg aardappelen?"
+query = "Hoeveel uur mag ik werken per dag?"
 
-results = query_all_documents(cdb_client, queries)
-pprint(results)
-
-# for result in results:
-#     pprint(result['distances'])
-#     pprint(result['metadatas'])
-#     print('------------------')
+print(query)
+results = query_all_documents(cdb_client, query)
+pretty_print(results[:5])
