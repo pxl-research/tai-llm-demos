@@ -13,31 +13,60 @@ def pdf_to_text(filename):
     return page_list
 
 
+def bigger_chunks(chunk_list, MIN_SIZE):
+    bigger_chunk_list = []
+
+    current_chunk = ''
+    for chunk in chunk_list:
+        chunk = chunk.strip()
+        if len(current_chunk) < MIN_SIZE:  # too small
+            current_chunk = f"{current_chunk}.\n{chunk}"  # stick together
+        else:  # big enough
+            bigger_chunk_list.append(current_chunk)  # add to list
+            current_chunk = chunk  # start with next chunk
+
+    bigger_chunk_list.append(current_chunk)  # append last chunk
+
+    return bigger_chunk_list
+
+
 def pages_to_chunks(page_list, document_name):
+    # https://www.llamaindex.ai/blog/evaluating-the-ideal-chunk-size-for-a-rag-system-using-llamaindex-6207e5d3fec5
+    MIN_SIZE = 384
+
     chunk_list = []
-    chunk_meta_list = []
     chunk_id_list = []
+    chunk_meta_list = []
+
     page_nr = 0
     total_chunk_nr = 0
 
     for page_text in page_list:  # estimate about 4ms per page
         page_nr = page_nr + 1  # count pages
 
-        chunks = re.split(r'\.\s', page_text)  # split phrases on period + whitespace
+        chunks = [page_text]
+        if len(page_text) > MIN_SIZE:  # do not split pages smaller than MIN_SIZE
+            small_chunks = re.split(r'\.\s', page_text)  # split phrases on period + whitespace
+            chunks = bigger_chunks(small_chunks, MIN_SIZE)
+
         page_chunk_nr = 0
         for chunk in chunks:
-            if len(chunk) > 5:  # no tiny chunks please TODO append tiny chunks to following chunk
-                page_chunk_nr = page_chunk_nr + 1  # count chunks per page
-                total_chunk_nr = total_chunk_nr + 1  # count total chunks
+            page_chunk_nr = page_chunk_nr + 1  # count chunks per page
+            total_chunk_nr = total_chunk_nr + 1  # count total chunks
 
-                chunk_list.append(chunk)
-                chunk_id_list.append(f"{total_chunk_nr}")
-                meta = {'doc': document_name,
-                        'page': page_nr,
-                        'chunk': page_chunk_nr,
-                        'len': len(chunk),
-                        'nr': total_chunk_nr}
-                chunk_meta_list.append(meta)
-                # TODO: add summary or other meta info to chunk?
+            chunk_list.append(chunk)
+            chunk_id_list.append(f"{total_chunk_nr}")
+            meta = {'doc': document_name,
+                    'page': page_nr,
+                    'chunk': page_chunk_nr,
+                    'len': len(chunk),
+                    'nr': total_chunk_nr}
+            chunk_meta_list.append(meta)
+            # TODO: add summary or other meta info to chunk?
 
     return chunk_list, chunk_id_list, chunk_meta_list
+
+
+# pages = pdf_to_text("documents/arbeidsreglement.pdf")
+# chunk_list, chunk_id_list, chunk_meta_list = pages_to_chunks(pages, "arbeidsreglement")
+# print(len(chunk_meta_list))
