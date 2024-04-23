@@ -2,7 +2,7 @@ import json
 
 import chromadb
 
-from fn_chromadb import query_all_documents
+from fn_chromadb import query_all_documents, add_pdf_to_db
 
 
 def pretty_print(json_obj):
@@ -12,6 +12,7 @@ def pretty_print(json_obj):
 # cdb_client = chromadb.Client()  # in memory
 cdb_client = chromadb.PersistentClient(path="store/")  # on disk
 
+# NOTE: adding files can now be done with gradio UI
 # add_pdf_to_db(cdb_client, "focusproject", "documents/focusproject.pdf")
 # add_pdf_to_db(cdb_client, "dienstverlening", "documents/dienstverlening.pdf")
 # add_pdf_to_db(cdb_client, "speerpuntprojecten", "documents/speerpuntprojecten.pdf")
