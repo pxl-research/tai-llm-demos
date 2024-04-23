@@ -11,10 +11,10 @@ pinned: true
 # TransformAI LLM Chat
 
 ## What's in this repository?
-This repository contains two "chatbot" examples using the Azure OpenAI as LLM under the hood:
+This repository contains some "chatbot" and related examples using the _Azure OpenAI_ as the LLM under the hood:
 - `chat_demo` a basic chat app using the "Completions API"
 - `chat_llm_azure` a chat app using the "Assistant API", including a chat history viewer
-- `rag_demo` tools and utilities to implement RAG using ChromaDB
+- `rag_demo` tools and utilities to showcase RAG using ChromaDB
 - `slack_demo` demo code for a Slack bot (with LLM integration)
 
 ## Configuration
@@ -30,7 +30,7 @@ It will print out a **URL** to the console.
 The default URL is http://127.0.0.1:7860, which is running local only. 
 To create a publicly accessible link, set `share=True` in the Gradio `launch()` call.
 
-Surf to the generated address in your browser to use the (Gradio) web UI
+Surf to the generated address in your browser to use the Gradio web UI
 
 ## Screenshots
 
