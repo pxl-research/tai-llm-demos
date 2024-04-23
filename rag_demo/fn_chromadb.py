@@ -1,9 +1,11 @@
 import time
 
+import gradio as gr
+
 from rag_demo.pdf_utils import (pdf_to_text, pages_to_chunks)
 
 
-def add_pdf_to_db(cdb_client, collection_name, file_path):
+def add_pdf_to_db(cdb_client, collection_name, file_path, progress=gr.Progress()):
     start_time = time.time()  # estimate about 220ms per chunk
 
     page_list = pdf_to_text(file_path)
@@ -13,12 +15,15 @@ def add_pdf_to_db(cdb_client, collection_name, file_path):
     print(f"Split {len(page_list)} pages into {len(chunk_ids)} chunks")
 
     # https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections
-    new_collection = cdb_client.create_collection(collection_name)
-    new_collection.add(
-        documents=chunks,
-        ids=chunk_ids,
-        metadatas=meta_infos
-    )
+    cdb_collection = cdb_client.create_collection(collection_name)
+    total = len(chunks)
+    for c in range(total):
+        cdb_collection.add(
+            documents=chunks[c],
+            ids=chunk_ids[c],
+            metadatas=meta_infos[c]
+        )
+        progress((1 + c, total))
     duration = (time.time() - start_time)  # convert to ms
     print(f"Added {len(chunk_ids)} chunks to chroma db ({round(duration)} sec)")
 
