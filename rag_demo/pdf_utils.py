@@ -35,7 +35,8 @@ def pages_to_chunks(page_list, document_name):
                 meta = {'doc': document_name,
                         'page': page_nr,
                         'chunk': page_chunk_nr,
-                        'pos': total_chunk_nr}
+                        'len': len(chunk),
+                        'nr': total_chunk_nr}
                 chunk_meta_list.append(meta)
                 # TODO: add summary or other meta info to chunk?
 

@@ -1,4 +1,3 @@
-import json
 import os
 
 import chromadb
@@ -8,10 +7,6 @@ from fn_chromadb import add_pdf_to_db
 
 # cdb_client = chromadb.Client()  # in memory
 cdb_client = chromadb.PersistentClient(path="store/")  # on disk
-
-
-def pretty_print(json_obj):
-    print(json.dumps(json_obj, indent=2))
 
 
 # https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections
