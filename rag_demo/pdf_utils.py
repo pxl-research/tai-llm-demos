@@ -13,13 +13,13 @@ def pdf_to_text(filename):
     return page_list
 
 
-def bigger_chunks(chunk_list, MIN_SIZE):
+def bigger_chunks(chunk_list, min_size):
     bigger_chunk_list = []
 
     current_chunk = ''
     for chunk in chunk_list:
         chunk = chunk.strip()
-        if len(current_chunk) < MIN_SIZE:  # too small
+        if len(current_chunk) < min_size:  # too small
             current_chunk = f"{current_chunk}.\n{chunk}"  # stick together
         else:  # big enough
             bigger_chunk_list.append(current_chunk)  # add to list
@@ -32,7 +32,7 @@ def bigger_chunks(chunk_list, MIN_SIZE):
 
 def pages_to_chunks(page_list, document_name):
     # https://www.llamaindex.ai/blog/evaluating-the-ideal-chunk-size-for-a-rag-system-using-llamaindex-6207e5d3fec5
-    MIN_SIZE = 384
+    min_size = 384
 
     chunk_list = []
     chunk_id_list = []
@@ -45,9 +45,9 @@ def pages_to_chunks(page_list, document_name):
         page_nr = page_nr + 1  # count pages
 
         chunks = [page_text]
-        if len(page_text) > MIN_SIZE:  # do not split pages smaller than MIN_SIZE
+        if len(page_text) > min_size:  # do not split pages smaller than min_size
             small_chunks = re.split(r'\.\s', page_text)  # split phrases on period + whitespace
-            chunks = bigger_chunks(small_chunks, MIN_SIZE)
+            chunks = bigger_chunks(small_chunks, min_size)
 
         page_chunk_nr = 0
         for chunk in chunks:
