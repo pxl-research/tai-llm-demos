@@ -9,10 +9,8 @@ def add_pdf_to_db(cdb_client, collection_name, file_path, progress=gr.Progress()
     start_time = time.time()  # estimate about 220ms per chunk
 
     page_list = pdf_to_text(file_path)
-    print(f"Extracted {len(page_list)} pages from '{file_path}'")
-
     chunks, chunk_ids, meta_infos = pages_to_chunks(page_list, collection_name)
-    print(f"Split {len(page_list)} pages into {len(chunk_ids)} chunks")
+    print(f"Split {len(page_list)} pages into {len(chunk_ids)} chunks for '{collection_name}'")
 
     # https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections
     cdb_collection = cdb_client.create_collection(collection_name)

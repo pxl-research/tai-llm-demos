@@ -25,9 +25,7 @@ def cleanup_filename(full_file_path):
 
 def on_file_uploaded(file_path, progress=gr.Progress()):
     collection_name = cleanup_filename(file_path)
-    print(collection_name)
-    add_pdf_to_db(cdb_client, cleanup_filename(file_path), file_path, progress)
-
+    add_pdf_to_db(cdb_client, collection_name, file_path, progress)
     names = list_collections()
     return [None, names]
 
@@ -37,7 +35,6 @@ def list_collections():
     names = []
     for collection in collections_list:
         names.append([collection.name])
-
     return names
 
 
