@@ -23,8 +23,10 @@ general_instructions = ("Be concise, but precise as well."
                         "Always think step by step."
                         "Take a deep breath before responding.")
 
-tools = [{"type": "code_interpreter"}]
-tools.append(descriptor_lookup_in_company_docs)
+tools = [
+    {"type": "code_interpreter"},
+    descriptor_lookup_in_company_docs
+]
 
 assistant = client.beta.assistants.create(
     name="Professional Assistant",
@@ -37,7 +39,6 @@ assistant = client.beta.assistants.create(
 
 def clear_log(thread):
     thread = client.beta.threads.create()
-    # TODO: return thread?
     return ["", "", thread]
 
 
