@@ -1,4 +1,8 @@
+import sys
+
 import chromadb
+
+sys.path.append('../')
 
 from rag_demo.fn_chromadb import query_all_documents
 
