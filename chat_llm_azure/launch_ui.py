@@ -3,13 +3,13 @@ import gradio as gr
 from fn_auth import (
     auth_method
 )
-from blocks_history import (
+from blocks_view_history import (
     load_files,
     file_selected,
     set_folder,
     remove_file
 )
-from blocks_live_chat_with_rag import (
+from blocks_llm_chat_with_rag import (
     append_user,
     append_ai,
     clear_log,
