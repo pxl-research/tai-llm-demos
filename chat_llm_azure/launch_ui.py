@@ -1,7 +1,10 @@
 import gradio as gr
 
-from fn_auth import (
-    auth_method
+from blocks_llm_chat_with_rag import (
+    append_user,
+    append_ai,
+    clear_log,
+    client
 )
 from blocks_view_history import (
     load_files,
@@ -9,11 +12,8 @@ from blocks_view_history import (
     set_folder,
     remove_file
 )
-from blocks_llm_chat_with_rag import (
-    append_user,
-    append_ai,
-    clear_log,
-    client
+from fn_auth import (
+    auth_method
 )
 
 
@@ -55,7 +55,7 @@ css = """
 """
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
-with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
+with (gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui):
     # state that is unique to each user
     log_folder = gr.State("logs/")
     thread = gr.State()
@@ -70,12 +70,14 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
     with gr.Row() as row_live:
         lbl_debug = gr.HTML()
 
-    # event handlers
-    tb_user.submit(append_user, [tb_user, cb_live], [cb_live]
-                   ).then(append_ai, [thread, tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
-    btn_send.click(append_user, [tb_user, cb_live], [cb_live]
-                   ).then(append_ai, [thread, tb_user, cb_live, log_folder], [tb_user, cb_live, lbl_debug])
-    btn_remove.click(clear_log, [thread], [tb_user, cb_live, thread])
+        # event handlers
+        tb_user.submit(append_user, [tb_user, cb_live], [cb_live]
+                       ).then(append_ai, [thread, tb_user, cb_live, log_folder],
+                              [tb_user, cb_live, lbl_debug])
+        btn_send.click(append_user, [tb_user, cb_live], [cb_live]
+                       ).then(append_ai, [thread, tb_user, cb_live, log_folder],
+                              [tb_user, cb_live, lbl_debug])
+        btn_remove.click(clear_log, [thread], [tb_user, cb_live, thread])
 
     # log viewer UI
     cb_history = gr.Chatbot(label='History', scale=1, visible=False)
@@ -92,19 +94,21 @@ with gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui:
             btn_remove = gr.Button(value='', scale=0, min_width=64, icon='../assets/icons/disposal.png',
                                    elem_classes='danger')
 
-    # event handlers
-    btn_refresh.click(load_files, [log_folder], [dd_files])
-    btn_remove.click(remove_file, [dd_files, log_folder], [dd_files])
-    dd_files.input(file_selected, [dd_files], [cb_history])
+        # event handlers
+        btn_refresh.click(load_files, [log_folder], [dd_files])
+        btn_remove.click(remove_file, [dd_files, log_folder], [dd_files])
+        dd_files.input(file_selected, [dd_files], [cb_history])
 
     # toggle UI
     with gr.Row():
         btn_live = gr.Button('Chat', icon='../assets/icons/chat.png', interactive=False)
         btn_history = gr.Button('History', icon='../assets/icons/history.png')
 
-    # event handlers
-    btn_live.click(show_live, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
-    btn_history.click(show_history, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
+        # event handlers
+        btn_live.click(show_live, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
+        btn_history.click(show_history, [], [cb_live, gr_live, row_live, cb_history, gr_history, btn_live, btn_history])
+
+    # global event
     llm_client_ui.load(on_login, None, [log_folder, thread])
 
 # To create a public link, set `share=True` in `launch()`.
