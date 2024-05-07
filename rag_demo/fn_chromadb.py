@@ -5,7 +5,10 @@ import gradio as gr
 
 sys.path.append('../')
 
-from rag_demo.pdf_utils import (pdf_to_text, pages_to_chunks)
+from rag_demo.pdf_utils import (
+    pdf_to_text,
+    pages_to_chunks
+)
 
 
 def add_pdf_to_db(cdb_client, collection_name, file_path, progress=gr.Progress()):
