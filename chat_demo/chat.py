@@ -42,7 +42,7 @@ def predict(message, history):
     if cost_in_cents > 0:
         print(f"Cost estimate: {cost_in_cents} cents")
 
-    response_stream = client.chat.completions.create(model='gpt-4-1106-preview',
+    response_stream = client.chat.completions.create(model='gpt-4-turbo-04-09',
                                                      messages=history_openai_format,
                                                      temperature=1.0,
                                                      stream=True)
@@ -54,4 +54,4 @@ def predict(message, history):
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
-gr.ChatInterface(predict).launch()
+gr.ChatInterface(predict).launch(server_name='0.0.0.0')

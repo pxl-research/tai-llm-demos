@@ -1,12 +1,17 @@
+import os
 import sys
 
 import chromadb
 
 sys.path.append('../')
 
+from dotenv import load_dotenv
 from rag_demo.fn_chromadb import query_all_documents
 
-cdb_client = chromadb.PersistentClient(path="../rag_demo/store/")  # on disk
+load_dotenv()
+
+cdb_path = os.getenv("CHROMA_LOCATION")
+cdb_client = chromadb.PersistentClient(path=cdb_path)  # on disk
 
 descriptor_lookup_in_company_docs = {
     "type": "function",
