@@ -11,9 +11,9 @@ from rag_demo.fn_chromadb import add_pdf_to_db
 
 load_dotenv()
 
-cdb_client = chromadb.Client()  # in memory
+# cdb_client = chromadb.Client()  # in memory
 cdb_path = os.getenv("CHROMA_LOCATION")
-# cdb_client = chromadb.PersistentClient(path=cdb_path)  # on disk
+cdb_client = chromadb.PersistentClient(path=cdb_path)  # on disk
 
 
 # https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections
