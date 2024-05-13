@@ -42,7 +42,7 @@ def predict(message, history):
     history_openai_format.append({"role": "user", "content": message})
 
     # call the language model
-    response_stream = client.chat.completions.create(model='anthropic/claude-3-haiku',
+    response_stream = client.chat.completions.create(model='anthropic/claude-3-sonnet',
                                                      messages=history_openai_format,
                                                      extra_headers={
                                                          "HTTP-Referer": "PXL University College",
@@ -59,13 +59,13 @@ def predict(message, history):
     history_openai_format.append({"role": "assistant", "content": partial_message})
     store_history(history_openai_format, 'logs/')
 
-    # cost estimate (based on GPT-4 pricing)
+    # cost estimate
+    rate = 66700  # in tokens per dollar
     tokeniser = tiktoken.encoding_for_model("gpt-4")
     hist_string = json.dumps(history_openai_format)
     hist_len = len(tokeniser.encode(hist_string))
-    cost_in_cents = round(hist_len / 1000 * 3, ndigits=1)
-    if cost_in_cents > 0:
-        print(f"Cost estimate: {cost_in_cents} cents for history of {hist_len} tokens")
+    cost_in_cents = round(hist_len / rate, ndigits=2)
+    print(f"Cost estimate: {cost_in_cents} cents for history of {hist_len} tokens")
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
