@@ -32,7 +32,7 @@ def handle_command(ack, say, command):
     history_openai_format = [system_instruction]
     history_openai_format.append({"role": "user", "content": command['text']})
 
-    response = client.chat.completions.create(model='gpt-4-1106-preview',
+    response = client.chat.completions.create(model='gpt-4-turbo-04-09',
                                               messages=history_openai_format,
                                               temperature=1.0)
     response_text = response.choices[0].message.content
