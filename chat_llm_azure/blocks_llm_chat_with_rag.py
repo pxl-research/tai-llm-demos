@@ -32,7 +32,7 @@ assistant = client.beta.assistants.create(
     name="Professional Assistant",
     description="You support a team of applied researchers operating in Western Europe.",
     instructions=general_instructions,
-    model="gpt-4-1106-preview",
+    model="gpt-4-turbo-04-09",
     tools=tools,
 )
 
