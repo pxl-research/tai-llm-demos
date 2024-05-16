@@ -46,7 +46,7 @@ def predict(message, history):
     history_openai_format.append({"role": "user", "content": message})
 
     # call the language model
-    response_stream = client.chat.completions.create(model='anthropic/claude-3-sonnet',
+    response_stream = client.chat.completions.create(model='openai/gpt-4o',
                                                      messages=history_openai_format,
                                                      extra_headers={
                                                          "HTTP-Referer": "PXL University College",
