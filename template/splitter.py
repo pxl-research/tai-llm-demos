@@ -7,7 +7,7 @@ class Splitter(ABC):
     """
 
     @abstractmethod
-    def split(self, doc: str):
+    def split(self, doc: str) -> list:
         """
         Abstract method to split a text document into chunks.
         """

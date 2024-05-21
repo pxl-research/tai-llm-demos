@@ -3,12 +3,12 @@ from abc import abstractmethod, ABC
 
 class DocumentLoader(ABC):
     """
-    Abstract base class for a retriever.
+    Abstract base class for a document loader.
     """
 
     @abstractmethod
-    def load_document(self, file_path: str):
+    def load_document(self, file_path: str) -> str:
         """
-        Abstract method to retrieve chunks from a vector store.
+        Abstract method to convert a document to a string with markdown.
         """
         pass
