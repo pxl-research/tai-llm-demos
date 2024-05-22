@@ -1,3 +1,4 @@
+import os
 from abc import abstractmethod, ABC
 
 
@@ -13,12 +14,10 @@ class VectorStore(ABC):
         """
         pass
 
-    @abstractmethod
-    def add_folder(self, file_path: str):
-        """
-        Abstract method to add a folder to the vector store.
-        """
-        pass
+    def add_folder(self, folder_path: str):
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                self.add_document(os.path.join(root, file))
 
     @abstractmethod
     def delete_document(self, doc_title: str):
