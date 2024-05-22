@@ -3,11 +3,8 @@ from abc import ABC, abstractmethod
 
 class EmbeddingsManager(ABC):
     """
-    Abstract base class for an embeddings manager.
+    Abstract base class for an embedding manager.
     """
-
-    def __init__(self):
-        self.embeddings = None
 
     @abstractmethod
     def get_embeddings(self):

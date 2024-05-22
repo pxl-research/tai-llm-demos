@@ -7,7 +7,7 @@ class Retriever(ABC):
     """
 
     @abstractmethod
-    def retrieve_chunks(self, question: str, n_chunks: int):
+    def retrieve_chunks(self, question: str, n_chunks: int = 5) -> list:
         """
         Abstract method to retrieve chunks from a vector store.
         """

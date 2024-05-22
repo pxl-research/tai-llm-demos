@@ -7,7 +7,7 @@ class DocumentLoader(ABC):
     """
 
     @abstractmethod
-    def load_document(self, file_path: str) -> str:
+    def convert_to_markdown(self, file_path: str) -> str:
         """
         Abstract method to convert a document to a string with markdown.
         """
