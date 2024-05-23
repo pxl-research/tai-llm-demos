@@ -1,6 +1,6 @@
 import re
 
-from templated.templates.textsplitter import TextSplitter
+from class_based.superclasses.textsplitter import TextSplitter
 
 
 class BasicTextSplitter(TextSplitter):

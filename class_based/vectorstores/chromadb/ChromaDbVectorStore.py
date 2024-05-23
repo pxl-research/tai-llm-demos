@@ -2,11 +2,11 @@ import time
 
 import chromadb
 
-from templated.templates.document_converter import DocumentConverter
-from templated.templates.retriever import Retriever
-from templated.templates.textsplitter import TextSplitter
-from templated.templates.vectorstore import VectorStore
-from templated.vectorstores.chromadb.utils import repack_results, cleanup_filename
+from class_based.superclasses.document_converter import DocumentConverter
+from class_based.superclasses.retriever import Retriever
+from class_based.superclasses.textsplitter import TextSplitter
+from class_based.superclasses.vectorstore import VectorStore
+from class_based.vectorstores.chromadb.utils import repack_results, cleanup_filename
 
 
 class ChromaDbVectorStore(VectorStore, Retriever):

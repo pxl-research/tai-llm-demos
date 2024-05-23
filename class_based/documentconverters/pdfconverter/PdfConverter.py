@@ -1,6 +1,6 @@
 import fitz
 
-from templated.templates.document_converter import DocumentConverter
+from class_based.superclasses.document_converter import DocumentConverter
 
 
 class PdfConferter(DocumentConverter):
