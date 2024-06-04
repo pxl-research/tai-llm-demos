@@ -50,7 +50,7 @@ def predict(message, history):
                                                      messages=history_openai_format,
                                                      extra_headers={
                                                          "HTTP-Referer": "PXL University College",
-                                                         "X-Title": "chat_demo.py"
+                                                         "X-Title": "basic_chat.py"
                                                      },
                                                      stream=True)
     partial_message = ""

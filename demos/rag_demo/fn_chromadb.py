@@ -3,9 +3,9 @@ import time
 
 import gradio as gr
 
-sys.path.append('../')
+sys.path.append('../../')
 
-from rag_demo.pdf_utils import (
+from demos.rag_demo.fn_pdf_utils import (
     pdf_to_text,
     pages_to_chunks
 )
