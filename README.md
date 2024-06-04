@@ -4,7 +4,7 @@ emoji: 💬
 colorFrom: blue
 colorTo: red
 sdk: gradio
-app_file: chat_llm_azure/launch_ui.py
+app_file: chat_with_rag/launch_ui.py
 pinned: true
 ---
 
