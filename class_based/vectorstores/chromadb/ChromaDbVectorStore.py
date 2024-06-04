@@ -14,8 +14,8 @@ class ChromaDbVectorStore(VectorStore, Retriever):
     def __init__(self,
                  document_converter: DocumentConverter,
                  textsplitter: TextSplitter):
-        self.cdb_client = chromadb.Client()  # in memory
-        # self.cdb_client = chromadb.PersistentClient(path="store/")  # on disk
+        # self.cdb_client = chromadb.Client()  # in memory
+        self.cdb_client = chromadb.PersistentClient(path="store/")  # on disk
 
         self.document_converter = document_converter
         self.textsplitter = textsplitter
