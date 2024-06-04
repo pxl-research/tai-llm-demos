@@ -4,8 +4,10 @@
 This repository contains some "chatbot" and related examples using the _Azure OpenAI_ as the LLM under the hood:
 - `demos/basic_chat` a basic chat app using the OpenAI "Completions API" (and a similar example with OpenRouter)
 - `demos/rag` tools and utilities to showcase RAG using ChromaDB
-- `chat_with_rag` a more fleshed out chat app using the OpenAI "Assistant API", including RAG and a chat history viewer
 - `demos/slack` demo code for a Slack bot (with LLM integration)
+
+- `chat_with_rag` a more fleshed out chat app using the OpenAI "Assistant API", including RAG and a chat history viewer
+
 - `class_based` the stub for refactoring these demos into more modular, reusable code (work in progress) 
 
 ## Configuration
