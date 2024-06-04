@@ -6,6 +6,7 @@ This repository contains some "chatbot" and related examples using the _Azure Op
 - `demos/rag` tools and utilities to showcase RAG using ChromaDB
 - `chat_with_rag` a more fleshed out chat app using the OpenAI "Assistant API", including RAG and a chat history viewer
 - `demos/slack` demo code for a Slack bot (with LLM integration)
+- `class_based` the stub for refactoring these demos into more modular, reusable code (work in progress) 
 
 ## Configuration
 To install the necessary libraries use `pip install -r requirements.txt`
