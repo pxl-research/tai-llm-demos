@@ -121,9 +121,9 @@ def append_ai(thread, message, chat_history, log_folder):
     )
 
     bot_message = ""
-    for msgData in messages.data:
-        if msgData.role == "assistant" and msgData.content[0].type == "text":
-            bot_message = msgData.content[0].text.value
+    for msg_data in messages.data:
+        if msg_data.role == "assistant" and msg_data.content[0].type == "text":
+            bot_message = msg_data.content[0].text.value
             break
     chat_history.append((None, bot_message))
 

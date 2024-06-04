@@ -1,21 +1,12 @@
----
-title: TransformAI LLM Chat
-emoji: 💬
-colorFrom: blue
-colorTo: red
-sdk: gradio
-app_file: chat_llm_azure/launch_ui.py
-pinned: true
----
-
 # TransformAI LLM Chat
 
 ## What's in this repository?
 This repository contains some "chatbot" and related examples using the _Azure OpenAI_ as the LLM under the hood:
-- `chat_demo` a basic chat app using the "Completions API"
-- `chat_llm_azure` a chat app using the "Assistant API", including a chat history viewer
-- `rag_demo` tools and utilities to showcase RAG using ChromaDB
-- `slack_demo` demo code for a Slack bot (with LLM integration)
+- `demos/basic_chat` a basic chat app using the OpenAI "Completions API" (and a similar example with OpenRouter)
+- `demos/rag` tools and utilities to showcase RAG using ChromaDB
+- `chat_with_rag` a more fleshed out chat app using the OpenAI "Assistant API", including RAG and a chat history viewer
+- `demos/slack` demo code for a Slack bot (with LLM integration)
+- `class_based` the stub for refactoring these demos into more modular, reusable code (work in progress) 
 
 ## Configuration
 To install the necessary libraries use `pip install -r requirements.txt`
@@ -35,12 +26,12 @@ Surf to the generated address in your browser to use the Gradio web UI
 ## Screenshots
 
 ### chat.py
-`/chat_demo`
+`./demos/basic_chat`
 
 ![gradio-chat.png](assets/screenshots/gradio-chat.png)
 
 ### launch_ui.py
-`/chat_llm_azure`
+`./chat_with_rag`
 
 ![gradio-blocks.png](assets/screenshots/gradio-blocks.png)
 

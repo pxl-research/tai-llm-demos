@@ -3,9 +3,9 @@ import time
 
 import gradio as gr
 
-sys.path.append('../')
+sys.path.append('../../')
 
-from rag_demo.pdf_utils import (
+from demos.rag.fn_pdf_utils import (
     pdf_to_text,
     pages_to_chunks
 )
@@ -46,8 +46,6 @@ def query_all_documents(cdb_client, query):
         all_results = all_results + repacked
 
     # sort results by distance
-    # TODO: grab surrounding chunks
-
     return sorted(all_results, key=lambda r: r['distances'])
 
 
