@@ -46,8 +46,6 @@ def query_all_documents(cdb_client, query):
         all_results = all_results + repacked
 
     # sort results by distance
-    # TODO: grab surrounding chunks
-
     return sorted(all_results, key=lambda r: r['distances'])
 
 

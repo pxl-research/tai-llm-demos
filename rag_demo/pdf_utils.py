@@ -62,7 +62,7 @@ def pages_to_chunks(page_list, document_name):
                     'len': len(chunk),
                     'nr': total_chunk_nr}
             chunk_meta_list.append(meta)
-            # TODO: add summary or other meta info to chunk?
+            # optional: add summary or other meta info to chunk
 
     return chunk_list, chunk_id_list, chunk_meta_list
 
