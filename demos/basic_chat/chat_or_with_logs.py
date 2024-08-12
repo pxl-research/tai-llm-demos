@@ -64,8 +64,8 @@ def predict(message, history):
     tokeniser = tiktoken.encoding_for_model("gpt-4")
     hist_string = json.dumps(history_openai_format)
     hist_len = len(tokeniser.encode(hist_string))
-    cost_in_dollars = round(hist_len / rate * 1000, ndigits=2)
-    print(f"Cost estimate: {cost_in_dollars} cents for history of {hist_len} tokens")
+    cost_in_dollar_cents = round(hist_len / rate * 1000, ndigits=2)
+    print(f"Cost estimate: {cost_in_dollar_cents} cents for history of {hist_len} tokens")
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
