@@ -16,13 +16,9 @@ client = OpenAI(
 
 system_instruction = {
     "role": "system",
-    "content": "Be concise. Be precise. Always think step by step. Take a deep breath before responding. "
-               "You are an administrative assistant with a great eye for detail. "
-               "You will be provided with a template you can use to summarize a large transcript of an interview. "
-               "Both the template and the transcript will be in Dutch."
-               "Please go through the interview transcript thoroughly and try to collect important details from it "
-               "based on the different topics described in the template. "
-               "Use around 600 to 700 characters per topic for your summaries. "
+    "content": "Be concise. Be precise. "
+               "I would like you to take a deep breath before responding. "
+               "Always think step by step. "
 }
 
 
@@ -46,7 +42,7 @@ def predict(message, history):
     history_openai_format.append({"role": "user", "content": message})
 
     # call the language model
-    response_stream = client.chat.completions.create(model='openai/gpt-4o',
+    response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
                                                      messages=history_openai_format,
                                                      extra_headers={
                                                          "HTTP-Referer": "PXL University College",
@@ -64,12 +60,12 @@ def predict(message, history):
     store_history(history_openai_format, 'logs/')
 
     # cost estimate
-    rate = 66700  # in tokens per dollar
+    rate = 1667000  # in tokens per dollar
     tokeniser = tiktoken.encoding_for_model("gpt-4")
     hist_string = json.dumps(history_openai_format)
     hist_len = len(tokeniser.encode(hist_string))
-    cost_in_dollars = round(hist_len / rate, ndigits=2)
-    print(f"Cost estimate: {cost_in_dollars} dollar for history of {hist_len} tokens")
+    cost_in_dollar_cents = round(hist_len / rate * 1000, ndigits=2)
+    print(f"Cost estimate: {cost_in_dollar_cents} cents for history of {hist_len} tokens")
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
