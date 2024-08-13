@@ -45,4 +45,4 @@ with gr.Blocks() as cdb_demo:
     file_upload.upload(on_file_uploaded, [file_upload], [file_upload, df_files])
     cdb_demo.load(list_collections, [], [df_files])
 
-cdb_demo.queue().launch(server_name='0.0.0.0')
+cdb_demo.queue().launch(server_name='0.0.0.0', server_port=7894)
