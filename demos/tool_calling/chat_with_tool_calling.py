@@ -76,6 +76,14 @@ tools = [{
 ]
 
 
+def get_current_temperature(location, unit="Celsius"):
+    return {"temp": "30 degrees celsius"}
+
+
+def get_current_rainfall(location, unit="mm"):
+    return {"rainfall": "10mm"}
+
+
 def store_history(history, log_folder):
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
@@ -122,9 +130,16 @@ def predict(message, history):
                             if tool_calls[tool_call_chunk.index].function is None:
                                 tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
                             else:
-                                tool_calls[tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
+                                tool_calls[
+                                    tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
 
-    print(tool_calls)
+    for call in tool_calls:
+        print(call)
+        fn_pointer = globals()[call.function.name]
+        fn_args = json.loads(call.function.arguments)
+        if fn_pointer is not None:
+            fn_result = fn_pointer(**fn_args)
+            print(fn_result)
 
     # store in a log file
     history_openai_format.append({"role": "assistant", "content": partial_message})
