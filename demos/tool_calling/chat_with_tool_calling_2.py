@@ -1,5 +1,5 @@
+import json
 import os
-import time
 
 import gradio as gr
 from dotenv import load_dotenv
@@ -12,17 +12,96 @@ client = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
 )
 
+system_instruction = {
+    "role": "system",
+    "content": "Be concise. Be precise. "
+               "I would like you to take a deep breath before responding. "
+               "Always think step by step. "
+}
 
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "get_current_temperature",
+        "description": "Get the current temperature in a given location",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string",
+                    "description": "The city and state, e.g. San Francisco, CA"
+                },
+                "unit": {
+                    "type": "string",
+                    "enum": [
+                        "celsius",
+                        "fahrenheit"
+                    ]
+                }
+            },
+            "required": [
+                "location"
+            ]
+        }
+    }
+},
+    {
+        "type": "function",
+        "function": {
+            "name": "get_current_rainfall",
+            "description": "Get the current rainfall in a given location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The city and state, e.g. San Francisco, CA"
+                    },
+                    "unit": {
+                        "type": "string",
+                        "enum": [
+                            "celsius",
+                            "fahrenheit"
+                        ]
+                    }
+                },
+                "required": [
+                    "location"
+                ]
+            }
+        }
+    }
+]
+
+
+# callable method for the LLM
+def get_current_temperature(location, unit="Celsius"):
+    return {"temp": "30 degrees celsius"}
+
+
+# callable method for the LLM
+def get_current_rainfall(location, unit="mm"):
+    return {"rainfall": "10mm"}
+
+
+# blocks UI method
 def append_user(user_message, chat_history, message_list):
     chat_history.append((user_message, None))
     message_list.append({"role": "user", "content": user_message})
     return "", chat_history, message_list
 
 
+# blocks UI method
 def append_bot(chat_history, message_list):
+    yield from complete_with_llm(chat_history, message_list)
+
+
+def complete_with_llm(chat_history, message_list):
+    print('complete_with_llm ', len(chat_history), ' ', len(message_list))
+
     response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
                                                      messages=message_list,
-                                                     # tools=tools,
+                                                     tools=tools,
                                                      extra_headers={
                                                          "HTTP-Referer": "PXL University College",
                                                          "X-Title": "basic_chat.py"
@@ -30,21 +109,71 @@ def append_bot(chat_history, message_list):
                                                      stream=True)
 
     partial_message = ""
+    tool_calls = []
     for chunk in response_stream:  # stream the response
         if len(chunk.choices) > 0:
+            # LLM reponses
             if chunk.choices[0].delta.content is not None:
                 partial_message = partial_message + chunk.choices[0].delta.content
                 chat_history[-1][1] = partial_message
                 yield chat_history, message_list
 
-    message_list.append({"role": "assistant", "content": chat_history[-1][1]})
-    print(message_list)
+            # LLM tool call requests
+            if chunk.choices[0].delta.tool_calls is not None:
+                for tool_call_chunk in chunk.choices[0].delta.tool_calls:
+                    if tool_call_chunk.index >= len(tool_calls):
+                        tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
+                    else:
+                        if tool_call_chunk.function is not None:
+                            if tool_calls[tool_call_chunk.index].function is None:
+                                tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
+                            else:
+                                tool_calls[
+                                    tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
+
+    response_stream.close()
+
+    # handle text responses
+    if chat_history[-1][1] is not None:
+        message_list.append({"role": "assistant", "content": chat_history[-1][1]})
+
+    # handle tool requests
+    if len(tool_calls) > 0:
+        print(f'Processing {len(tool_calls)} tool calls')
+        for call in tool_calls:
+            fn_pointer = globals()[call.function.name]
+            fn_args = json.loads(call.function.arguments)
+            tool_call_obj = {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "id": call.id,
+                        "type": "function",
+                        "function": {
+                            "name": call.function.name,
+                            "arguments": call.function.arguments
+                        }
+                    }
+                ]
+            }
+            message_list.append(tool_call_obj)
+
+            if fn_pointer is not None:
+                fn_result = fn_pointer(**fn_args)
+                tool_resp = {"role": "tool",
+                             "name": call.function.name,
+                             "tool_call_id": call.id,
+                             "content": json.dumps(fn_result)}
+                message_list.append(tool_resp)
+        # recursively call completion message to give the LLM a change to process results
+        yield from complete_with_llm(chat_history, message_list)
 
 
 # UI
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
-    messages = gr.State([])
+    messages = gr.State([system_instruction])
     cb_live = gr.Chatbot(label='Chat', scale=1)
     with gr.Group() as gr_live:
         with gr.Row():
