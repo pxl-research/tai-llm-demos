@@ -1,6 +1,16 @@
-import gradio as gr
-import random
+import os
 import time
+
+import gradio as gr
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv()
+
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.getenv("OPENROUTER_API_KEY"),
+)
 
 
 def append_user(user_message, chat_history, message_list):
@@ -10,14 +20,23 @@ def append_user(user_message, chat_history, message_list):
 
 
 def append_bot(chat_history, message_list):
-    print(message_list)
+    response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
+                                                     messages=message_list,
+                                                     # tools=tools,
+                                                     extra_headers={
+                                                         "HTTP-Referer": "PXL University College",
+                                                         "X-Title": "basic_chat.py"
+                                                     },
+                                                     stream=True)
 
-    bot_message = random.choice(["How are you?", "I love you", "I'm very hungry"])
-    chat_history[-1][1] = ""
-    for character in bot_message:
-        chat_history[-1][1] += character
-        time.sleep(0.05)
-        yield chat_history, message_list
+    partial_message = ""
+    for chunk in response_stream:  # stream the response
+        if len(chunk.choices) > 0:
+            if chunk.choices[0].delta.content is not None:
+                partial_message = partial_message + chunk.choices[0].delta.content
+                chat_history[-1][1] = partial_message
+                yield chat_history, message_list
+
     message_list.append({"role": "assistant", "content": chat_history[-1][1]})
     print(message_list)
 
