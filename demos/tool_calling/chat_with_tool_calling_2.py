@@ -5,6 +5,8 @@ import gradio as gr
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from tools_weather import (tools_weather, get_current_temperature, get_current_rainfall)
+
 load_dotenv()
 
 client = OpenAI(
@@ -18,70 +20,6 @@ system_instruction = {
                "I would like you to take a deep breath before responding. "
                "Always think step by step. "
 }
-
-tools = [{
-    "type": "function",
-    "function": {
-        "name": "get_current_temperature",
-        "description": "Get the current temperature in a given location",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "location": {
-                    "type": "string",
-                    "description": "The city and state, e.g. San Francisco, CA"
-                },
-                "unit": {
-                    "type": "string",
-                    "enum": [
-                        "celsius",
-                        "fahrenheit"
-                    ]
-                }
-            },
-            "required": [
-                "location"
-            ]
-        }
-    }
-},
-    {
-        "type": "function",
-        "function": {
-            "name": "get_current_rainfall",
-            "description": "Get the current rainfall in a given location",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city and state, e.g. San Francisco, CA"
-                    },
-                    "unit": {
-                        "type": "string",
-                        "enum": [
-                            "celsius",
-                            "fahrenheit"
-                        ]
-                    }
-                },
-                "required": [
-                    "location"
-                ]
-            }
-        }
-    }
-]
-
-
-# callable method for the LLM
-def get_current_temperature(location, unit="Celsius"):
-    return {"temp": "30 degrees celsius"}
-
-
-# callable method for the LLM
-def get_current_rainfall(location, unit="mm"):
-    return {"rainfall": "10mm"}
 
 
 # blocks UI method
@@ -101,7 +39,7 @@ def complete_with_llm(chat_history, message_list):
 
     response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
                                                      messages=message_list,
-                                                     tools=tools,
+                                                     tools=tools_weather,
                                                      extra_headers={
                                                          "HTTP-Referer": "PXL University College",
                                                          "X-Title": "basic_chat.py"
