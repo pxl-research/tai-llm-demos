@@ -139,7 +139,12 @@ def predict(message, history):
         fn_args = json.loads(call.function.arguments)
         if fn_pointer is not None:
             fn_result = fn_pointer(**fn_args)
-            print(fn_result)
+            tool_hist = {"role": "tool",
+                         "name": call.function.name,
+                         "tool_call_id": call.id,
+                         "content": json.dumps(fn_result)}
+            print(tool_hist)
+            history_openai_format.append(tool_hist)
 
     # store in a log file
     history_openai_format.append({"role": "assistant", "content": partial_message})
