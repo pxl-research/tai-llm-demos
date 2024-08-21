@@ -1,11 +1,11 @@
 import json
 import os
-import time
 
 import gradio as gr
-import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
+
+from tools_weather import (tools_weather, get_current_temperature, get_current_rainfall)
 
 load_dotenv()
 
@@ -21,106 +21,42 @@ system_instruction = {
                "Always think step by step. "
 }
 
-tools = [{
-    "type": "function",
-    "function": {
-        "name": "get_current_temperature",
-        "description": "Get the current temperature in a given location",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "location": {
-                    "type": "string",
-                    "description": "The city and state, e.g. San Francisco, CA"
-                },
-                "unit": {
-                    "type": "string",
-                    "enum": [
-                        "celsius",
-                        "fahrenheit"
-                    ]
-                }
-            },
-            "required": [
-                "location"
-            ]
-        }
-    }
-},
-    {
-        "type": "function",
-        "function": {
-            "name": "get_current_rainfall",
-            "description": "Get the current rainfall in a given location",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city and state, e.g. San Francisco, CA"
-                    },
-                    "unit": {
-                        "type": "string",
-                        "enum": [
-                            "celsius",
-                            "fahrenheit"
-                        ]
-                    }
-                },
-                "required": [
-                    "location"
-                ]
-            }
-        }
-    }
-]
+
+# blocks UI method
+def append_user(user_message, chat_history, message_list):
+    chat_history.append((user_message, None))
+    message_list.append({"role": "user", "content": user_message})
+    return "", chat_history, message_list
 
 
-def get_current_temperature(location, unit="Celsius"):
-    return {"temp": "30 degrees celsius"}
+# blocks UI method
+def append_bot(chat_history, message_list):
+    yield from complete_with_llm(chat_history, message_list)
 
 
-def get_current_rainfall(location, unit="mm"):
-    return {"rainfall": "10mm"}
+def complete_with_llm(chat_history, message_list):
+    print('complete_with_llm ', len(chat_history), ' ', len(message_list))
 
-
-def store_history(history, log_folder):
-    if not os.path.exists(log_folder):
-        os.makedirs(log_folder)
-
-    timestamp = time.time()
-    log_file = open(f"{log_folder}{timestamp}.json", "w")
-    content = json.dumps(history, indent=1)
-    log_file.write(content)
-    log_file.close()
-
-
-def predict(message, history):
-    history_openai_format = [system_instruction]  # openai format
-
-    for human, assistant in history:
-        history_openai_format.append({"role": "user", "content": human})
-        history_openai_format.append({"role": "assistant", "content": assistant})
-    history_openai_format.append({"role": "user", "content": message})
-
-    # call the language model
     response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
-                                                     messages=history_openai_format,
-                                                     tools=tools,
+                                                     messages=message_list,
+                                                     tools=tools_weather,
                                                      extra_headers={
                                                          "HTTP-Referer": "PXL University College",
                                                          "X-Title": "basic_chat.py"
                                                      },
                                                      stream=True)
+
     partial_message = ""
     tool_calls = []
     for chunk in response_stream:  # stream the response
         if len(chunk.choices) > 0:
+            # LLM reponses
             if chunk.choices[0].delta.content is not None:
                 partial_message = partial_message + chunk.choices[0].delta.content
-                yield partial_message
+                chat_history[-1][1] = partial_message
+                yield chat_history, message_list
 
-            # https://community.openai.com/t/has-anyone-managed-to-get-a-tool-call-working-when-stream-true/498867/10
+            # LLM tool call requests
             if chunk.choices[0].delta.tool_calls is not None:
                 for tool_call_chunk in chunk.choices[0].delta.tool_calls:
                     if tool_call_chunk.index >= len(tool_calls):
@@ -133,31 +69,61 @@ def predict(message, history):
                                 tool_calls[
                                     tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
 
-    for call in tool_calls:
-        print(call)
-        fn_pointer = globals()[call.function.name]
-        fn_args = json.loads(call.function.arguments)
-        if fn_pointer is not None:
-            fn_result = fn_pointer(**fn_args)
-            tool_hist = {"role": "tool",
-                         "name": call.function.name,
-                         "tool_call_id": call.id,
-                         "content": json.dumps(fn_result)}
-            print(tool_hist)
-            history_openai_format.append(tool_hist)
+    response_stream.close()
 
-    # store in a log file
-    history_openai_format.append({"role": "assistant", "content": partial_message})
-    store_history(history_openai_format, 'logs/')
+    # handle text responses
+    if chat_history[-1][1] is not None:
+        message_list.append({"role": "assistant", "content": chat_history[-1][1]})
 
-    # cost estimate
-    rate = 1667000  # in tokens per dollar
-    tokeniser = tiktoken.encoding_for_model("gpt-4")
-    hist_string = json.dumps(history_openai_format)
-    hist_len = len(tokeniser.encode(hist_string))
-    cost_in_dollar_cents = round(hist_len / rate * 1000, ndigits=2)
-    print(f"Cost estimate: {cost_in_dollar_cents} cents for history of {hist_len} tokens")
+    # handle tool requests
+    if len(tool_calls) > 0:
+        print(f'Processing {len(tool_calls)} tool calls')
+        for call in tool_calls:
+            fn_pointer = globals()[call.function.name]
+            fn_args = json.loads(call.function.arguments)
+            tool_call_obj = {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "id": call.id,
+                        "type": "function",
+                        "function": {
+                            "name": call.function.name,
+                            "arguments": call.function.arguments
+                        }
+                    }
+                ]
+            }
+            message_list.append(tool_call_obj)
+
+            if fn_pointer is not None:
+                fn_result = fn_pointer(**fn_args)
+                tool_resp = {"role": "tool",
+                             "name": call.function.name,
+                             "tool_call_id": call.id,
+                             "content": json.dumps(fn_result)}
+                message_list.append(tool_resp)
+        # recursively call completion message to give the LLM a change to process results
+        yield from complete_with_llm(chat_history, message_list)
 
 
-# https://www.gradio.app/guides/creating-a-chatbot-fast
-gr.ChatInterface(predict).launch(server_name='0.0.0.0', server_port=7896)
+# UI
+# https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
+with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
+    messages = gr.State([system_instruction])
+    cb_live = gr.Chatbot(label='Chat', scale=1)
+    with gr.Group() as gr_live:
+        with gr.Row():
+            tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
+            btn_send = gr.Button('', scale=0, min_width=64, icon='../../assets/icons/send.png')
+    btn_clear = gr.Button("Clear")
+
+    # event handlers
+    tb_user.submit(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],
+                   queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
+    btn_send.click(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],
+                   queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
+    btn_clear.click(lambda: None, None, cb_live, queue=False)
+
+llm_client_ui.launch(auth=None, server_name='0.0.0.0')
