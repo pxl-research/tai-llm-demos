@@ -5,7 +5,7 @@ import gradio as gr
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from tools_weather import (tools_weather, get_current_temperature, get_current_rainfall)
+from tools_weather import (tools_weather)
 
 load_dotenv()
 
@@ -41,8 +41,8 @@ def complete_with_llm(chat_history, message_list):
                                                      messages=message_list,
                                                      tools=tools_weather,
                                                      extra_headers={
-                                                         "HTTP-Referer": "PXL University College",
-                                                         "X-Title": "basic_chat.py"
+                                                         "HTTP-Referer": "https://pxl-research.be/",
+                                                         "X-Title": "PXL Smart ICT"
                                                      },
                                                      stream=True)
 

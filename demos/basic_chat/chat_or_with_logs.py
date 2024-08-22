@@ -45,8 +45,8 @@ def predict(message, history):
     response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
                                                      messages=history_openai_format,
                                                      extra_headers={
-                                                         "HTTP-Referer": "PXL University College",
-                                                         "X-Title": "basic_chat.py"
+                                                         "HTTP-Referer": "https://pxl-research.be/",
+                                                         "X-Title": "PXL Smart ICT"
                                                      },
                                                      stream=True)
     partial_message = ""
