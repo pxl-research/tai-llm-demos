@@ -45,8 +45,8 @@ def predict(message, history):
     response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
                                                      messages=history_openai_format,
                                                      extra_headers={
-                                                         "HTTP-Referer": "PXL University College",
-                                                         "X-Title": "basic_chat.py"
+                                                         "HTTP-Referer": "https://pxl-research.be/",
+                                                         "X-Title": "PXL Smart ICT"
                                                      },
                                                      stream=True)
     partial_message = ""
@@ -69,4 +69,4 @@ def predict(message, history):
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
-gr.ChatInterface(predict).launch(server_name='0.0.0.0')
+gr.ChatInterface(predict).launch(server_name='0.0.0.0', server_port=7892)
