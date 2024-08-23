@@ -1,0 +1,3 @@
+## Requirements
+- wxPython
+- markdown-python
