@@ -75,8 +75,10 @@ class MarkdownViewer(wx.Frame):
         for part in self.completion:
             wx.CallAfter(self.update_webview, part)
 
+        self.completion.close()
+        print('Done')
+
     def update_webview(self, md_content):
-        print(md_content)
         html = self.markdown_to_html(md_content)
         self.wv_markdown.SetPage(html=html, baseUrl=MarkdownViewer.BASE_URL)
 
@@ -89,7 +91,7 @@ class MarkdownViewer(wx.Frame):
         return self.html_header
 
     def markdown_to_html(self, md_content):
-        html = markdown.markdown(md_content)
+        html = markdown.markdown(md_content, extensions=['fenced_code', 'codehilite'])
         header_content = self.get_html_header()
         full_page = header_content + '<body class="markdown-body"> ' + html + '</body>'
         return full_page
