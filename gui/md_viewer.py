@@ -1,11 +1,18 @@
+import threading
+
 import markdown
 import wx
 import wx.html2 as webview
+
+from gui.fn_llm_or import OpenLLM
 
 
 class MarkdownViewer(wx.Frame):
     ID_BTN_PROMPT = 2
     BASE_URL = 'https://www.pxl.be/'
+
+    llm = OpenLLM()
+    completion = None
 
     def __init__(self, parent, id, title):
         self.html_header = None
@@ -59,7 +66,18 @@ class MarkdownViewer(wx.Frame):
         self.tx_prompt.Clear()
         print(prompt)
 
-        html = self.markdown_to_html(prompt)
+        self.completion = self.llm.complete(prompt)
+        threading.Thread(target=self.live_update, daemon=True).start()
+
+    def live_update(self):
+        if self.completion is None:
+            return
+        for part in self.completion:
+            wx.CallAfter(self.update_webview, part)
+
+    def update_webview(self, md_content):
+        print(md_content)
+        html = self.markdown_to_html(md_content)
         self.wv_markdown.SetPage(html=html, baseUrl=MarkdownViewer.BASE_URL)
 
     def get_html_header(self):
