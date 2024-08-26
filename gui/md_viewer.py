@@ -4,6 +4,8 @@ import wx.html2 as webview
 
 
 class MarkdownViewer(wx.Frame):
+    ID_BTN_PROMPT = 2
+
     def __init__(self, parent, id, title):
         self.html_header = None
         screen_size = wx.GetDisplaySize()
@@ -18,10 +20,10 @@ class MarkdownViewer(wx.Frame):
         self.wv_markdown.SetPage('<h1>Hello World</h1>', 'www.none.be')
 
         self.tx_prompt = wx.TextCtrl(self)
-        self.btn_send = wx.Button(self, 2, label='&Send')
+        self.btn_send = wx.Button(self, id=MarkdownViewer.ID_BTN_PROMPT, label='&Send')
 
         # binding handlers
-        self.Bind(wx.EVT_BUTTON, self.onButtonPressed, id=2)
+        self.Bind(event=wx.EVT_BUTTON, handler=self.on_button_pressed, id=MarkdownViewer.ID_BTN_PROMPT)
 
         # layout
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -33,7 +35,11 @@ class MarkdownViewer(wx.Frame):
         self.Center()
         self.Show()
 
-    def onButtonPressed(self, event):
+    def on_button_pressed(self, event):
+        prompt = self.tx_prompt.GetValue()
+        print(prompt)
+        self.tx_prompt.Clear()
+
         md_file = open(f"../README.md", "r")
         md_content = md_file.read()
         md_file.close()
@@ -50,10 +56,6 @@ class MarkdownViewer(wx.Frame):
         return self.html_header
 
     def markdown_to_html(self, md_content):
-        prompt = self.tx_prompt.GetValue()
-        print(prompt)
-        self.tx_prompt.Clear()
-
         html = markdown.markdown(md_content)
         header_content = self.get_html_header()
         full_page = header_content + '<body class="markdown-body"> ' + html + '</body>'
