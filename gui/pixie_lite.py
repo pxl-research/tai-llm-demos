@@ -7,7 +7,12 @@ import wx.html2 as webview
 from gui.fn_llm_or import OpenLLM
 
 
-class MarkdownViewer(wx.Frame):
+def markdown_to_html(md_content):
+    html = markdown.markdown(md_content, extensions=['fenced_code', 'codehilite'])
+    return html
+
+
+class PixieLite(wx.Frame):
     ID_BTN_PROMPT = 2
     BASE_URL = 'https://www.pxl.be/'
 
@@ -25,13 +30,13 @@ class MarkdownViewer(wx.Frame):
 
         # ui elements
         self.wv_markdown = webview.WebView.New(self)
-        self.wv_markdown.SetPage(html='', baseUrl=MarkdownViewer.BASE_URL)
+        self.wv_markdown.SetPage(html='', baseUrl=PixieLite.BASE_URL)
 
         self.tx_prompt = wx.TextCtrl(self, style=wx.TE_MULTILINE)
-        self.btn_send = wx.Button(self, id=MarkdownViewer.ID_BTN_PROMPT, label='&Send')
+        self.btn_send = wx.Button(self, id=PixieLite.ID_BTN_PROMPT, label='&Send')
 
         # binding handlers
-        self.Bind(event=wx.EVT_BUTTON, handler=self.on_button_pressed, id=MarkdownViewer.ID_BTN_PROMPT)
+        self.Bind(event=wx.EVT_BUTTON, handler=self.on_button_pressed, id=PixieLite.ID_BTN_PROMPT)
         self.tx_prompt.Bind(event=wx.EVT_KEY_UP, handler=self.on_key_down)
 
         # layout
@@ -45,8 +50,9 @@ class MarkdownViewer(wx.Frame):
         md_file = open(f"./README.md", "r")
         md_content = md_file.read()
         md_file.close()
-        html = self.markdown_to_html(md_content)
-        self.wv_markdown.SetPage(html=html, baseUrl=MarkdownViewer.BASE_URL)
+        html_content = markdown_to_html(md_content)
+        full_html = self.add_header(html_content)
+        self.wv_markdown.SetPage(html=full_html, baseUrl=PixieLite.BASE_URL)
 
         self.Center()
         self.Show()
@@ -76,11 +82,13 @@ class MarkdownViewer(wx.Frame):
             wx.CallAfter(self.update_webview, part)
 
         self.completion.close()
-        print('Done')
+        self.completion = None
+        self.wv_markdown.RunScript("window.scrollTo(0, document.body.scrollHeight);")
 
-    def update_webview(self, md_content):
-        html = self.markdown_to_html(md_content)
-        self.wv_markdown.SetPage(html=html, baseUrl=MarkdownViewer.BASE_URL)
+    def update_webview(self, new_content):
+        html_content = markdown_to_html(new_content)
+        full_page = self.add_header(html_content)
+        self.wv_markdown.SetPage(html=full_page, baseUrl=PixieLite.BASE_URL)
 
     def get_html_header(self):
         if self.html_header is None:  # lazy loading
@@ -90,16 +98,15 @@ class MarkdownViewer(wx.Frame):
             self.html_header = header_content
         return self.html_header
 
-    def markdown_to_html(self, md_content):
-        html = markdown.markdown(md_content, extensions=['fenced_code', 'codehilite'])
+    def add_header(self, html_content):
         header_content = self.get_html_header()
-        full_page = header_content + '<body class="markdown-body"> ' + html + '</body>'
+        full_page = header_content + '<body class="markdown-body"> ' + html_content + '</body>'
         return full_page
 
 
 # main code
-app = wx.App(0)
-MarkdownViewer(None, -1, 'Markdown Viewer')
+app = wx.App()
+PixieLite(parent=None, id=0, title='Pixie Lite')
 app.MainLoop()
 
 # https://github.com/wxWidgets/Phoenix/blob/master/demo/HTML2_WebView.py
