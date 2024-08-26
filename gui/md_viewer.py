@@ -3,57 +3,61 @@ import wx
 import wx.html2 as webview
 
 
-class MarkdownViewer(wx.Dialog):
+class MarkdownViewer(wx.Frame):
     def __init__(self, parent, id, title):
-        screensize = wx.GetDisplaySize()
-        width = int(screensize.Width / 3)
-        height = int(screensize.Height / 2)
-
-        wx.Dialog.__init__(self, parent, id, title,
-                           size=(width, height))
+        self.html_header = None
+        screen_size = wx.GetDisplaySize()
+        w_width = int(screen_size.Width / 2)
+        w_height = int(screen_size.Height / 2)
+        wx.Frame.__init__(self, parent, id, title, size=(w_width, w_height))
 
         self.SetIcon(wx.Icon('../assets/icons/chat.png', wx.BITMAP_TYPE_PNG))
 
         # ui elements
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.wv_markdown = webview.WebView.New(self)
+        self.wv_markdown.SetPage('<h1>Hello World</h1>', 'www.none.be')
 
-        self.wv = webview.WebView.New(self, size=(200, 200))
-        self.wv.SetPage('<h1>Hello World</h1>', 'www.none.be')
-
-        btn_2 = wx.Button(self, 2, label='&Click me', size=(110, -1))
+        self.tx_prompt = wx.TextCtrl(self)
+        self.btn_send = wx.Button(self, 2, label='&Send')
 
         # binding handlers
-
-        self.Bind(wx.EVT_BUTTON, self.onRandomMove, id=2)
+        self.Bind(wx.EVT_BUTTON, self.onButtonPressed, id=2)
 
         # layout
-        sizer.Add(self.wv, proportion=1, flag=wx.EXPAND)
-        sizer.Add(btn_2, flag=wx.EXPAND)
-
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.wv_markdown, proportion=1, flag=wx.EXPAND)
+        sizer.Add(self.tx_prompt, flag=wx.EXPAND)
+        sizer.Add(self.btn_send, flag=wx.EXPAND)
         self.SetSizer(sizer)
-        v_pos = int(screensize.Height / 4)
-        self.SetPosition((0, v_pos))
 
-        self.ShowModal()
-        self.Destroy()
+        self.Center()
+        self.Show()
 
-    def onRandomMove(self, event):
+    def onButtonPressed(self, event):
         md_file = open(f"../README.md", "r")
         md_content = md_file.read()
         md_file.close()
+
+        html = self.markdown_to_html(md_content)
+        self.wv_markdown.SetPage(html, 'www.markdown.be')
+
+    def get_html_header(self):
+        if self.html_header is None:  # lazy loading
+            header_file = open(f"./header.html", "r")
+            header_content = header_file.read()
+            header_file.close()
+            self.html_header = header_content
+        return self.html_header
+
+    def markdown_to_html(self, md_content):
+        prompt = self.tx_prompt.GetValue()
+        print(prompt)
+        self.tx_prompt.Clear()
+
         html = markdown.markdown(md_content)
-
-        # header = '<head><style>body {background-color: darkgray; color: white;}</style></head>'
-        header_file = open(f"./header.html", "r")
-        header_content = header_file.read()
-        header_file.close()
-
-        print(header_content)
-        print(html)
-
+        header_content = self.get_html_header()
         full_page = header_content + '<body class="markdown-body"> ' + html + '</body>'
-
-        self.wv.SetPage(full_page, 'www.markdown.be')
+        return full_page
 
 
 # main code
