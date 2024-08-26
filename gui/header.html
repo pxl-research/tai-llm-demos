@@ -2,27 +2,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- bubble styles -->
-    <!-- https://coolors.co/0a122a-698f3f-fbfaf8-e7decd-804e49 -->
+    <!-- https://coolors.co/721817-fa9f42-2b4162-0b6e4f-e0e0e2 -->
     <style>
         div.bubble {
             padding: 24px;
             margin: 24px;
             border-radius: 8px;
-            border: 1px solid #E7DECD;
+            border: 1px solid #E0E0E2;
         }
         div.bubble.system {
             display: none;
-            border-radius: 8px 8px 24px 24px;
-            background-color: #0A122A;
+            border-radius: 8px 8px 16px 16px;
+            background-color: #FA9F42;
         }
         div.bubble.user {
-            border-radius: 24px 8px 24px 24px;
+            border-radius: 16px 8px 8px 16px;
             text-align: right;
-            background-color: #698F3F;
+            background-color: #0B6E4F;
+            border-width: 1px 8px 1px 1px;
         }
         div.bubble.assistant {
-            border-radius: 8px 24px 24px 24px;
-            background-color: #804E49;
+            border-radius: 8px 16px 16px 8px;
+            background-color: #2B4162;
+            border-width: 1px 1px 1px 8px;
         }
     </style>
 
@@ -31,7 +33,7 @@
         .markdown-body {
             box-sizing: border-box;
             min-width: 200px;
-            max-width: 980px;
+            max-width: 100%;
             margin: 0 auto;
             padding: 45px;
         }

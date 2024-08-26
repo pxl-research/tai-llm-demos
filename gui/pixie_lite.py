@@ -33,6 +33,7 @@ class PixieLite(wx.Frame):
         self.wv_markdown.SetPage(html='', baseUrl=PixieLite.BASE_URL)
 
         self.tx_prompt = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.tx_prompt.SetToolTip('Voer hier je prompt in')
         self.btn_send = wx.Button(self, id=PixieLite.ID_BTN_PROMPT, label='&Send')
 
         # binding handlers
@@ -40,11 +41,15 @@ class PixieLite(wx.Frame):
         self.tx_prompt.Bind(event=wx.EVT_KEY_UP, handler=self.on_key_down)
 
         # layout
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.wv_markdown, proportion=1, flag=wx.EXPAND)
-        sizer.Add(self.tx_prompt, flag=wx.EXPAND)
-        sizer.Add(self.btn_send, flag=wx.EXPAND)
-        self.SetSizer(sizer)
+        bs_horizontal = wx.BoxSizer(wx.HORIZONTAL)
+        bs_horizontal.Add(self.tx_prompt, proportion=1, flag=wx.EXPAND)
+        bs_horizontal.Add(self.btn_send, flag=wx.EXPAND)
+
+        bs_vertical = wx.BoxSizer(wx.VERTICAL)
+        bs_vertical.Add(self.wv_markdown, proportion=1, flag=wx.EXPAND)
+        bs_vertical.Add(bs_horizontal, flag=wx.EXPAND)
+
+        self.SetSizer(bs_vertical)
 
         # load some default content into webview
         md_file = open(f"./README.md", "r")
