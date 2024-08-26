@@ -1,3 +1,3 @@
-## Requirements
-- wxPython
-- markdown-python
+## Pixie Lite
+
+Stel een vraag

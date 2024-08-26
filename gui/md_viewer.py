@@ -5,6 +5,7 @@ import wx.html2 as webview
 
 class MarkdownViewer(wx.Frame):
     ID_BTN_PROMPT = 2
+    BASE_URL = 'https://www.pxl.be/'
 
     def __init__(self, parent, id, title):
         self.html_header = None
@@ -17,13 +18,14 @@ class MarkdownViewer(wx.Frame):
 
         # ui elements
         self.wv_markdown = webview.WebView.New(self)
-        self.wv_markdown.SetPage('<h1>Hello World</h1>', 'www.none.be')
+        self.wv_markdown.SetPage(html='', baseUrl=MarkdownViewer.BASE_URL)
 
-        self.tx_prompt = wx.TextCtrl(self)
+        self.tx_prompt = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         self.btn_send = wx.Button(self, id=MarkdownViewer.ID_BTN_PROMPT, label='&Send')
 
         # binding handlers
         self.Bind(event=wx.EVT_BUTTON, handler=self.on_button_pressed, id=MarkdownViewer.ID_BTN_PROMPT)
+        self.tx_prompt.Bind(event=wx.EVT_KEY_UP, handler=self.on_key_down)
 
         # layout
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -32,20 +34,33 @@ class MarkdownViewer(wx.Frame):
         sizer.Add(self.btn_send, flag=wx.EXPAND)
         self.SetSizer(sizer)
 
+        # load some default content into webview
+        md_file = open(f"./README.md", "r")
+        md_content = md_file.read()
+        md_file.close()
+        html = self.markdown_to_html(md_content)
+        self.wv_markdown.SetPage(html=html, baseUrl=MarkdownViewer.BASE_URL)
+
         self.Center()
         self.Show()
 
     def on_button_pressed(self, event):
+        self.process_prompt()
+
+    def on_key_down(self, event):
+        if event.GetKeyCode() == wx.WXK_RETURN and event.ControlDown():
+            self.process_prompt()
+            event.Skip()
+        else:
+            event.Skip()
+
+    def process_prompt(self):
         prompt = self.tx_prompt.GetValue()
-        print(prompt)
         self.tx_prompt.Clear()
+        print(prompt)
 
-        md_file = open(f"../README.md", "r")
-        md_content = md_file.read()
-        md_file.close()
-
-        html = self.markdown_to_html(md_content)
-        self.wv_markdown.SetPage(html, 'www.markdown.be')
+        html = self.markdown_to_html(prompt)
+        self.wv_markdown.SetPage(html=html, baseUrl=MarkdownViewer.BASE_URL)
 
     def get_html_header(self):
         if self.html_header is None:  # lazy loading
