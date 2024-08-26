@@ -1,5 +1,32 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- bubble styles -->
+    <!-- https://coolors.co/0a122a-698f3f-fbfaf8-e7decd-804e49 -->
+    <style>
+        div.bubble {
+            padding: 24px;
+            margin: 24px;
+            border-radius: 8px;
+            border: 1px solid #E7DECD;
+        }
+        div.bubble.system {
+            display: none;
+            border-radius: 8px 8px 24px 24px;
+            background-color: #0A122A;
+        }
+        div.bubble.user {
+            border-radius: 24px 8px 24px 24px;
+            text-align: right;
+            background-color: #698F3F;
+        }
+        div.bubble.assistant {
+            border-radius: 8px 24px 24px 24px;
+            background-color: #804E49;
+        }
+    </style>
+
+    <!-- default github-style markdown -->
     <style>
         .markdown-body {
             box-sizing: border-box;
@@ -16,6 +43,7 @@
         }
     </style>
 
+    <!-- default github-style markdown -->
     <style>
         .markdown-body {
           --base-size-4: 0.25rem;

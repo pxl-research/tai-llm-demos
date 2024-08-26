@@ -70,9 +70,10 @@ class PixieLite(wx.Frame):
     def process_prompt(self):
         prompt = self.tx_prompt.GetValue()
         self.tx_prompt.Clear()
-        print(prompt)
+        if len(prompt) < 1:
+            return
 
-        self.completion = self.llm.complete(prompt)
+        self.completion = self.llm.complete(prompt)  # call the LLM
         threading.Thread(target=self.live_update, daemon=True).start()
 
     def live_update(self):
@@ -83,11 +84,18 @@ class PixieLite(wx.Frame):
 
         self.completion.close()
         self.completion = None
+
+        # render complete message
         self.wv_markdown.RunScript("window.scrollTo(0, document.body.scrollHeight);")
 
     def update_webview(self, new_content):
-        html_content = markdown_to_html(new_content)
-        full_page = self.add_header(html_content)
+        html_history = self.get_history_as_html()
+
+        content_html = markdown_to_html(new_content)
+        if content_html not in html_history:
+            html_history = f'{html_history}\n<div class="bubble assistant">\n{content_html}\n</div>\n'
+
+        full_page = self.add_header(html_history)
         self.wv_markdown.SetPage(html=full_page, baseUrl=PixieLite.BASE_URL)
 
     def get_html_header(self):
@@ -102,6 +110,14 @@ class PixieLite(wx.Frame):
         header_content = self.get_html_header()
         full_page = header_content + '<body class="markdown-body"> ' + html_content + '</body>'
         return full_page
+
+    def get_history_as_html(self):
+        history = self.llm.get_history()
+        html_history = ''
+        for message in history:
+            content_html = markdown_to_html(message['content'])
+            html_history = f'{html_history}\n<div class="bubble {message['role']}">\n{content_html}\n</div>\n'
+        return html_history
 
 
 # main code

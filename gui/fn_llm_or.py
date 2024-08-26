@@ -41,8 +41,8 @@ class OpenLLM:
                 partial_message = partial_message + chunk.choices[0].delta.content
                 yield partial_message
 
-        print(partial_message)
-        # TODO: add to history?
+        # append to history
+        self.history.append({"role": "assistant", "content": partial_message})
 
         # cost estimate
         rate = 1667000  # in tokens per dollar
@@ -51,3 +51,6 @@ class OpenLLM:
         hist_len = len(tokeniser.encode(hist_string))
         cost_in_dollar_cents = round(hist_len / rate * 1000, ndigits=2)
         print(f"Cost estimate: {cost_in_dollar_cents} cents for history of {hist_len} tokens")
+
+    def get_history(self):
+        return self.history
