@@ -1,15 +1,11 @@
+import os.path
 import threading
 
-import markdown
 import wx
 import wx.html2 as webview
 
 from fn_llm_or import OpenLLM
-
-
-def markdown_to_html(md_content):
-    html = markdown.markdown(md_content, extensions=['fenced_code', 'codehilite'])
-    return html
+from fn_utils import markdown_to_html, get_abs_path
 
 
 class PixieLite(wx.Frame):
@@ -26,7 +22,9 @@ class PixieLite(wx.Frame):
         w_height = int(screen_size.Height / 2)
         wx.Frame.__init__(self, parent, id, title, size=(w_width, w_height))
 
-        self.SetIcon(wx.Icon('chat.png', wx.BITMAP_TYPE_PNG))
+        icon_path = get_abs_path('chat.png')
+        if os.path.exists(icon_path):
+            self.SetIcon(wx.Icon(icon_path, wx.BITMAP_TYPE_PNG))
 
         # ui elements
         self.wv_markdown = webview.WebView.New(self)
@@ -53,7 +51,8 @@ class PixieLite(wx.Frame):
 
         # load some default content into webview
         try:
-            md_file = open(f"README.md", "r")
+            f_name = get_abs_path("README.md")
+            md_file = open(f_name, "r")
             md_content = md_file.read()
             md_file.close()
             html_content = markdown_to_html(md_content)
@@ -108,7 +107,8 @@ class PixieLite(wx.Frame):
 
     def get_html_header(self):
         if self.html_header is None:  # lazy loading
-            header_file = open(f"header.html", "r")
+            f_name = get_abs_path("header.html")
+            header_file = open(f_name, "r")
             header_content = header_file.read()
             header_file.close()
             self.html_header = header_content

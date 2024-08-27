@@ -5,7 +5,9 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv()
+from fn_utils import get_abs_path
+
+load_dotenv(dotenv_path=get_abs_path('.env'))
 
 
 class OpenLLM:
