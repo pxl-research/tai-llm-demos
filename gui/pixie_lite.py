@@ -26,7 +26,7 @@ class PixieLite(wx.Frame):
         w_height = int(screen_size.Height / 2)
         wx.Frame.__init__(self, parent, id, title, size=(w_width, w_height))
 
-        self.SetIcon(wx.Icon('../assets/icons/chat.png', wx.BITMAP_TYPE_PNG))
+        self.SetIcon(wx.Icon('chat.png', wx.BITMAP_TYPE_PNG))
 
         # ui elements
         self.wv_markdown = webview.WebView.New(self)
@@ -52,12 +52,15 @@ class PixieLite(wx.Frame):
         self.SetSizer(bs_vertical)
 
         # load some default content into webview
-        md_file = open(f"./README.md", "r")
-        md_content = md_file.read()
-        md_file.close()
-        html_content = markdown_to_html(md_content)
-        full_html = self.add_header(html_content)
-        self.wv_markdown.SetPage(html=full_html, baseUrl=PixieLite.BASE_URL)
+        try:
+            md_file = open(f"README.md", "r")
+            md_content = md_file.read()
+            md_file.close()
+            html_content = markdown_to_html(md_content)
+            full_html = self.add_header(html_content)
+            self.wv_markdown.SetPage(html=full_html, baseUrl=PixieLite.BASE_URL)
+        except FileNotFoundError as fnfe:
+            print(fnfe)
 
         self.Center()
         self.Show()
@@ -105,7 +108,7 @@ class PixieLite(wx.Frame):
 
     def get_html_header(self):
         if self.html_header is None:  # lazy loading
-            header_file = open(f"./header.html", "r")
+            header_file = open(f"header.html", "r")
             header_content = header_file.read()
             header_file.close()
             self.html_header = header_content
