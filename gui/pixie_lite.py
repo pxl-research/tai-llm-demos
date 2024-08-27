@@ -4,7 +4,7 @@ import markdown
 import wx
 import wx.html2 as webview
 
-from gui.fn_llm_or import OpenLLM
+from fn_llm_or import OpenLLM
 
 
 def markdown_to_html(md_content):
@@ -16,7 +16,7 @@ class PixieLite(wx.Frame):
     ID_BTN_PROMPT = 2
     BASE_URL = 'https://www.pxl.be/'
 
-    llm = OpenLLM()
+    llm = None
     completion = None
 
     def __init__(self, parent, id, title):
@@ -78,7 +78,7 @@ class PixieLite(wx.Frame):
         if len(prompt) < 1:
             return
 
-        self.completion = self.llm.complete(prompt)  # call the LLM
+        self.completion = self.get_llm().complete(prompt)  # call the LLM
         threading.Thread(target=self.live_update, daemon=True).start()
 
     def live_update(self):
@@ -111,13 +111,18 @@ class PixieLite(wx.Frame):
             self.html_header = header_content
         return self.html_header
 
+    def get_llm(self):
+        if self.llm is None:  # lazy loading
+            self.llm = OpenLLM()
+        return self.llm
+
     def add_header(self, html_content):
         header_content = self.get_html_header()
         full_page = header_content + '<body class="markdown-body"> ' + html_content + '</body>'
         return full_page
 
     def get_history_as_html(self):
-        history = self.llm.get_history()
+        history = self.get_llm().get_history()
         html_history = ''
         for message in history:
             content_html = markdown_to_html(message['content'])
