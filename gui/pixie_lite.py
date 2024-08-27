@@ -22,7 +22,7 @@ class PixieLite(wx.Frame):
         w_height = int(screen_size.Height / 2)
         wx.Frame.__init__(self, parent, id, title, size=(w_width, w_height))
 
-        icon_path = get_abs_path('chat.png')
+        icon_path = get_abs_path('assets/chat.png')
         if os.path.exists(icon_path):
             self.SetIcon(wx.Icon(icon_path, wx.BITMAP_TYPE_PNG))
 
@@ -51,7 +51,7 @@ class PixieLite(wx.Frame):
 
         # load some default content into webview
         try:
-            f_name = get_abs_path("README.md")
+            f_name = get_abs_path("assets/README.md")
             md_file = open(f_name, "r")
             md_content = md_file.read()
             md_file.close()
@@ -107,7 +107,7 @@ class PixieLite(wx.Frame):
 
     def get_html_header(self):
         if self.html_header is None:  # lazy loading
-            f_name = get_abs_path("header.html")
+            f_name = get_abs_path("assets/header.html")
             header_file = open(f_name, "r")
             header_content = header_file.read()
             header_file.close()
