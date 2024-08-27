@@ -1,3 +1,5 @@
-## Pixie Lite
+# Pixie Lite
 
-Stel een vraag
+### Stel een vraag!
+
+**Tip**: Gebruik `Ctrl` + `Enter` om te verzenden

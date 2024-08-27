@@ -5,24 +5,31 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv()
+from fn_utils import get_abs_path
+
+load_dotenv(dotenv_path=get_abs_path('.env'))
 
 
 class OpenLLM:
-    client = OpenAI(
-        base_url=os.getenv("OPENROUTER_ENDPOINT"),
-        api_key=os.getenv("OPENROUTER_API_KEY"),
-    )
+    client = None
+    history = None
 
-    # openai format
-    system_instruction = {
-        "role": "system",
-        "content": "Be concise. Be precise. "
-                   "I would like you to take a deep breath before responding. "
-                   "Always think step by step. "
-    }
+    # constructor
+    def __init__(self):
+        self.client = OpenAI(
+            base_url=os.getenv("OPENROUTER_ENDPOINT"),
+            api_key=os.getenv("OPENROUTER_API_KEY"),
+        )
 
-    history = [system_instruction]
+        # openai format
+        system_instruction = {
+            "role": "system",
+            "content": "Be concise. Be precise. "
+                       "I would like you to take a deep breath before responding. "
+                       "Always think step by step. "
+        }
+
+        self.history = [system_instruction]
 
     def complete(self, prompt):
         self.history.append({"role": "user", "content": prompt})

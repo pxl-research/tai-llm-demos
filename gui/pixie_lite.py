@@ -1,22 +1,18 @@
+import os.path
 import threading
 
-import markdown
 import wx
 import wx.html2 as webview
 
-from gui.fn_llm_or import OpenLLM
-
-
-def markdown_to_html(md_content):
-    html = markdown.markdown(md_content, extensions=['fenced_code', 'codehilite'])
-    return html
+from fn_llm_or import OpenLLM
+from fn_utils import markdown_to_html, get_abs_path
 
 
 class PixieLite(wx.Frame):
     ID_BTN_PROMPT = 2
     BASE_URL = 'https://www.pxl.be/'
 
-    llm = OpenLLM()
+    llm = None
     completion = None
 
     def __init__(self, parent, id, title):
@@ -26,7 +22,9 @@ class PixieLite(wx.Frame):
         w_height = int(screen_size.Height / 2)
         wx.Frame.__init__(self, parent, id, title, size=(w_width, w_height))
 
-        self.SetIcon(wx.Icon('../assets/icons/chat.png', wx.BITMAP_TYPE_PNG))
+        icon_path = get_abs_path('chat.png')
+        if os.path.exists(icon_path):
+            self.SetIcon(wx.Icon(icon_path, wx.BITMAP_TYPE_PNG))
 
         # ui elements
         self.wv_markdown = webview.WebView.New(self)
@@ -52,12 +50,16 @@ class PixieLite(wx.Frame):
         self.SetSizer(bs_vertical)
 
         # load some default content into webview
-        md_file = open(f"./README.md", "r")
-        md_content = md_file.read()
-        md_file.close()
-        html_content = markdown_to_html(md_content)
-        full_html = self.add_header(html_content)
-        self.wv_markdown.SetPage(html=full_html, baseUrl=PixieLite.BASE_URL)
+        try:
+            f_name = get_abs_path("README.md")
+            md_file = open(f_name, "r")
+            md_content = md_file.read()
+            md_file.close()
+            html_content = markdown_to_html(md_content)
+            full_html = self.add_header(html_content)
+            self.wv_markdown.SetPage(html=full_html, baseUrl=PixieLite.BASE_URL)
+        except FileNotFoundError as fnfe:
+            print(fnfe)
 
         self.Center()
         self.Show()
@@ -78,7 +80,7 @@ class PixieLite(wx.Frame):
         if len(prompt) < 1:
             return
 
-        self.completion = self.llm.complete(prompt)  # call the LLM
+        self.completion = self.get_llm().complete(prompt)  # call the LLM
         threading.Thread(target=self.live_update, daemon=True).start()
 
     def live_update(self):
@@ -105,11 +107,17 @@ class PixieLite(wx.Frame):
 
     def get_html_header(self):
         if self.html_header is None:  # lazy loading
-            header_file = open(f"./header.html", "r")
+            f_name = get_abs_path("header.html")
+            header_file = open(f_name, "r")
             header_content = header_file.read()
             header_file.close()
             self.html_header = header_content
         return self.html_header
+
+    def get_llm(self):
+        if self.llm is None:  # lazy loading
+            self.llm = OpenLLM()
+        return self.llm
 
     def add_header(self, html_content):
         header_content = self.get_html_header()
@@ -117,7 +125,7 @@ class PixieLite(wx.Frame):
         return full_page
 
     def get_history_as_html(self):
-        history = self.llm.get_history()
+        history = self.get_llm().get_history()
         html_history = ''
         for message in history:
             content_html = markdown_to_html(message['content'])
