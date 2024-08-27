@@ -7,7 +7,7 @@ from openai import OpenAI
 
 from fn_utils import get_abs_path
 
-load_dotenv(dotenv_path=get_abs_path('.env'))
+load_dotenv(dotenv_path=get_abs_path('assets/.env'))
 
 
 class OpenLLM:

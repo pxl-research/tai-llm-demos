@@ -5,7 +5,7 @@ a = Analysis(
     ['pixie_lite.py'],
     pathex=['../.venv/lib/python3.12/site-packages/'],
     binaries=[],
-    datas=[('.env', '.'), ('header.html', '.'), ('README.md', '.'), ('chat.png', '.')],
+    datas=[('assets/.env', 'assets/'), ('assets/header.html', 'assets/.'), ('assets/README.md', 'assets/'), ('assets/chat.png', 'assets/')],
     hiddenimports=['tiktoken_ext.openai_public', 'tiktoken_ext'],
     hookspath=[],
     hooksconfig={},
@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='pixie_lite',
+    name='Pixie Lite',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -35,4 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['assets/chat.png']
 )
