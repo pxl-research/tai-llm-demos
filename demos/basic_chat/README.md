@@ -1,4 +1,5 @@
-# TransformAI LLM Chat
+# LLM Chat
+TransformAI
 
 ## What's in this folder?
 This folder contains some basic **chatbot** examples:
