@@ -1,4 +1,5 @@
-# TransformAI LLM Chat
+# Slack Chatbot Demo
+TransformAI
 
 ## What's in this folder?
 
