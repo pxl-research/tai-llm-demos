@@ -18,15 +18,7 @@ and enter your personal **keys** and **endpoints** therein.
 ## Use
 Run the python script from the terminal (or your IDE). 
 
-It will print out a **URL** to the console. 
-The default URL for [Gradio](https://www.gradio.app/guides/creating-a-chatbot-fast) is http://127.0.0.1:7860, which runs local only. 
-
-If the address is specified to `0.0.0.0`, 
-it will also be available to other computers in your network, using your IP address.
-
-To create a publicly accessible link, set `share=True` in the Gradio `launch()` call.
-
-Surf to the generated address in your browser to use the Gradio web UI.
+_For more info regarding how Gradio works, please refer to the general README in this repository._
 
 ## Screenshots
 

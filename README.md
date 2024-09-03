@@ -21,14 +21,27 @@ and [Azure OpenAI](https://oai.azure.com/) as the LLM's under the hood:
 
 To install the necessary libraries use `pip install -r requirements.txt`
 
+_If you would like to minimize the amount of libraries installed,
+please use the (more specific) requirements files in the demo folders themselves._
+
 Please create an `.env` file with the same structure as the provided `.env.example` file,
 and enter your personal (OpenRouter or Azure OpenAI) **key** and **endpoint** therein.
 
 ## Use
 
-Run the python script from the terminal (or your IDE).
+Run the Python script from the terminal (or your IDE).
 
-For more detailed instructions, open the README files in the respective folders
+For more detailed information, open the README files in the respective demo folders
+
+### Gradio
+
+For [Gradio](https://www.gradio.app/guides/creating-a-chatbot-fast) projects this will print a **URL** to the console.
+Surf to the generated address in your browser to use the Gradio web UI.
+
+The default URL is http://127.0.0.1:7860, which runs local only.
+If the address is specified to `0.0.0.0`,
+it will also be available to other computers in your network, using your IP address.
+To create a publicly accessible link, set `share=True` in the Gradio `launch()` call.
 
 ## Screenshots
 
