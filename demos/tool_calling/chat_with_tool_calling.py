@@ -5,7 +5,7 @@ import gradio as gr
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from tools_weather import (tools_weather)
+from tools_weather import (tools_weather, get_current_temperature, get_current_rainfall)
 
 load_dotenv()
 
@@ -35,8 +35,6 @@ def append_bot(chat_history, message_list):
 
 
 def complete_with_llm(chat_history, message_list):
-    print('complete_with_llm ', len(chat_history), ' ', len(message_list))
-
     response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
                                                      messages=message_list,
                                                      tools=tools_weather,
@@ -104,11 +102,11 @@ def complete_with_llm(chat_history, message_list):
                              "tool_call_id": call.id,
                              "content": json.dumps(fn_result)}
                 message_list.append(tool_resp)
-        # recursively call completion message to give the LLM a change to process results
+        # recursively call completion message to give the LLM a chance to process results
         yield from complete_with_llm(chat_history, message_list)
 
 
-# UI
+# Gradio UI
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
     messages = gr.State([system_instruction])
