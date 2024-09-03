@@ -9,6 +9,8 @@ This repository contains an example chatbot using [OpenRouter](https://openroute
 The `tools_weather.py` file contains both the JSON description of the functions and
 an implementation stub for the actual methods.
 
+This program is a little longer and more convoluted because it uses streaming responses from LLM.
+
 ## Configuration
 
 To install the necessary libraries use `pip install -r requirements.txt`
