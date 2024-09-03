@@ -156,7 +156,7 @@ with (gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui)
     with gr.Row():
         btn_live = gr.Button('Chat', icon='../assets/icons/chat.png', interactive=False)
         btn_history = gr.Button('History', icon='../assets/icons/history.png')
-        btn_upload = gr.Button('Upload')
+        btn_upload = gr.Button('Upload', icon='../assets/icons/upload.png')
 
         # event handlers
         btn_live.click(show_live, [],
@@ -179,4 +179,4 @@ with (gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui)
     llm_client_ui.load(list_collections, [], [df_files])
 
 # To create a public link, set `share=True` in `launch()`.
-llm_client_ui.queue().launch(auth=auth_method, server_name='0.0.0.0')
+llm_client_ui.queue().launch(auth=auth_method, server_name='0.0.0.0', server_port=7898)
