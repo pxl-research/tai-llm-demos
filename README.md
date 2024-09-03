@@ -3,17 +3,18 @@
 ## What's in this repository?
 
 This repository contains some "chatbot" and related examples using [OpenRouter](https://openrouter.ai/)
-and [Azure OpenAI](https://oai.azure.com/) as the LLM's under the hood:
+and [Azure OpenAI](https://oai.azure.com/) as the LLM providers under the hood.
 
-- `demos/basic_chat` a basic chat app using the OpenAI Completions API and a similar example with OpenRouter
+- `demos/basic_chat` contains a basic chat app using the OpenAI Completions API and a similar example with OpenRouter
 
-- `demos/rag` tools and utilities to showcase RAG using ChromaDB
+- `demos/rag` has some tools and utilities to showcase RAG retrieval
 
-- `demos/slack_bot` demo code for a Slack bot with LLM integration
+- `demos/slack_bot` consists of demo code for a Slack bot with LLM integration
 
-- `chat_with_rag` a more fleshed out chat app using the OpenAI "Assistant API", including RAG and a chat history viewer
+- `chat_with_rag` is a more fleshed out chat app using the OpenAI "Assistants API", 
+and includes RAG and a chat history viewer
 
-- `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html)
+- `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html) (work in progress)
 
 - `class_based` the stub for refactoring these demos into more modular, reusable code (work in progress)
 
