@@ -13,6 +13,8 @@ and [Azure OpenAI](https://oai.azure.com/) as the LLM's under the hood:
 
 - `chat_with_rag` a more fleshed out chat app using the OpenAI "Assistant API", including RAG and a chat history viewer
 
+- `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html)
+
 - `class_based` the stub for refactoring these demos into more modular, reusable code (work in progress)
 
 ## Configuration
