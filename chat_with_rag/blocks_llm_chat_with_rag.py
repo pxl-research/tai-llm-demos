@@ -19,9 +19,10 @@ client = AzureOpenAI(
     azure_endpoint=os.getenv("AOA_ENDPOINT"),
 )
 
-general_instructions = ("Be concise, but precise as well."
-                        "Always think step by step."
-                        "Take a deep breath before responding.")
+general_instructions = ("Be concise, but precise as well. "
+                        "Always think step by step. "
+                        "Take a deep breath before responding. "
+                        "Feel free to use Markdown syntax in your answer.")
 
 tools = [
     {"type": "code_interpreter"},
@@ -32,7 +33,7 @@ assistant = client.beta.assistants.create(
     name="Professional Assistant",
     description="You support a team of applied researchers operating in Western Europe.",
     instructions=general_instructions,
-    model="gpt-4-turbo-04-09",
+    model="gpt-4o-mini",
     tools=tools,
 )
 
