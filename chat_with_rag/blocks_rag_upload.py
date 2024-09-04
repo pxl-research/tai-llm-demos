@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 
 import chromadb
@@ -20,8 +21,10 @@ cdb_client = chromadb.PersistentClient(path=cdb_path)  # on disk
 def cleanup_filename(full_file_path):
     cleaned_name = os.path.basename(full_file_path)  # remove path
     cleaned_name = os.path.splitext(cleaned_name)[0]  # remove extension
-    cleaned_name = cleaned_name.lower()  # lowercase
-    cleaned_name = cleaned_name.replace(".", "_")  # no periods
+    cleaned_name = cleaned_name.replace(".", "-")  # no periods
+    cleaned_name = cleaned_name.replace(" ", "-")  # no spaces
+    cleaned_name = re.sub(r'[^a-zA-Z0-9_-]', ' ', cleaned_name)  # remove invalid chars
+    cleaned_name = cleaned_name.replace(" ", "_")  # no spaces
     return cleaned_name[:60]  # crop it
 
 
