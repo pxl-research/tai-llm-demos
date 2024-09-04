@@ -2,11 +2,11 @@ import base64
 
 import bcrypt
 
-users_file = '.passwd'
+DEFAULT_PASSWD_FILE = '.passwd'
 default_encoding = 'utf-8'
 
 
-def auth_method(username, password):
+def auth_method(username, password, users_file=DEFAULT_PASSWD_FILE):
     encoded_username = encode_64(username)
     log_file = open(users_file, "r")
     users_list = log_file.read().splitlines()
@@ -18,7 +18,7 @@ def auth_method(username, password):
     return False
 
 
-def add_user(username, password):
+def add_user(username, password, users_file=DEFAULT_PASSWD_FILE):
     encoded_username = encode_64(username.strip())
     hashed_password = bc_hash_string(password.strip())
     user_line = f"{encoded_username}|{hashed_password}\n"

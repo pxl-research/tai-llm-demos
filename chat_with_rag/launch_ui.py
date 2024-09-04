@@ -89,7 +89,11 @@ explainer = (
     'Do not interrupt the processing step. There is no undo.')
 
 css = """
-.danger {background: red;} 
+    .danger {background: red;}
+    .blue {background: #247BA0;}
+    .light_gray {background: #CBD4C2;}
+    .dark_gray {background: #50514F;}
+    .light_brown {background: #C3B299;}
 """
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
@@ -154,9 +158,9 @@ with (gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui)
 
     # toggle UI
     with gr.Row():
-        btn_live = gr.Button('Chat', icon='../assets/icons/chat.png', interactive=False)
-        btn_history = gr.Button('History', icon='../assets/icons/history.png')
-        btn_upload = gr.Button('Upload', icon='../assets/icons/upload.png')
+        btn_live = gr.Button('Chat', icon='../assets/icons/chat.png', interactive=False, elem_classes='blue')
+        btn_history = gr.Button('History', icon='../assets/icons/history.png', elem_classes='light_gray')
+        btn_upload = gr.Button('Upload', icon='../assets/icons/upload.png', elem_classes='light_brown')
 
         # event handlers
         btn_live.click(show_live, [],
