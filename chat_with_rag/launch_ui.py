@@ -16,6 +16,7 @@ from blocks_view_history import (
     set_folder,
     remove_file
 )
+from chat_with_rag.blocks_rag_upload import sanitize_string
 from fn_auth import (
     auth_method
 )
@@ -76,7 +77,7 @@ def show_upload():
 
 
 def on_login(request: gr.Request):
-    user_folder = request.username.strip().lower()
+    user_folder = sanitize_string(request.username.lower())
     new_thread = client.beta.threads.create()
     print(f"Created a thread with id: {new_thread.id} for user {user_folder}")
     return [set_folder(user_folder), new_thread]
@@ -147,7 +148,7 @@ with (gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui)
                           file_types=[".pdf"],
                           file_count="single",
                           visible=False)
-    df_files = gr.Dataframe(label="Collections",
+    df_files = gr.Dataframe(label="Documents",
                             headers=['Name'],
                             col_count=1,
                             interactive=False,
