@@ -95,15 +95,17 @@ css = """
     .light_gray {background: #CBD4C2;}
     .dark_gray {background: #50514F;}
     .light_brown {background: #C3B299;}
+    footer {display:none !important}
 """
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
-with (gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui):
+with (gr.Blocks(fill_height=True, title='Pixie Lite', css=css) as llm_client_ui):
     # state that is unique to each user
     log_folder = gr.State("logs/")
     thread = gr.State()
 
     # live client UI
+    gr.Markdown("## <center>PiXie Lite</center>")
     cb_live = gr.Chatbot(label='Chat', scale=1)
     with gr.Group() as gr_live:
         with gr.Row():
