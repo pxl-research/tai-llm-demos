@@ -16,6 +16,7 @@ from blocks_view_history import (
     set_folder,
     remove_file
 )
+from chat_with_rag.blocks_rag_upload import sanitize_string
 from fn_auth import (
     auth_method
 )
@@ -76,7 +77,7 @@ def show_upload():
 
 
 def on_login(request: gr.Request):
-    user_folder = request.username.strip().lower()
+    user_folder = sanitize_string(request.username.lower())
     new_thread = client.beta.threads.create()
     print(f"Created a thread with id: {new_thread.id} for user {user_folder}")
     return [set_folder(user_folder), new_thread]
@@ -89,16 +90,22 @@ explainer = (
     'Do not interrupt the processing step. There is no undo.')
 
 css = """
-.danger {background: red;} 
+    .danger {background: red;}
+    .blue {background: #247BA0;}
+    .light_gray {background: #CBD4C2;}
+    .dark_gray {background: #50514F;}
+    .light_brown {background: #C3B299;}
+    footer {display:none !important}
 """
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
-with (gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui):
+with (gr.Blocks(fill_height=True, title='Pixie Lite', css=css) as llm_client_ui):
     # state that is unique to each user
     log_folder = gr.State("logs/")
     thread = gr.State()
 
     # live client UI
+    gr.Markdown("## <center>PiXie Lite</center>")
     cb_live = gr.Chatbot(label='Chat', scale=1)
     with gr.Group() as gr_live:
         with gr.Row():
@@ -143,7 +150,7 @@ with (gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui)
                           file_types=[".pdf"],
                           file_count="single",
                           visible=False)
-    df_files = gr.Dataframe(label="Collections",
+    df_files = gr.Dataframe(label="Documents",
                             headers=['Name'],
                             col_count=1,
                             interactive=False,
@@ -154,9 +161,9 @@ with (gr.Blocks(fill_height=True, title='PXL CheaPT', css=css) as llm_client_ui)
 
     # toggle UI
     with gr.Row():
-        btn_live = gr.Button('Chat', icon='../assets/icons/chat.png', interactive=False)
-        btn_history = gr.Button('History', icon='../assets/icons/history.png')
-        btn_upload = gr.Button('Upload', icon='../assets/icons/upload.png')
+        btn_live = gr.Button('Chat', icon='../assets/icons/chat.png', interactive=False, elem_classes='blue')
+        btn_history = gr.Button('History', icon='../assets/icons/history.png', elem_classes='light_gray')
+        btn_upload = gr.Button('Upload', icon='../assets/icons/upload.png', elem_classes='light_brown')
 
         # event handlers
         btn_live.click(show_live, [],

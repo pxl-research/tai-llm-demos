@@ -18,18 +18,22 @@ cdb_client = chromadb.PersistentClient(path=cdb_path)  # on disk
 
 
 # https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections
-def cleanup_filename(full_file_path):
-    cleaned_name = os.path.basename(full_file_path)  # remove path
-    cleaned_name = os.path.splitext(cleaned_name)[0]  # remove extension
-    cleaned_name = cleaned_name.replace(".", "-")  # no periods
-    cleaned_name = cleaned_name.replace(" ", "-")  # no spaces
-    cleaned_name = re.sub(r'[^a-zA-Z0-9_-]', ' ', cleaned_name)  # remove invalid chars
-    cleaned_name = cleaned_name.replace(" ", "_")  # no spaces
-    return cleaned_name[:60]  # crop it
+def sanitize_filename(full_file_path):
+    cleaner_name = os.path.basename(full_file_path)  # remove path
+    cleaner_name = os.path.splitext(cleaner_name)[0]  # remove extension
+    cleaner_name = sanitize_string(cleaner_name)
+    return cleaner_name[:60]  # crop it
+
+
+def sanitize_string(some_text):
+    cleaner_name = some_text.strip()
+    cleaner_name = cleaner_name.replace(" ", "_")  # spaces to underscores
+    cleaner_name = re.sub(r'[^a-zA-Z0-9_-]', '-', cleaner_name)  # replace invalid characters with spaces
+    return cleaner_name
 
 
 def on_file_uploaded(file_path, progress=gr.Progress()):
-    collection_name = cleanup_filename(file_path)
+    collection_name = sanitize_filename(file_path)
     add_pdf_to_db(cdb_client, collection_name, file_path, progress)
     names = list_collections()
     return [None, names]
