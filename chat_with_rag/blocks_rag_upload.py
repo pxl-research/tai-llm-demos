@@ -33,7 +33,7 @@ def sanitize_string(some_text):
 
 
 def on_file_uploaded(file_list, progress=gr.Progress()):
-    print(file_list)
+    # TODO: check if file already in collection?
     for file_path in file_list:
         collection_name = sanitize_filename(file_path)
         add_pdf_to_db(cdb_client, collection_name, file_path, progress)
