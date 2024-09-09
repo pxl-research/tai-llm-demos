@@ -32,9 +32,11 @@ def sanitize_string(some_text):
     return cleaner_name
 
 
-def on_file_uploaded(file_path, progress=gr.Progress()):
-    collection_name = sanitize_filename(file_path)
-    add_pdf_to_db(cdb_client, collection_name, file_path, progress)
+def on_file_uploaded(file_list, progress=gr.Progress()):
+    print(file_list)
+    for file_path in file_list:
+        collection_name = sanitize_filename(file_path)
+        add_pdf_to_db(cdb_client, collection_name, file_path, progress)
     names = list_collections()
     return [None, names]
 
