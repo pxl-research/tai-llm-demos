@@ -45,3 +45,9 @@ def list_collections():
     for collection in collections_list:
         names.append([collection.name])
     return names
+
+
+def remove_collection(collection_name):
+    cdb_client.delete_collection(collection_name)
+    names = list_collections()
+    return names
