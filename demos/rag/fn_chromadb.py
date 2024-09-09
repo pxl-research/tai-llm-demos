@@ -27,7 +27,7 @@ def add_pdf_to_db(cdb_client, collection_name, file_path, progress=gr.Progress()
             ids=chunk_ids[c],
             metadatas=meta_infos[c]
         )
-        progress((1 + c, total))
+        progress(progress=(1 + c, total), desc=collection_name)
     duration = (time.time() - start_time)  # convert to ms
     print(f"Added {len(chunk_ids)} chunks to chroma db ({round(duration)} sec)")
 

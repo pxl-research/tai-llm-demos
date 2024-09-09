@@ -163,7 +163,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
     lbl_rag_explainer = gr.HTML(rag_explainer, visible=False)
     file_rag_upload = gr.File(label="Click to Upload a File",
                               file_types=[".pdf"],
-                              file_count="single",
+                              file_count="multiple",
                               visible=False)
     with gr.Row():
         df_rag_files = gr.Dataframe(label="Documents",
