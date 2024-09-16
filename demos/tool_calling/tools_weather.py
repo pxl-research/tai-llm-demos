@@ -1,4 +1,4 @@
-
+# JSON description of available methods
 tools_weather = [{
     "type": "function",
     "function": {
@@ -56,9 +56,11 @@ tools_weather = [{
 
 # callable method for the LLM
 def get_current_temperature(location, unit="Celsius"):
-    return {"temp": "30 degrees celsius"}
+    print(f"get_current_temperature {location} {unit}")
+    return {"temp": "20 degrees celsius"}
 
 
 # callable method for the LLM
 def get_current_rainfall(location, unit="mm"):
-    return {"rainfall": "10mm"}
+    print(f"get_current_rainfall {location} {unit}")
+    return {"rainfall": "15mm"}

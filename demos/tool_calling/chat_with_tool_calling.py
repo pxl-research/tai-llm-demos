@@ -1,18 +1,15 @@
 import json
-import os
 
 import gradio as gr
 from dotenv import load_dotenv
-from openai import OpenAI
 
+from demos.tool_calling.open_router_client import OpenRouterClient
+# noinspection PyUnresolvedReferences
 from tools_weather import (tools_weather, get_current_temperature, get_current_rainfall)
 
 load_dotenv()
 
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.getenv("OPENROUTER_API_KEY"),
-)
+or_client = OpenRouterClient(tools_list=tools_weather)
 
 system_instruction = {
     "role": "system",
@@ -35,20 +32,13 @@ def append_bot(chat_history, message_list):
 
 
 def complete_with_llm(chat_history, message_list):
-    response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
-                                                     messages=message_list,
-                                                     tools=tools_weather,
-                                                     extra_headers={
-                                                         "HTTP-Referer": "https://pxl-research.be/",
-                                                         "X-Title": "PXL Smart ICT"
-                                                     },
-                                                     stream=True)
+    response_stream = or_client.create_completions_stream(message_list=message_list)
 
     partial_message = ""
     tool_calls = []
     for chunk in response_stream:  # stream the response
         if len(chunk.choices) > 0:
-            # LLM reponses
+            # LLM text reponses
             if chunk.choices[0].delta.content is not None:
                 partial_message = partial_message + chunk.choices[0].delta.content
                 chat_history[-1][1] = partial_message
