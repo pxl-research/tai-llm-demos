@@ -12,18 +12,18 @@ load_dotenv()
 or_client = OpenRouterClient(tools_list=tools_weather)
 
 system_instruction = {
-    "role": "system",
-    "content": "Be concise. Be precise. "
-               "I would like you to take a deep breath before responding. "
-               "Always think step by step. "
+    'role': 'system',
+    'content': 'Be concise. Be precise. '
+               'I would like you to take a deep breath before responding. '
+               'Always think step by step. '
 }
 
 
 # blocks UI method
 def append_user(user_message, chat_history, message_list):
     chat_history.append((user_message, None))
-    message_list.append({"role": "user", "content": user_message})
-    return "", chat_history, message_list
+    message_list.append({'role': 'user', 'content': user_message})
+    return '', chat_history, message_list
 
 
 # blocks UI method
@@ -34,7 +34,7 @@ def append_bot(chat_history, message_list):
 def complete_with_llm(chat_history, message_list):
     response_stream = or_client.create_completions_stream(message_list=message_list)
 
-    partial_message = ""
+    partial_message = ''
     tool_calls = []
     for chunk in response_stream:  # stream the response
         if len(chunk.choices) > 0:
@@ -61,7 +61,7 @@ def complete_with_llm(chat_history, message_list):
 
     # handle text responses
     if chat_history[-1][1] is not None:
-        message_list.append({"role": "assistant", "content": chat_history[-1][1]})
+        message_list.append({'role': 'assistant', 'content': chat_history[-1][1]})
 
     # handle tool requests
     if len(tool_calls) > 0:
@@ -70,15 +70,15 @@ def complete_with_llm(chat_history, message_list):
             fn_pointer = globals()[call.function.name]
             fn_args = json.loads(call.function.arguments)
             tool_call_obj = {
-                "role": "assistant",
-                "content": None,
-                "tool_calls": [
+                'role': 'assistant',
+                'content': None,
+                'tool_calls': [
                     {
-                        "id": call.id,
-                        "type": "function",
-                        "function": {
-                            "name": call.function.name,
-                            "arguments": call.function.arguments
+                        'id': call.id,
+                        'type': 'function',
+                        'function': {
+                            'name': call.function.name,
+                            'arguments': call.function.arguments
                         }
                     }
                 ]
@@ -87,10 +87,10 @@ def complete_with_llm(chat_history, message_list):
 
             if fn_pointer is not None:
                 fn_result = fn_pointer(**fn_args)
-                tool_resp = {"role": "tool",
-                             "name": call.function.name,
-                             "tool_call_id": call.id,
-                             "content": json.dumps(fn_result)}
+                tool_resp = {'role': 'tool',
+                             'name': call.function.name,
+                             'tool_call_id': call.id,
+                             'content': json.dumps(fn_result)}
                 message_list.append(tool_resp)
         # recursively call completion message to give the LLM a chance to process results
         yield from complete_with_llm(chat_history, message_list)
@@ -105,7 +105,7 @@ with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
         with gr.Row():
             tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
             btn_send = gr.Button('', scale=0, min_width=64, icon='../../assets/icons/send.png')
-    btn_clear = gr.Button("Clear")
+    btn_clear = gr.Button('Clear')
 
     # event handlers
     tb_user.submit(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],

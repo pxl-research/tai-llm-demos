@@ -11,13 +11,13 @@ class OpenRouterClient(OpenAI):
     model_name: str
     tools_list: list
     extra_headers = {
-        "HTTP-Referer": "https://pxl-research.be/",
-        "X-Title": "PXL Smart ICT"
+        'HTTP-Referer': 'https://pxl-research.be/',
+        'X-Title': 'PXL Smart ICT'
     }
 
     def __init__(self,
-                 base_url: str = "https://openrouter.ai/api/v1",
-                 api_key: str = os.getenv("OPENROUTER_API_KEY"),
+                 base_url: str = 'https://openrouter.ai/api/v1',
+                 api_key: str = os.getenv('OPENROUTER_API_KEY'),
                  model_name: str = 'openai/gpt-4o-mini',
                  tools_list: list = None):
         super().__init__(base_url=base_url,
