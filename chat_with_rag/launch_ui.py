@@ -98,10 +98,10 @@ def on_row_selected(select_data: gr.SelectData):
 
 
 rag_explainer = (
-    'Upload company or business information here if you want the language model to be able to perform lookup into it. '
-    'Do not upload data files. Stick to PDF only. '
-    'Processing may take considerable time depending on the size of the document. '
-    'Do not interrupt the processing step. There is no undo.')
+    'Upload additional information here if you want the language model to be able to perform lookup into it. '
+    'Do not upload data files such as spreadsheets or tables; stick to PDF only. '
+    'Processing may take considerable time depending on the size of the documents. '
+    'Do not interrupt the processing step.')
 
 custom_css = """
     .danger {background: red;}
