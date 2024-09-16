@@ -16,7 +16,7 @@ cdb_client = chromadb.PersistentClient(path="store/")  # on disk
 # add_pdf_to_db(cdb_client, "arbeidsregelement", "documents/arbeidsreglement.pdf")
 
 # perform a search on the vector database
-query = "Hoeveel uur mag een werknemer presteren per dag?"
+query = "Wat weet je over ProcureWeb?"
 
 print(query)
 results = query_all_documents(cdb_client, query)
