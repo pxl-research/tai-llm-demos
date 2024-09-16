@@ -6,7 +6,7 @@ import chromadb
 sys.path.append('../')
 
 from dotenv import load_dotenv
-from demos.rag.fn_chromadb import query_all_documents
+from chat_with_rag.fn_chromadb import query_all_documents
 
 load_dotenv()
 
