@@ -1,54 +1,33 @@
-import os
-import re
-
-import chromadb
 import gradio as gr
+from tqdm import tqdm
 
-from fn_chromadb import add_pdf_to_db
+from demos.rag.chroma_document_store import ChromaDocumentStore, sanitize_filename
 
-# cdb_client = chromadb.Client()  # in memory
-cdb_client = chromadb.PersistentClient(path='store/')  # on disk
-
-
-# https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections
-def sanitize_filename(full_file_path):
-    cleaner_name = os.path.basename(full_file_path)  # remove path
-    cleaner_name = os.path.splitext(cleaner_name)[0]  # remove extension
-    cleaner_name = sanitize_string(cleaner_name)
-    return cleaner_name[:60]  # crop it
+cdb_store = ChromaDocumentStore(path='store/')
 
 
-def sanitize_string(some_text):
-    cleaner_name = some_text.strip()
-    cleaner_name = cleaner_name.replace(" ", "_")  # spaces to underscores
-    cleaner_name = re.sub(r'[^a-zA-Z0-9_-]', '-', cleaner_name)  # replace invalid characters with spaces
-    return cleaner_name
+def on_file_uploaded(file_list, progress=gr.Progress(track_tqdm=True)):
+    current_documents = cdb_store.list_documents()
 
-
-def on_file_uploaded(file_list, progress=gr.Progress()):
-    # TODO: check if file already in collection?
     for file_path in file_list:
         collection_name = sanitize_filename(file_path)
-        add_pdf_to_db(cdb_client, collection_name, file_path, progress)
-    names = list_collections()
+        if collection_name not in current_documents:
+            cdb_store.add_document(file_path, tqdm)
+
+    names = cdb_store.list_documents()
     return [None, names]
 
 
-def list_collections():
-    collections_list = cdb_client.list_collections()
-    names = []
-    for collection in collections_list:
-        names.append([collection.name])
-    return names
-
-
 def on_remove_rag(file_list, select_data):
-    names = []
     if select_data is not None:
         document_name = file_list['Name'][select_data[0]]
-        cdb_client.delete_collection(document_name)
-        names = list_collections()
+        cdb_store.remove_document(document_name)
+    names = cdb_store.list_documents()
     return names, None
+
+
+def list_documents():
+    return cdb_store.list_documents()
 
 
 def on_row_selected(select_data: gr.SelectData):
@@ -68,6 +47,7 @@ custom_css = """
 with gr.Blocks(fill_height=True, title='RAG Upload Demo', css=custom_css) as cdb_demo:
     st_selected_index = gr.State()
 
+    # UI elements
     lbl_rag_explainer = gr.Markdown(rag_explainer)
 
     file_rag_upload = gr.File(label='Click to Upload a File',
@@ -86,9 +66,10 @@ with gr.Blocks(fill_height=True, title='RAG Upload Demo', css=custom_css) as cdb
                                         icon='../../assets/icons/disposal.png',
                                         elem_classes='danger')
 
+    # event handlers
     file_rag_upload.upload(on_file_uploaded, [file_rag_upload], [file_rag_upload, df_rag_files])
     df_rag_files.select(on_row_selected, None, [st_selected_index])
     btn_remove_rag_file.click(on_remove_rag, [df_rag_files, st_selected_index], [df_rag_files, st_selected_index])
-    cdb_demo.load(list_collections, [], [df_rag_files])
+    cdb_demo.load(list_documents, [], [df_rag_files])
 
 cdb_demo.queue().launch(server_name='0.0.0.0', server_port=7894)
