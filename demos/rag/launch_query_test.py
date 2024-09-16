@@ -12,11 +12,10 @@ def pretty_print(json_obj):
 # cdb_client = chromadb.Client()  # in memory
 cdb_client = chromadb.PersistentClient(path="store/")  # on disk
 
-# NOTE: adding files can now be done with gradio UI (launch_upload_ui.py)
-# add_pdf_to_db(cdb_client, "arbeidsregelement", "documents/arbeidsreglement.pdf")
+# TODO: add some files to the vector store first using the Gradio UI (launch_upload_ui.py)
 
-# perform a search on the vector database
-query = "Wat weet je over ProcureWeb?"
+# perform a document search on the vector database
+query = "Hoeveel uren mag een lector werken per dag?"
 
 print(query)
 results = query_all_documents(cdb_client, query)
