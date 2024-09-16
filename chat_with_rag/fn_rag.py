@@ -2,10 +2,10 @@ import os
 import sys
 
 import chromadb
+from dotenv import load_dotenv
 
 sys.path.append('../')
 
-from dotenv import load_dotenv
 from chat_with_rag.fn_chromadb import query_all_documents
 
 load_dotenv()

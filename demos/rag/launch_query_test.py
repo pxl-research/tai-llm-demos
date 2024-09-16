@@ -7,8 +7,8 @@ def pretty_print(json_obj):
     print(json.dumps(json_obj, indent=2))
 
 
-# cdb_client = ChromaDocumentStore()  # in memory
-cdb_client = ChromaDocumentStore(path="store/")  # on disk
+# cdb_store = ChromaDocumentStore()  # in memory
+cdb_store = ChromaDocumentStore(path="store/")  # on disk
 
 # TODO: add some files to the vector store first using the Gradio UI (launch_upload_ui.py)
 
@@ -16,5 +16,5 @@ cdb_client = ChromaDocumentStore(path="store/")  # on disk
 query = "Hoeveel uren mag een lector werken per dag?"
 
 print(query)
-results = cdb_client.query_store(query)
+results = cdb_store.query_store(query)
 pretty_print(results[:5])
