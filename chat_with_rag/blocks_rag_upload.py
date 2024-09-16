@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 sys.path.append('../')
 
-from demos.rag.fn_chromadb import add_pdf_to_db
+from chat_with_rag.fn_chromadb import add_pdf_to_db
 
 load_dotenv()
 

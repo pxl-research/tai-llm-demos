@@ -162,5 +162,12 @@ cython_debug/
 logs/
 .passwd
 
-*/documents/
-*/store/
+# project specific
+**/documents/
+**/store/
+
+# intellij
+.idea/
+
+# sonarqube
+.scannerwork/

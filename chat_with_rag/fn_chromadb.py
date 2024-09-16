@@ -3,7 +3,7 @@ import time
 
 import gradio as gr
 
-sys.path.append('../../')
+sys.path.append('../')
 
 from demos.rag.fn_pdf_utils import (
     pdf_to_text,

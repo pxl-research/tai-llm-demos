@@ -1,23 +1,20 @@
 import json
 
-import chromadb
-
-from fn_chromadb import query_all_documents, add_pdf_to_db
+from demos.rag.chroma_document_store import ChromaDocumentStore
 
 
 def pretty_print(json_obj):
     print(json.dumps(json_obj, indent=2))
 
 
-# cdb_client = chromadb.Client()  # in memory
-cdb_client = chromadb.PersistentClient(path="store/")  # on disk
+# cdb_store = ChromaDocumentStore()  # in memory
+cdb_store = ChromaDocumentStore(path="store/")  # on disk
 
-# NOTE: adding files can now be done with gradio UI (launch_upload_ui.py)
-# add_pdf_to_db(cdb_client, "arbeidsregelement", "documents/arbeidsreglement.pdf")
+# TODO: add some files to the vector store first using the Gradio UI (launch_upload_ui.py)
 
-# perform a search on the vector database
-query = "Wat weet je over ProcureWeb?"
+# perform a document search on the vector database
+query = "Hoeveel uren mag een lector werken per dag?"
 
 print(query)
-results = query_all_documents(cdb_client, query)
+results = cdb_store.query_store(query)
 pretty_print(results[:5])

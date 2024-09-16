@@ -1,13 +1,13 @@
 import re
 
-import fitz
+import pymupdf
 
 
 def pdf_to_text(filename):
     page_list = []
 
-    reader = fitz.open(filename)
-    for page in reader:  # estimate about 4ms per page
+    doc_reader = pymupdf.open(filename)
+    for page in doc_reader:
         page_text = page.get_text()  # convert page from pdf to text
         page_list.append(page_text)
     return page_list
@@ -65,8 +65,3 @@ def pages_to_chunks(page_list, document_name):
             # optional: add summary or other meta info to chunk
 
     return chunk_list, chunk_id_list, chunk_meta_list
-
-
-# pages = pdf_to_text("documents/arbeidsreglement.pdf")
-# chunk_list, chunk_id_list, chunk_meta_list = pages_to_chunks(pages, "arbeidsreglement")
-# print(len(chunk_meta_list))
