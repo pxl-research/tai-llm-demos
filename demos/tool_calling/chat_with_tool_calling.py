@@ -5,11 +5,15 @@ from dotenv import load_dotenv
 
 from demos.tool_calling.open_router_client import OpenRouterClient
 # noinspection PyUnresolvedReferences
+from tools_rag import (tool_rag, lookup_in_documentation)
+# noinspection PyUnresolvedReferences
 from tools_weather import (tools_weather, get_current_temperature, get_current_rainfall)
 
 load_dotenv()
 
-or_client = OpenRouterClient(tools_list=tools_weather)
+tool_list = tools_weather
+tool_list.append(tool_rag)
+or_client = OpenRouterClient(tools_list=tool_list)
 
 system_instruction = {
     'role': 'system',
