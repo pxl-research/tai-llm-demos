@@ -4,9 +4,9 @@ TransformAI
 ## What's in this folder?
 This folder contains some basic **chatbot** examples:
 
-- `demos/basic_chat` a basic chat app using the OpenAI "Completions API"
+- `basic_chat/chat_oai.py` a basic chat app using the OpenAI "Completions API"
 
-- `demos/chat_or_with_logs` a very similar app using OpenRouter, that also stores logs of the conversation
+- `basic_chat/chat_or_with_logs.py` a very similar app using OpenRouter, that also stores logs of the conversation
 
 
 ## Configuration
