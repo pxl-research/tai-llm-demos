@@ -38,7 +38,7 @@ assistant = client.beta.assistants.create(
 )
 
 
-def clear_chat(thread):
+def clear_chat():
     thread = client.beta.threads.create()
     return ["", "", thread]
 
