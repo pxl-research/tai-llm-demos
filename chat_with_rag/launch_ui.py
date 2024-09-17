@@ -119,6 +119,8 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
     st_thread = gr.State()
     st_selected_index = gr.State()
 
+    disposal_ico = '../assets/icons/disposal.png'
+
     # live client UI
     gr.Markdown("## <center>PiXie Lite</center>")
     cb_live_chat = gr.Chatbot(label='Chat', scale=1)
@@ -126,7 +128,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
         with gr.Row():
             tb_user_prompt = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
             btn_send_prompt = gr.Button('', scale=0, min_width=64, icon='../assets/icons/send.png')
-            btn_clear_chat = gr.Button('', scale=0, min_width=64, icon='../assets/icons/disposal.png')
+            btn_clear_chat = gr.Button('', scale=0, min_width=64, icon=disposal_ico)
     with gr.Row() as row_live:
         lbl_debug = gr.HTML('')
 
@@ -137,7 +139,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
         btn_send_prompt.click(append_user, [tb_user_prompt, cb_live_chat], [cb_live_chat]
                               ).then(append_ai, [st_thread, tb_user_prompt, cb_live_chat, st_log_folder],
                                      [tb_user_prompt, cb_live_chat, lbl_debug])
-        btn_clear_chat.click(clear_chat, [st_thread], [tb_user_prompt, cb_live_chat, st_thread])
+        btn_clear_chat.click(clear_chat, [], [tb_user_prompt, cb_live_chat, st_thread])
 
     # log viewer UI
     cb_chat_history = gr.Chatbot(label='History', scale=1, visible=False)
@@ -151,7 +153,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
                 scale=10,
             )
             btn_reload_logs = gr.Button(value='', scale=0, min_width=64, icon='../assets/icons/refresh.png')
-            btn_remove_log = gr.Button(value='', scale=0, min_width=64, icon='../assets/icons/disposal.png',
+            btn_remove_log = gr.Button(value='', scale=0, min_width=64, icon=disposal_ico,
                                        elem_classes='danger')
 
         # event handlers
@@ -175,7 +177,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
         btn_remove_rag_file = gr.Button(value='',
                                         scale=0,
                                         min_width=64,
-                                        icon='../assets/icons/disposal.png',
+                                        icon=disposal_ico,
                                         elem_classes='danger',
                                         visible=False)
 
