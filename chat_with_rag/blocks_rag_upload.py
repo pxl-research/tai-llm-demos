@@ -2,18 +2,18 @@ import os
 import re
 import sys
 
-import chromadb
 import gradio as gr
 from dotenv import load_dotenv
+from tqdm import tqdm
+
+from demos.rag.chroma_document_store import ChromaDocumentStore
 
 sys.path.append('../')
-
-from chat_with_rag.fn_chromadb import add_pdf_to_db
 
 load_dotenv()
 
 cdb_path = os.getenv("CHROMA_LOCATION")
-cdb_client = chromadb.PersistentClient(path=cdb_path)  # on disk
+cdb_store = ChromaDocumentStore(path=cdb_path)  # on disk
 
 
 # https://docs.trychroma.com/usage-guide#creating-inspecting-and-deleting-collections
@@ -31,24 +31,18 @@ def sanitize_string(some_text):
     return cleaner_name
 
 
-def on_file_uploaded(file_list, progress=gr.Progress()):
-    # TODO: check if file already in collection?
+def on_file_uploaded(file_list, progress=gr.Progress(track_tqdm=True)):
     for file_path in file_list:
-        collection_name = sanitize_filename(file_path)
-        add_pdf_to_db(cdb_client, collection_name, file_path, progress)
+        cdb_store.add_document(file_path, tqdm)
     names = list_collections()
     return [None, names]
 
 
 def list_collections():
-    collections_list = cdb_client.list_collections()
-    names = []
-    for collection in collections_list:
-        names.append([collection.name])
-    return names
+    return cdb_store.list_documents()
 
 
 def remove_collection(collection_name):
-    cdb_client.delete_collection(collection_name)
+    cdb_store.remove_document(collection_name)
     names = list_collections()
     return names
