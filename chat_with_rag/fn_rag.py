@@ -1,17 +1,17 @@
 import os
 import sys
 
-import chromadb
 from dotenv import load_dotenv
 
-sys.path.append('../')
+from demos.rag.chroma_document_store import ChromaDocumentStore
 
-from chat_with_rag.fn_chromadb import query_all_documents
+sys.path.append('../')
 
 load_dotenv()
 
 cdb_path = os.getenv("CHROMA_LOCATION")
-cdb_client = chromadb.PersistentClient(path=cdb_path)  # on disk
+print(cdb_path)
+cdb_store = ChromaDocumentStore(path=cdb_path)  # on disk
 
 descriptor_lookup_in_company_docs = {
     "type": "function",
@@ -36,5 +36,5 @@ descriptor_lookup_in_company_docs = {
 
 def lookup_in_company_docs(query):
     print(f"Searching in company docs: '{query}'")
-    results = query_all_documents(cdb_client, query)
+    results = cdb_store.query_store(query)
     return results[:5]
