@@ -16,8 +16,6 @@ and includes RAG and a chat history viewer
 
 - `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html) (work in progress)
 
-- `class_based` the stub for refactoring these demos into more modular, reusable code (work in progress)
-
 ## Configuration
 
 To install the necessary libraries use `pip install -r requirements.txt`
