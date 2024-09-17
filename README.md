@@ -9,21 +9,24 @@ and [Azure OpenAI](https://oai.azure.com/) as the LLM providers under the hood.
 
 - `demos/rag` has some tools and utilities to showcase RAG retrieval
 
+- `demos/tool_calling` is a basic demo that links an LLM with some local methods (including document retrieval)
+
 - `demos/slack_bot` consists of demo code for a Slack bot with LLM integration
 
-- `chat_with_rag` is a more fleshed out chat app using the OpenAI "Assistants API", 
+- `chat_with_rag` is a more fleshed out chat app using the OpenAI "Assistants API",
 and includes RAG and a chat history viewer
 
-- `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html) (work in progress)
+- `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html) 
+(WARNING: this is a work in progress)
 
 ## Configuration
 
 To install the necessary libraries use `pip install -r requirements.txt`
 
-_If you would like to minimize the amount of libraries installed,
-please use the (more specific) requirements files in the demo folders themselves._
+Note: to minimize the amount of libraries installed,
+we have provided smaller (more specific) requirements files in the demo folders themselves.
 
-Please create an `.env` file with the same structure as the provided `.env.example` file,
+Please create an `.env` file with the same structure as the provided `.env.example` files,
 and enter your personal (OpenRouter or Azure OpenAI) **key** and **endpoint** therein.
 
 ## Use
@@ -53,3 +56,8 @@ To create a publicly accessible link, set `share=True` in the Gradio `launch()` 
 ## License
 
 Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
+
+## Feedback
+
+Feedback and bug reports are welcome, 
+please [email us](mailto:servaas.tilkin@pxl.be) or submit a feature request. 
