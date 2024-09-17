@@ -6,10 +6,9 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-from fn_rag import (
-    lookup_in_company_docs,
-    descriptor_lookup_in_company_docs
-)
+from demos.tool_calling.tool_descriptors import tools_rag_descriptor
+# noinspection PyUnresolvedReferences
+from fn_rag import lookup_in_documentation
 
 load_dotenv()
 
@@ -22,11 +21,12 @@ client = AzureOpenAI(
 general_instructions = ("Be concise, but precise as well. "
                         "Always think step by step. "
                         "Take a deep breath before responding. "
-                        "Feel free to use Markdown syntax in your answer.")
+                        "Feel free to use Markdown syntax in your answer."
+                        "When using an external source, always include the reference. ")
 
 tools = [
     {"type": "code_interpreter"},
-    descriptor_lookup_in_company_docs
+    tools_rag_descriptor
 ]
 
 assistant = client.beta.assistants.create(
@@ -69,10 +69,11 @@ def call_to_action(run, thread):
     for function_call in function_calls:
         function_name = function_call.function.name
         print(f"Function name: {function_name}")
+        fn_pointer = globals()[function_name]
 
-        if function_name == "lookup_in_company_docs":
+        if fn_pointer is not None:
             query = json.loads(function_call.function.arguments)["query"]
-            result = lookup_in_company_docs(query)
+            result = fn_pointer(query)
             function_results[function_call.id] = result
         else:
             print(f"Unknown function name: {function_name}")
@@ -80,10 +81,13 @@ def call_to_action(run, thread):
     # submit function responses
     outputs = []
     for function_call in function_calls:
-        outputs.append({
-            "tool_call_id": function_call.id,
-            "output": json.dumps(function_results[function_call.id]),
-        })
+        if function_call.id in function_results:
+            outputs.append({
+                "tool_call_id": function_call.id,
+                "output": json.dumps(function_results[function_call.id]),
+            })
+        else:
+            print(f"Function result not found: {function_call.id}")
 
     client.beta.threads.runs.submit_tool_outputs(
         thread_id=thread.id,
