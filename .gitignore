@@ -171,3 +171,5 @@ logs/
 
 # sonarqube
 .scannerwork/
+
+sonar-project.properties
