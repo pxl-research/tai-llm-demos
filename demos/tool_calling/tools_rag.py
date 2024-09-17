@@ -12,7 +12,7 @@ load_dotenv()
 cdb_path = os.getenv("CHROMA_LOCATION")
 cdb_store = ChromaDocumentStore(path=cdb_path)  # on disk
 
-tool_rag = {
+tool_rag_descriptor = {
     "type": "function",
     "function": {
         "name": "lookup_in_documentation",
@@ -21,7 +21,7 @@ tool_rag = {
                        "The method will return an array of JSON objects, containing a 'documents' part with the associated text, "
                        "a 'distances' value indicating how well the info matches your question (smaller numbers are better), "
                        "and a 'metadatas' object with some info about the text chunks: document name, page number, and a paragraph (chunk) number. "
-                       "Please always include the document name and page number when referencing this documentation.",
+                       "Always include the document name and page number when referencing this documentation.",
         "parameters": {
             "type": "object",
             "properties": {

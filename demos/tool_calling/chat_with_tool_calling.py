@@ -5,21 +5,22 @@ from dotenv import load_dotenv
 
 from demos.tool_calling.open_router_client import OpenRouterClient
 # noinspection PyUnresolvedReferences
-from tools_rag import (tool_rag, lookup_in_documentation)
+from tools_rag import (tool_rag_descriptor, lookup_in_documentation)
 # noinspection PyUnresolvedReferences
 from tools_weather import (tools_weather, get_current_temperature, get_current_rainfall)
 
 load_dotenv()
 
 tool_list = tools_weather
-tool_list.append(tool_rag)
+tool_list.append(tool_rag_descriptor)
 or_client = OpenRouterClient(tools_list=tool_list)
 
 system_instruction = {
     'role': 'system',
-    'content': 'Be concise. Be precise. '
+    'content': 'Be concise. Be precise. Always think step by step. '
                'I would like you to take a deep breath before responding. '
-               'Always think step by step. '
+               'You can answer using Markdown syntax if you want to. '
+               'When using an external source, always include the reference. '
 }
 
 
