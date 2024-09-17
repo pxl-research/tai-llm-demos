@@ -4,15 +4,17 @@ import gradio as gr
 from dotenv import load_dotenv
 
 from demos.tool_calling.open_router_client import OpenRouterClient
+from demos.tool_calling.tool_descriptors import tools_weather_descriptor, tools_rag_descriptor
+
 # noinspection PyUnresolvedReferences
-from tools_rag import (tool_rag_descriptor, lookup_in_documentation)
+from tools_rag import (lookup_in_documentation)
 # noinspection PyUnresolvedReferences
-from tools_weather import (tools_weather, get_current_temperature, get_current_rainfall)
+from tools_weather import (get_current_temperature, get_current_rainfall)
 
 load_dotenv()
 
-tool_list = tools_weather
-tool_list.append(tool_rag_descriptor)
+tool_list = tools_weather_descriptor
+tool_list.append(tools_rag_descriptor)
 or_client = OpenRouterClient(tools_list=tool_list)
 
 system_instruction = {
