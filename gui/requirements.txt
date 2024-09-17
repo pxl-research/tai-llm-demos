@@ -1,0 +1,7 @@
+tiktoken~=0.7.0
+python-dotenv~=1.0.1
+openai~=1.42.0
+Markdown~=3.7
+wxPython~=4.2.1
+Pygments
+pyinstaller
