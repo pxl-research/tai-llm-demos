@@ -34,18 +34,18 @@ class OpenRouterClient(OpenAI):
                                             stream=True)
 
 
-# models with tool calling
-models = ['ai21/jamba-1-5-large',
-          'ai21/jamba-1-5-mini',
-          'anthropic/claude-3-haiku',
-          'deepseek/deepseek-chat',
-          'google/gemini-flash-1.5',
-          'google/gemini-pro',
-          'google/gemini-pro-1.5',
-          'meta-llama/llama-3.1-405b-instruct',
-          'meta-llama/llama-3.1-70b-instruct',
-          'meta-llama/llama-3.1-8b-instruct',
-          'mistralai/mistral-nemo',
-          'openai/gpt-4o-2024-08-06',
-          'openai/gpt-4o-mini',
-          'openai/gpt-4o-mini-2024-07-18']
+# some affordable models with tool calling
+JAMBA_LARGE = 'ai21/jamba-1-5-large'
+JAMBA_MINI = 'ai21/jamba-1-5-mini',
+CLAUDE3_HAIKU = 'anthropic/claude-3-haiku',
+DEEPSEEK = 'deepseek/deepseek-chat',
+GEMINI_FLASH_15 = 'google/gemini-flash-1.5',
+GEMINI_PRO = 'google/gemini-pro',
+GEMINI_PRO_15 = 'google/gemini-pro-1.5',
+LLAMA_405B_I = 'meta-llama/llama-3.1-405b-instruct',
+LLAMA_70B_I = 'meta-llama/llama-3.1-70b-instruct',
+LLAMA_8B_I = 'meta-llama/llama-3.1-8b-instruct',
+MISTRAL_NEMO = 'mistralai/mistral-nemo',
+GPT_4O_0608 = 'openai/gpt-4o-2024-08-06',
+GPT_4O_MINI = 'openai/gpt-4o-mini',
+GPT_4O_MINI_1807 = 'openai/gpt-4o-mini-2024-07-18'

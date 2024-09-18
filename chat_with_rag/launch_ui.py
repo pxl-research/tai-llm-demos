@@ -16,7 +16,8 @@ from blocks_view_history import (
     set_folder,
     remove_file
 )
-from chat_with_rag.blocks_rag_upload import sanitize_string, remove_collection
+from chat_with_rag.blocks_rag_upload import remove_collection
+from demos.rag.chroma_document_store import sanitize_string
 from fn_auth import (
     auth_method
 )

@@ -14,7 +14,7 @@ and [Azure OpenAI](https://oai.azure.com/) as the LLM providers under the hood.
 - `demos/slack_bot` consists of demo code for a Slack bot with LLM integration
 
 - `chat_with_rag` is a more fleshed out chat app using the OpenAI "Assistants API",
-and includes RAG and a chat history viewer
+which includes RAG and a chat history viewer
 
 - `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html) 
 (WARNING: this is a work in progress)
