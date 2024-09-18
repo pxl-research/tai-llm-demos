@@ -33,7 +33,7 @@ def append_bot(chat_history, message_list):
 
 # blocks UI method
 def on_load_ui(dd_models):
-    models = get_model_list(tools_only=True)
+    models = get_model_list(tools_only=False)
 
     # large context
     filtered_models = [m for m in models if m['context_length'] >= 100000]
@@ -64,6 +64,7 @@ def get_model_list(tools_only=True):
     if 'data' in response_json:
         models = response_json['data']
 
+    # TODO: this sorting feels a bit brittle
     models.sort(key=lambda model: (model['id'].split('/')[0], model['pricing']['completion']))
     return models
 
@@ -134,8 +135,11 @@ def complete_with_llm(chat_history, message_list):
 
 
 # Gradio UI
-# https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
-with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
+custom_css = """
+    .danger {background: red;}
+    .blue {background: #247BA0;}
+"""
+with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_css) as llm_client_ui):
     # state
     messages = gr.State([system_instruction])
     model_list = gr.State([])
@@ -149,7 +153,8 @@ with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
                                  placeholder='Enter prompt here...',
                                  lines=3,
                                  scale=10)
-            btn_send = gr.Button('', scale=0, min_width=64, icon='../../assets/icons/send.png')
+            btn_send = gr.Button('', scale=0, min_width=64, elem_classes='blue',
+                                 icon='../../assets/icons/send.png')
 
         with gr.Row():
             dd_models = gr.Dropdown(
@@ -159,7 +164,8 @@ with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
                 info="Select a different model",
                 scale=10,
             )
-            btn_clear = gr.Button('Clear')
+            btn_clear = gr.Button('', scale=0, min_width=64, elem_classes='danger',
+                                  icon='../../assets/icons/disposal.png')
 
     # event handlers
     tb_user.submit(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],
