@@ -33,6 +33,9 @@ class OpenRouterClient(OpenAI):
                                             extra_headers=self.extra_headers,
                                             stream=True)
 
+    def set_model(self, model_name: str):
+        self.model_name = model_name
+
 
 # some affordable models with tool calling
 JAMBA_LARGE = 'ai21/jamba-1-5-large'
