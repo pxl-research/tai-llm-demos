@@ -1,10 +1,13 @@
 import json
 import os
+import sys
 import time
 
 import tiktoken
 from dotenv import load_dotenv
 from openai import AzureOpenAI
+
+sys.path.append('../')
 
 from demos.tool_calling.tool_descriptors import tools_rag_descriptor
 # noinspection PyUnresolvedReferences
@@ -134,7 +137,7 @@ def append_ai(thread, message, chat_history, log_folder):
 
     # cost estimate
     (token_count, cost_in_cents) = estimate_costs(chat_history)
-    debug = f"Cost estimate for {token_count} tokens: {cost_in_cents:.2f} cents"
+    debug = f"Cost estimate for {token_count} tokens: {cost_in_cents:.3f} cents"
 
     store_thread(thread, log_folder)
     return "", chat_history, debug
@@ -152,7 +155,12 @@ def estimate_costs(chat_history):
     tokeniser = tiktoken.encoding_for_model("gpt-4")
     token_count_prompts = len(tokeniser.encode(prompt_log))
     token_count_responses = len(tokeniser.encode(response_log))
-    cost_prompts = round(token_count_prompts / 1000 * 1, 2)
-    cost_responses = round(token_count_responses / 1000 * 3, 2)
+    input_1k = 0.00015
+    output_1k = 0.00060
+    # WARNING: this is an underestimation because we do not take the RAG / context into account
+    # TEMP WORKAROUND: we do this * 10
+    # TODO: fix this calculation
+    cost_prompts = round(token_count_prompts / 1000 * input_1k * 10, 4)
+    cost_responses = round(token_count_responses / 1000 * output_1k * 10, 4)
 
     return (token_count_prompts + token_count_responses), (cost_prompts + cost_responses)
