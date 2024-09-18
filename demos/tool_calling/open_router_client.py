@@ -32,3 +32,20 @@ class OpenRouterClient(OpenAI):
                                             tools=self.tools_list,
                                             extra_headers=self.extra_headers,
                                             stream=True)
+
+
+# models with tool calling
+models = ['ai21/jamba-1-5-large',
+          'ai21/jamba-1-5-mini',
+          'anthropic/claude-3-haiku',
+          'deepseek/deepseek-chat',
+          'google/gemini-flash-1.5',
+          'google/gemini-pro',
+          'google/gemini-pro-1.5',
+          'meta-llama/llama-3.1-405b-instruct',
+          'meta-llama/llama-3.1-70b-instruct',
+          'meta-llama/llama-3.1-8b-instruct',
+          'mistralai/mistral-nemo',
+          'openai/gpt-4o-2024-08-06',
+          'openai/gpt-4o-mini',
+          'openai/gpt-4o-mini-2024-07-18']
