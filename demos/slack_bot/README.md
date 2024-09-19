@@ -3,15 +3,15 @@ TransformAI
 
 ## What's in this folder?
 
-This repository contains a proof-of-concept Slack bot using [Azure OpenAI](https://oai.azure.com/) as the LLM's under
-the hood.
+This repository contains two proof-of-principle Slack bot examples using [Azure OpenAI](https://oai.azure.com/) 
+and [OpenRouter](https://openrouter.ai/) as the LLM provider.
 
 ## Configuration
 
 To install the necessary libraries use `pip install -r requirements.txt`
 
 Please create an `.env` file with the same structure as the provided `.env.example` file,
-and enter your personal Azure OpenAI **api key** and **endpoint** therein,
+and enter your personal LLM provider **api key** and **endpoint** therein,
 as well as your Slack **app token** and **bot token**.
 
 ## Use
