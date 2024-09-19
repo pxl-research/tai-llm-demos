@@ -42,7 +42,7 @@ custom_css = """
     footer {display:none !important}
 """
 
-with gr.Blocks(title='Add User UI', css=custom_css) as cdb_demo:
+with gr.Blocks(title='Add User UI', css=custom_css) as auth_demo:
     # UI elements
     gr.Markdown(auth_explainer)
     tb_username = gr.Textbox(label='Username',
@@ -58,4 +58,4 @@ with gr.Blocks(title='Add User UI', css=custom_css) as cdb_demo:
     # events
     btn_add.click(on_add_user, [tb_username, tb_password], [tb_username, tb_password])
 
-cdb_demo.launch(auth=admin_auth_method, server_name='0.0.0.0', server_port=7899)
+auth_demo.launch(auth=admin_auth_method, server_name='0.0.0.0', server_port=24024)
