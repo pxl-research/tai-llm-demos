@@ -1,4 +1,5 @@
 import json
+import os
 
 import gradio as gr
 from dotenv import load_dotenv
@@ -15,13 +16,14 @@ load_dotenv()
 tool_list = tools_weather_descriptor
 tool_list.append(tools_rag_descriptor)
 or_client = OpenRouterClient(model_name=GPT_4O_MINI,
-                             tools_list=tool_list)
+                             tools_list=tool_list,
+                             api_key=os.getenv('OPENROUTER_API_KEY'))
 
 system_instruction = {
     'role': 'system',
     'content': 'Be concise. Be precise. Always think step by step. '
                'I would like you to take a deep breath before responding. '
-               'You can answer using Markdown syntax if you want to. '
+               'You can answer using Markdown syntax when appropriate. '
                'When using an external source, always include the reference. '
 }
 
@@ -104,8 +106,10 @@ def complete_with_llm(chat_history, message_list):
 
 
 # Gradio UI
-# https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
-with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
+custom_css = """
+    footer {display:none !important}
+"""
+with (gr.Blocks(fill_height=True, title='Tool Calling', css=custom_css) as llm_client_ui):
     messages = gr.State([system_instruction])
     cb_live = gr.Chatbot(label='Chat', scale=1)
     with gr.Group() as gr_live:

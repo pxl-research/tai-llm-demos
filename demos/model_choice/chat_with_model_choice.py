@@ -146,6 +146,7 @@ def complete_with_llm(chat_history, message_list):
 custom_css = """
     .danger {background: red;}
     .blue {background: #247BA0;}
+    footer {display:none !important}
 """
 with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_css) as llm_client_ui):
     # state
@@ -158,6 +159,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False,
+                                 info='Enter your prompt here. Use SHIFT + ENTER to send.',
                                  placeholder='Enter prompt here...',
                                  lines=3,
                                  scale=10)

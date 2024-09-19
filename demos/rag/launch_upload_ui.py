@@ -42,6 +42,7 @@ rag_explainer = (
 
 custom_css = """
     .danger {background: red;}
+    footer {display:none !important}
 """
 
 with gr.Blocks(fill_height=True, title='RAG Upload Demo', css=custom_css) as cdb_demo:
