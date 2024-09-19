@@ -27,6 +27,18 @@ def add_user(username, password, users_file=DEFAULT_PASSWD_FILE):
     log_file.close()
 
 
+def list_all_users(users_file=DEFAULT_PASSWD_FILE):
+    log_file = open(users_file, "r")
+    user_lines = log_file.read().splitlines()
+
+    user_list = []
+    for entry in user_lines:
+        user_enc = entry.split('|')[0]
+        username = decode_64(user_enc)
+        user_list.append(username)
+    return user_list
+
+
 # UTILITY METHODS
 
 def bc_hash_string(string):

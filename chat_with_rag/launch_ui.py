@@ -1,3 +1,5 @@
+import sys
+
 import gradio as gr
 
 from blocks_llm_chat_with_rag import (
@@ -16,11 +18,12 @@ from blocks_view_history import (
     set_folder,
     remove_file
 )
+
+sys.path.append('../')
+
 from chat_with_rag.blocks_rag_upload import remove_collection
 from demos.components.chroma_document_store import sanitize_string
-from fn_auth import (
-    auth_method
-)
+from demos.components.fn_auth import auth_method
 
 
 def show_live():
