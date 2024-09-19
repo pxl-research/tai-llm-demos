@@ -8,6 +8,7 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 load_dotenv()
 
+# Azure Open AI
 client = AzureOpenAI(
     api_key=os.getenv('AOA_API_KEY'),
     api_version='2024-02-15-preview',
