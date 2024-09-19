@@ -11,13 +11,15 @@ and [Azure OpenAI](https://oai.azure.com/) as the LLM providers under the hood.
 
 - `demos/tool_calling` is a basic demo that links an LLM with some local methods (including document retrieval)
 
+- `demos/model_choice` allows chatting with different models (based on OpenRouter)
+
 - `demos/slack_bot` consists of demo code for a Slack bot with LLM integration
 
 - `chat_with_rag` is a more fleshed out chat app using the OpenAI "Assistants API",
-which includes RAG and a chat history viewer
+  which includes RAG and a chat history viewer
 
-- `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html) 
-(WARNING: this is a work in progress)
+- `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html)
+  (WARNING: this is a work in progress)
 
 ## Configuration
 
@@ -59,5 +61,5 @@ Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
 
 ## Feedback
 
-Feedback and bug reports are welcome, 
+Feedback and bug reports are welcome,
 please [email us](mailto:servaas.tilkin@pxl.be) or submit a feature request. 

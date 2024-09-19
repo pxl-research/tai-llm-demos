@@ -1,14 +1,19 @@
 import json
+import os
+import sys
 
 import gradio as gr
 import requests
 from dotenv import load_dotenv
 
-from demos.tool_calling.open_router_client import OpenRouterClient, GPT_4O_MINI
+sys.path.append('../')
+
+from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI
 
 load_dotenv()
 
-or_client = OpenRouterClient(model_name=GPT_4O_MINI)
+or_client = OpenRouterClient(model_name=GPT_4O_MINI,
+                             api_key=os.getenv('OPENROUTER_API_KEY'))
 
 system_instruction = {
     'role': 'system',

@@ -26,12 +26,12 @@ class OpenRouterClient(OpenAI):
         self.model_name = model_name
         self.tools_list = tools_list
 
-    def create_completions_stream(self, message_list: Iterable):
+    def create_completions_stream(self, message_list: Iterable, stream=True):
         return self.chat.completions.create(model=self.model_name,
                                             messages=message_list,
                                             tools=self.tools_list,
                                             extra_headers=self.extra_headers,
-                                            stream=True)
+                                            stream=stream)
 
     def set_model(self, model_name: str):
         self.model_name = model_name

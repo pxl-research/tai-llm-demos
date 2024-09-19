@@ -17,7 +17,7 @@ from blocks_view_history import (
     remove_file
 )
 from chat_with_rag.blocks_rag_upload import remove_collection
-from demos.rag.chroma_document_store import sanitize_string
+from demos.components.chroma_document_store import sanitize_string
 from fn_auth import (
     auth_method
 )
