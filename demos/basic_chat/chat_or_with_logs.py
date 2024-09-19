@@ -60,7 +60,7 @@ def predict(message, history):
     store_history(history_openai_format, 'logs/')
 
     # cost estimate
-    rate = 1667000  # in tokens per dollar
+    rate = 1667000  # in tokens per dollar, gpt-4o pricing
     tokeniser = tiktoken.encoding_for_model("gpt-4")
     hist_string = json.dumps(history_openai_format)
     hist_len = len(tokeniser.encode(hist_string))

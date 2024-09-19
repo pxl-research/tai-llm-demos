@@ -25,4 +25,7 @@ Run the python script from the terminal (or your IDE).
 You can ask a question like _"What's the weather like in Amsterdam?"_ and the LLM will
 try and call the relevant methods to get sufficient information to answer these questions.
 
+If you have added pdf files to the document store,
+you can also ask the LLM questions about the contents of these documents.
+
 _For more info regarding how Gradio works, please refer to the general README in this repository._

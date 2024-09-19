@@ -49,7 +49,10 @@ def on_load_ui(dd_models):
 
     model_names = []
     for model in filtered_models:
-        model_names.append((model['name'], model['id']))
+        ppm_p = float(model['pricing']['prompt']) * 1000000
+        ppm_c = float(model['pricing']['completion']) * 1000000
+        label = f'{model['name']} - $PM: {ppm_p:.1f} + {ppm_c:.1f}'
+        model_names.append((label, model['id']))
 
     return filtered_models, gr.Dropdown(choices=model_names)
 
@@ -143,6 +146,7 @@ def complete_with_llm(chat_history, message_list):
 custom_css = """
     .danger {background: red;}
     .blue {background: #247BA0;}
+    footer {display:none !important}
 """
 with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_css) as llm_client_ui):
     # state
@@ -155,6 +159,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False,
+                                 info='Enter your prompt here. Use SHIFT + ENTER to send.',
                                  placeholder='Enter prompt here...',
                                  lines=3,
                                  scale=10)
@@ -166,7 +171,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                 [],
                 show_label=False,
                 filterable=True,
-                info="Select a different model",
+                info="Select a different model (price per million tokens is shown as '$PM')",
                 scale=10,
             )
             btn_clear = gr.Button('', scale=0, min_width=64, elem_classes='danger',
