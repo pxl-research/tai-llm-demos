@@ -49,7 +49,10 @@ def on_load_ui(dd_models):
 
     model_names = []
     for model in filtered_models:
-        model_names.append((model['name'], model['id']))
+        ppm_p = float(model['pricing']['prompt']) * 1000000
+        ppm_c = float(model['pricing']['completion']) * 1000000
+        label = f'{model['name']} - $PM: {ppm_p:.1f} + {ppm_c:.1f}'
+        model_names.append((label, model['id']))
 
     return filtered_models, gr.Dropdown(choices=model_names)
 
@@ -166,7 +169,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                 [],
                 show_label=False,
                 filterable=True,
-                info="Select a different model",
+                info="Select a different model (price per million tokens is shown as '$PM')",
                 scale=10,
             )
             btn_clear = gr.Button('', scale=0, min_width=64, elem_classes='danger',
