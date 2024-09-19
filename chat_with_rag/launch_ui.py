@@ -216,4 +216,4 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
     llm_client_ui.load(list_collections, [], [df_rag_files])
 
 # To create a public link, set `share=True` in `launch()`.
-llm_client_ui.queue().launch(auth=auth_method, server_name='0.0.0.0', server_port=7898)
+llm_client_ui.queue().launch(auth=auth_method, server_name='0.0.0.0', server_port=24025)
