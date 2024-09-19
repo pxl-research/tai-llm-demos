@@ -1,6 +1,6 @@
 import json
 
-from demos.rag.chroma_document_store import ChromaDocumentStore
+from demos.components.chroma_document_store import ChromaDocumentStore
 
 
 def pretty_print(json_obj):

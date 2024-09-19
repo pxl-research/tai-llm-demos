@@ -3,7 +3,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from demos.rag.chroma_document_store import ChromaDocumentStore
+from demos.components.chroma_document_store import ChromaDocumentStore
 
 sys.path.append('../')
 
