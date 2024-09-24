@@ -5,11 +5,16 @@ import gradio as gr
 from dotenv import load_dotenv
 
 from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI
-from demos.tool_calling.tool_descriptors import tools_weather_descriptor, tools_rag_descriptor, tools_search_descriptor
+from demos.tool_calling.tool_descriptors import (tools_weather_descriptor,
+                                                 tools_rag_descriptor,
+                                                 tools_search_descriptor,
+                                                 tools_get_website_contents)
 # noinspection PyUnresolvedReferences
-from tool_search import (search_on_google)
+from tool_search import search_on_google
 # noinspection PyUnresolvedReferences
-from tools_rag import (lookup_in_documentation)
+from tools_rag import lookup_in_documentation
+# noinspection PyUnresolvedReferences
+from tools_surf import get_webpage_content
 # noinspection PyUnresolvedReferences
 from tools_weather import (get_current_temperature, get_current_rainfall)
 
@@ -18,6 +23,7 @@ load_dotenv()
 tool_list = tools_weather_descriptor
 tool_list.append(tools_rag_descriptor)
 tool_list.append(tools_search_descriptor)
+tool_list.append(tools_get_website_contents)
 
 or_client = OpenRouterClient(model_name=GPT_4O_MINI,
                              tools_list=tool_list,

@@ -85,6 +85,7 @@ tools_search_descriptor = {
                        "The method will return a selection of nested JSON objects with information about the search and its answers. "
                        "The results will usually be labeled with 'kind': 'customsearch#result', "
                        "and contain a snippet that shows a brief summary on what to expect on a specific site. "
+                       "If you need more details from a webpage, use another tool (if available) to retrieve the full page."
                        "Always include the website 'url' when referencing a search result.",
         "parameters": {
             "type": "object",
@@ -93,6 +94,23 @@ tools_search_descriptor = {
                           "description": "a query for Google, searching for relevant websites"}
             },
             "required": ["query"],
+        },
+    }
+}
+
+tools_get_website_contents = {
+    "type": "function",
+    "function": {
+        "name": "get_webpage_content",
+        "description": "This method will download the HTML contents of a page and return them as Markdown. "
+                       "You can use this to get more details on a page you found in a document or through a web search. ",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string",
+                        "description": "a valid address (url) for an existing online website"}
+            },
+            "required": ["url"],
         },
     }
 }
