@@ -6,10 +6,11 @@ TransformAI
 
 This repository contains an example chatbot using [OpenRouter](https://openrouter.ai/) with "**tool calling**".
 
-- the `tools_descriptors.py` file contains the JSON descriptions of the callable functions
+- the `tools_descriptors.py` file contains the JSON descriptions of all the callable functions
 
-- the `tools_weather.py` and `tools_rag.py` file contain an implementation stub for the weather methods
-  and an actual method for calling the rag functions (see `rag` example)
+- the files starting with `tool_...` contain an implementation for the callable functions.
+  E.g. a stub for the weather methods, a method for calling rag functions (see `rag` example),
+  a search tool (uses Google Search API), and a website download tool.
 
 N.B.: This program is a little longer and more convoluted because it uses _streaming responses_ from the LLM.
 
