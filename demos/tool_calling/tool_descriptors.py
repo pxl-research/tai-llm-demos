@@ -76,3 +76,23 @@ tools_weather_descriptor = [{
         }
     }
 ]
+
+tools_search_descriptor = {
+    "type": "function",
+    "function": {
+        "name": "search_on_google",
+        "description": "Use this as a classic web search engine that will provide you with a list of webpages. "
+                       "The method will return a selection of nested JSON objects with information about the search and its answers. "
+                       "The results will usually be labeled with 'kind': 'customsearch#result', "
+                       "and contain a snippet that shows a brief summary on what to expect on a specific site. "
+                       "Always include the website 'url' when referencing a search result.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string",
+                          "description": "a query for Google, searching for relevant websites"}
+            },
+            "required": ["query"],
+        },
+    }
+}
