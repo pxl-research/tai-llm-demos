@@ -14,7 +14,7 @@ from tool_search import search_on_google
 # noinspection PyUnresolvedReferences
 from tools_rag import lookup_in_documentation
 # noinspection PyUnresolvedReferences
-from tools_surf import get_webpage_content
+from tools_surf import (get_webpage_content, get_webpage_with_js)
 # noinspection PyUnresolvedReferences
 from tools_weather import (get_current_temperature, get_current_rainfall)
 
@@ -23,7 +23,7 @@ load_dotenv()
 tool_list = tools_weather_descriptor
 tool_list.append(tools_rag_descriptor)
 tool_list.append(tools_search_descriptor)
-tool_list.append(tools_get_website_contents)
+tool_list.extend(tools_get_website_contents)
 
 or_client = OpenRouterClient(model_name=GPT_4O_MINI,
                              tools_list=tool_list,

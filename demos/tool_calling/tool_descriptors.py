@@ -98,19 +98,38 @@ tools_search_descriptor = {
     }
 }
 
-tools_get_website_contents = {
-    "type": "function",
-    "function": {
-        "name": "get_webpage_content",
-        "description": "This method will download the HTML contents of a page and return them as Markdown. "
-                       "You can use this to get more details on a page you found in a document or through a web search. ",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "url": {"type": "string",
-                        "description": "a valid address (url) for an existing online website"}
+tools_get_website_contents = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_webpage_content",
+            "description": "This method will download the HTML contents of a page and return them as Markdown. "
+                           "You can use this to get more details on a page you found in a document or through a web search. ",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string",
+                            "description": "a valid address (url) for an existing online website"}
+                },
+                "required": ["url"],
             },
-            "required": ["url"],
-        },
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_webpage_with_js",
+            "description": "This method will download the HTML contents of a page with JavaScript and return them as Markdown. "
+                           "You can use this to get more details on a page you found in a document or through a web search. "
+                           "This method may be somewhat slower, but more appropriate for complex (JS rich) pages. ",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "url": {"type": "string",
+                            "description": "a valid address (url) for an existing online website"}
+                },
+                "required": ["url"],
+            },
+        }
     }
-}
+]
