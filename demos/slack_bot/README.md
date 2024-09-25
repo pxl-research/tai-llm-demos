@@ -1,10 +1,16 @@
 # Slack Chatbot Demo
+
 TransformAI
 
 ## What's in this folder?
 
-This repository contains two proof-of-principle Slack bot examples using [Azure OpenAI](https://oai.azure.com/) 
+This repository contains two proof-of-principle Slack bot examples using [Azure OpenAI](https://oai.azure.com/)
 and [OpenRouter](https://openrouter.ai/) as the LLM provider.
+
+- `slack_aoa.py` contains a simple Slack bot example where the bot will respond to any queries starting with `/llm`
+  using Azure OpenAI
+
+- `slack_or_with_tool_calling.py` contains a similar example using OpenRouter, and includes some tool calling
 
 ## Configuration
 
