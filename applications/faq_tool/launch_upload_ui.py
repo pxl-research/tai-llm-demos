@@ -5,6 +5,7 @@ from demos.components.chroma_document_store import ChromaDocumentStore, sanitize
 
 cdb_store = ChromaDocumentStore(path='store/')
 
+# TODO: change these values please
 ADMIN_USER = 'admin'
 ADMIN_PASS = 'eZmyWG5Uc3AC6ftRnSKNHp'
 
@@ -78,4 +79,4 @@ with gr.Blocks(fill_height=True, title='Pixie FAQ Tool Upload', css=custom_css) 
 
 cdb_demo.queue().launch(auth=(ADMIN_USER, ADMIN_PASS),
                         server_name='0.0.0.0',
-                        server_port=24021)
+                        server_port=8081)

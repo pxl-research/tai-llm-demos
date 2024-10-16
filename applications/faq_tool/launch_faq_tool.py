@@ -15,7 +15,7 @@ tool_list = [tools_rag_descriptor]
 or_client = OpenRouterClient(model_name=GPT_4O_MINI,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'),
-                             temperature=0.2)
+                             temperature=0.35)
 
 system_instruction = {
     'role': 'system',
@@ -119,7 +119,7 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
-            btn_send = gr.Button('', scale=0, min_width=64, icon='../assets/icons/send.png')
+            btn_send = gr.Button('', scale=0, min_width=64, icon='../../assets/icons/send.png')
     btn_clear = gr.Button('Clear')
 
     # event handlers
@@ -129,4 +129,4 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
                    queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
     btn_clear.click(lambda: None, None, cb_live, queue=False)
 
-llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=24023)
+llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=8080)
