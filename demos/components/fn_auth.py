@@ -8,11 +8,12 @@ default_encoding = 'utf-8'
 
 def auth_method(username, password, users_file=DEFAULT_PASSWD_FILE):
     encoded_username = encode_64(username)
-    log_file = open(users_file, "r")
+    log_file = open(users_file, 'r')
     users_list = log_file.read().splitlines()
+    log_file.close()
     for user in users_list:
         if user.startswith(encoded_username):
-            stored_password = user.split(f"{encoded_username}|")[1]
+            stored_password = user.split(f'{encoded_username}|')[1]
             return bc_check_string(password, stored_password)
 
     return False
@@ -21,14 +22,13 @@ def auth_method(username, password, users_file=DEFAULT_PASSWD_FILE):
 def add_user(username, password, users_file=DEFAULT_PASSWD_FILE):
     encoded_username = encode_64(username.strip())
     hashed_password = bc_hash_string(password.strip())
-    user_line = f"{encoded_username}|{hashed_password}\n"
-    log_file = open(users_file, "a")
-    log_file.write(user_line)
-    log_file.close()
+    user_line = f'{encoded_username}|{hashed_password}\n'
+    with open(users_file, 'a') as log_file:
+        log_file.write(user_line)
 
 
 def list_all_users(users_file=DEFAULT_PASSWD_FILE):
-    log_file = open(users_file, "r")
+    log_file = open(users_file, 'r')
     user_lines = log_file.read().splitlines()
 
     user_list = []
@@ -37,6 +37,16 @@ def list_all_users(users_file=DEFAULT_PASSWD_FILE):
         username = decode_64(user_enc)
         user_list.append(username)
     return user_list
+
+
+def remove_user_on_line(line_number, users_file=DEFAULT_PASSWD_FILE):
+    log_file = open(users_file, 'r')
+    users_list = log_file.read().splitlines()
+    selected_line = users_list.pop(line_number)
+    with open(users_file, 'wt') as log_file:
+        for user_line in users_list:
+            log_file.write(f'{user_line}\n')
+    return selected_line
 
 
 # UTILITY METHODS
@@ -65,4 +75,4 @@ def decode_64(encoded_string):
     return decoded_bytes.decode(default_encoding)
 
 # Uncomment this line to manually add a user:
-# add_user("pxl", "YQhPEN826TJ4uey9sjDKWt")
+# add_user('pxl', 'YQhPEN826TJ4uey9sjDKWt')
