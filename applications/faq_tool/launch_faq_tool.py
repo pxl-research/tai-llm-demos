@@ -115,7 +115,7 @@ custom_css = """
 """
 with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm_client_ui):
     messages = gr.State([system_instruction])
-    cb_live = gr.Chatbot(label='Chat', scale=1)
+    cb_live = gr.Chatbot(label='Chat', type='tuples', scale=1)
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)

@@ -154,7 +154,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
     model_list = gr.State([])
 
     # ui
-    cb_live = gr.Chatbot(label='Chat', scale=1)
+    cb_live = gr.Chatbot(label='Chat', type='tuples',scale=1)
 
     with gr.Group() as gr_live:
         with gr.Row():
