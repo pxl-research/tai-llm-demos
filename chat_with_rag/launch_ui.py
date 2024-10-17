@@ -127,7 +127,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
 
     # live client UI
     gr.Markdown("## <center>PiXie Lite</center>")
-    cb_live_chat = gr.Chatbot(label='Chat', scale=1)
+    cb_live_chat = gr.Chatbot(label='Chat', type='tuples', scale=1)
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user_prompt = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
@@ -146,7 +146,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
         btn_clear_chat.click(clear_chat, [], [tb_user_prompt, cb_live_chat, st_thread])
 
     # log viewer UI
-    cb_chat_history = gr.Chatbot(label='History', scale=1, visible=False)
+    cb_chat_history = gr.Chatbot(label='History', type='tuples', scale=1, visible=False)
 
     with gr.Group(visible=False) as gr_history:
         with gr.Row():
