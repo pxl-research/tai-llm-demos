@@ -116,6 +116,8 @@ custom_css = """
     footer {display:none !important}
 """
 
+icon_folder = '../../assets/icons/'
+
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_client_ui):
     # state that is unique to each user
@@ -123,7 +125,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
     st_thread = gr.State()
     st_selected_index = gr.State()
 
-    disposal_ico = '../assets/icons/disposal.png'
+    disposal_ico = icon_folder + 'disposal.png'
 
     # live client UI
     gr.Markdown("## <center>PiXie Lite</center>")
@@ -131,7 +133,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user_prompt = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
-            btn_send_prompt = gr.Button('', scale=0, min_width=64, icon='../assets/icons/send.png')
+            btn_send_prompt = gr.Button('', scale=0, min_width=64, icon=icon_folder + 'send.png')
             btn_clear_chat = gr.Button('', scale=0, min_width=64, icon=disposal_ico)
     with gr.Row() as row_live:
         lbl_debug = gr.HTML('')
@@ -156,7 +158,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
                 info="Select a log file to view the details",
                 scale=10,
             )
-            btn_reload_logs = gr.Button(value='', scale=0, min_width=64, icon='../assets/icons/refresh.png')
+            btn_reload_logs = gr.Button(value='', scale=0, min_width=64, icon=icon_folder + 'refresh.png')
             btn_remove_log = gr.Button(value='', scale=0, min_width=64, icon=disposal_ico,
                                        elem_classes='danger')
 
@@ -191,9 +193,9 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
 
     # toggle different UI modes
     with gr.Row():
-        btn_live = gr.Button('Chat', icon='../assets/icons/chat.png', interactive=False, elem_classes='blue')
-        btn_history = gr.Button('History', icon='../assets/icons/history.png', elem_classes='light_gray')
-        btn_upload = gr.Button('Upload', icon='../assets/icons/upload.png', elem_classes='light_brown')
+        btn_live = gr.Button('Chat', icon=icon_folder + 'chat.png', interactive=False, elem_classes='blue')
+        btn_history = gr.Button('History', icon=icon_folder + 'history.png', elem_classes='light_gray')
+        btn_upload = gr.Button('Upload', icon=icon_folder + 'upload.png', elem_classes='light_brown')
 
         # event handlers
         btn_live.click(show_live, [],

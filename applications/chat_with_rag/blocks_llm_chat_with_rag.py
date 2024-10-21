@@ -21,10 +21,12 @@ client = AzureOpenAI(
     azure_endpoint=os.getenv("AOA_ENDPOINT"),
 )
 
-general_instructions = ("Be concise, but precise as well. "
+general_instructions = ("I would like you to take a deep breath before responding. "
                         "Always think step by step. "
-                        "Take a deep breath before responding. "
-                        "Feel free to use Markdown syntax in your answer."
+                        "Be concise and precise in your responses. "
+                        "Answer using Markdown syntax when appropriate. "
+                        "If you do not know the answer to a question, just say you do not know. "
+                        "Consult the documentation when appropriate. "
                         "When using an external source, always include the reference. ")
 
 tools = [
