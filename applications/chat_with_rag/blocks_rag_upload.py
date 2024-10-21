@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from demos.components.chroma_document_store import ChromaDocumentStore
 
-sys.path.append('../')
+sys.path.append('../../')
 
 load_dotenv()
 
