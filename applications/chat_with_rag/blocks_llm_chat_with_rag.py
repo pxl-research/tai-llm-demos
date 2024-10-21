@@ -7,7 +7,7 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-sys.path.append('../')
+sys.path.append('../../')
 
 from demos.tool_calling.tool_descriptors import tools_rag_descriptor
 # noinspection PyUnresolvedReferences
