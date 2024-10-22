@@ -3,7 +3,6 @@ import os
 import time
 
 import gradio as gr
-import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -42,7 +41,7 @@ def predict(message, history):
     history_openai_format.append({"role": "user", "content": message})
 
     # call the language model
-    response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
+    response_stream = client.chat.completions.create(model="openai/gpt-4o-mini",
                                                      messages=history_openai_format,
                                                      extra_headers={
                                                          "HTTP-Referer": "https://pxl-research.be/",
@@ -57,16 +56,8 @@ def predict(message, history):
 
     # store in a log file
     history_openai_format.append({"role": "assistant", "content": partial_message})
-    store_history(history_openai_format, 'logs/')
-
-    # cost estimate
-    rate = 1667000  # in tokens per dollar, gpt-4o pricing
-    tokeniser = tiktoken.encoding_for_model("gpt-4")
-    hist_string = json.dumps(history_openai_format)
-    hist_len = len(tokeniser.encode(hist_string))
-    cost_in_dollar_cents = round(hist_len / rate * 1000, ndigits=2)
-    print(f"Cost estimate: {cost_in_dollar_cents} cents for history of {hist_len} tokens")
+    store_history(history_openai_format, "logs/")
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
-gr.ChatInterface(predict).launch(server_name='0.0.0.0', server_port=24020)
+gr.ChatInterface(predict).launch(server_name="0.0.0.0", server_port=24020)
