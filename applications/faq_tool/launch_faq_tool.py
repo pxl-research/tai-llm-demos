@@ -25,6 +25,7 @@ system_instruction = {
                'If you do not know the answer to a question, just say you do not know. '
                'Only answer questions related to the documentation you are in charge of, '
                'feel free to deflect or refrain from answering unrelated queries. '
+               'Your responses should never exceed 2000 characters.'
                'I would like you to take a deep breath before responding. '
                'Always think step by step. '
                'Be concise and precise in your responses. '
@@ -118,15 +119,31 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
     cb_live = gr.Chatbot(label='Chat', type='tuples', scale=1)
     with gr.Group() as gr_live:
         with gr.Row():
-            tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
-            btn_send = gr.Button('', scale=0, min_width=64, icon='../../assets/icons/send.png')
+            tb_user = gr.Textbox(show_label=False,
+                                 placeholder='Enter prompt here...',
+                                 max_length=500,
+                                 scale=10)
+            btn_send = gr.Button('',
+                                 icon='../../assets/icons/send.png',
+                                 min_width=64,
+                                 scale=0)
     btn_clear = gr.Button('Clear')
 
     # event handlers
-    tb_user.submit(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],
-                   queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
-    btn_send.click(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],
-                   queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
+    tb_user.submit(append_user,
+                   [tb_user, cb_live, messages],
+                   [tb_user, cb_live, messages],
+                   queue=False).then(append_bot,
+                                     [cb_live, messages],
+                                     [cb_live, messages])
+
+    btn_send.click(append_user,
+                   [tb_user, cb_live, messages],
+                   [tb_user, cb_live, messages],
+                   queue=False).then(append_bot,
+                                     [cb_live, messages],
+                                     [cb_live, messages])
+
     btn_clear.click(lambda: None, None, cb_live, queue=False)
 
 llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=8080)
