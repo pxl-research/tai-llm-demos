@@ -21,6 +21,7 @@ system_instruction = {
 }
 
 log_filename = None
+previous_history = ''
 
 
 def get_new_filename(log_folder):
@@ -33,23 +34,19 @@ def store_history(history, log_folder):
         os.makedirs(log_folder)
 
     global log_filename
-    if log_filename is None:
-        log_filename = get_new_filename(log_folder)
+    global previous_history
 
-    previous_content = ''
-    if os.path.exists(log_filename):
-        with open(log_filename, "rt") as fp_clf:
-            previous_content = fp_clf.read()
+    current_history = json.dumps(history, indent=1)
 
-    current_content = json.dumps(history, indent=1)
-
-    if not current_content.startswith(previous_content[:-2]):
-        # this is a new thread -> new filename
+    if log_filename is None or not current_history.startswith(previous_history[:-2]):
+        # this is a new thread -> start a new log
         log_filename = get_new_filename(log_folder)
 
     log_file = open(log_filename, "wt")
-    log_file.write(current_content)
+    log_file.write(current_history)
     log_file.close()
+
+    previous_history = current_history
 
 
 def predict(message, history):
