@@ -20,15 +20,35 @@ system_instruction = {
                "Always think step by step. "
 }
 
+log_filename = None
+
+
+def get_new_filename(log_folder):
+    ts_in_secs = round(time.time())
+    return f"{log_folder}{ts_in_secs}.json"
+
 
 def store_history(history, log_folder):
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
-    timestamp = time.time()
-    log_file = open(f"{log_folder}{timestamp}.json", "w")
-    content = json.dumps(history, indent=1)
-    log_file.write(content)
+    global log_filename
+    if log_filename is None:
+        log_filename = get_new_filename(log_folder)
+
+    previous_content = ''
+    if os.path.exists(log_filename):
+        with open(log_filename, "rt") as fp_clf:
+            previous_content = fp_clf.read()
+
+    current_content = json.dumps(history, indent=1)
+
+    if not current_content.startswith(previous_content[:-2]):
+        # this is a new thread -> new filename
+        log_filename = get_new_filename(log_folder)
+
+    log_file = open(log_filename, "wt")
+    log_file.write(current_content)
     log_file.close()
 
 
