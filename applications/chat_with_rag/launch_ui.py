@@ -114,6 +114,16 @@ custom_css = """
     .dark_gray {background: #50514F;}
     .light_brown {background: #C3B299;}
     footer {display:none !important}
+    .tabs {flex-grow: 1}
+    #logo_img {
+        border: none !important;
+        background: none !important;
+        max-width: 75px;
+        max-height: 75px;
+        padding: 0px;
+        margin: 0px;
+    }
+    .rotate { transform: rotate(270deg) }
 """
 
 icon_folder = '../../assets/icons/'
@@ -128,7 +138,12 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
     disposal_ico = icon_folder + 'disposal.png'
 
     # live client UI
-    gr.Markdown("## <center>PiXie Lite</center>")
+    with gr.Row():
+        gr.Image(value='../../assets/logo.png', width=50, height=50, show_label=False,
+                 show_download_button=False, show_share_button=False, show_fullscreen_button=False,
+                 interactive=False, elem_id='logo_img')
+        gr.Markdown("# PiXie Lite")
+
     cb_live_chat = gr.Chatbot(label='Chat', type='tuples', scale=1)
     with gr.Group() as gr_live:
         with gr.Row():
