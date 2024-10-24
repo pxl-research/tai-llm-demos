@@ -19,11 +19,13 @@ def set_folder(user_folder):
 
 
 def load_files(log_folder):
+    log_folder = os.path.normpath(os.path.abspath(log_folder))
     files = os.listdir(log_folder)
-    files.sort(key=lambda f: os.path.getmtime(f"{log_folder}{f}"), reverse=True)
+    files.sort(key=lambda f: os.path.getmtime(os.path.join(log_folder, f)), reverse=True)
     entries = []
     for file in files:
-        log_file = open(f"{log_folder}{file}", "r")
+        file_path = os.path.normpath(os.path.join(log_folder, file))
+        log_file = open(file_path, "r")
         log_content = log_file.read()
         file_contents[file] = log_content
         title = get_title(log_content, file)
@@ -63,7 +65,7 @@ def file_selected(chosen_file):
 
 
 def remove_file(chosen_file, log_folder):
-    full_path = f"{log_folder}{chosen_file}"
+    full_path = os.path.normpath(f"{log_folder}{chosen_file}")
     print(full_path)
     if os.path.exists(full_path):
         os.remove(full_path)
