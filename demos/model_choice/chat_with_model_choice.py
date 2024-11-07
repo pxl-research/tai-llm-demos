@@ -39,6 +39,7 @@ def on_load_ui():
                     .format({col: "{:.3f}" for col in price_columns})
                     .map(colorize_quantiles, df=data_models, col='completion_price', subset=['completion_price'])
                     .map(colorize_quantiles, df=data_models, col='prompt_price', subset=['prompt_price'])
+                    .map(colorize_contexts, subset=['context_length'])
                     .map(colorize_providers, subset=['model_name'])
                     )
 
@@ -56,8 +57,18 @@ def colorize_quantiles(value, df, col):
     return ''
 
 
-def colorize_providers(value):
-    provider_name = value.split('/')[0]
+def colorize_contexts(context_size):
+    if context_size > 64000:
+        return 'color:green;'
+    if context_size < 10000:
+        return 'color:red;'
+    if context_size < 20000:
+        return 'color:orange;'
+    return ''
+
+
+def colorize_providers(full_model_name):
+    provider_name = full_model_name.split('/')[0]
     if provider_name not in providers.keys():
         # select a random color
         color = random.choice(available_colors)
