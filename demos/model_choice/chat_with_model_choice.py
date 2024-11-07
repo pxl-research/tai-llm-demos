@@ -1,19 +1,19 @@
 import json
 import os
+import random
 import sys
 
 import gradio as gr
-import requests
 from dotenv import load_dotenv
+from pandas import DataFrame
+
+from demos.model_choice.or_pricing import get_models
 
 sys.path.append('../')
 
 from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI
 
 load_dotenv()
-
-or_client = OpenRouterClient(model_name=GPT_4O_MINI,
-                             api_key=os.getenv('OPENROUTER_API_KEY'))
 
 system_instruction = {
     'role': 'system',
@@ -22,6 +22,56 @@ system_instruction = {
                'You can answer using Markdown syntax if you want to. '
                'When using an external source, always include the reference. '
 }
+
+available_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c',
+                    '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1',
+                    '#000075', '#808080']
+providers = {}
+
+
+# blocks UI method
+def on_load_ui():
+    data_models = get_models(as_dataframe=True)
+
+    # set precision of price values
+    price_columns = data_models.filter(like='price').columns
+    style_models = (data_models.style
+                    .format({col: "{:.3f}" for col in price_columns})
+                    .map(colorize_quantiles, df=data_models, col='completion_price', subset=['completion_price'])
+                    .map(colorize_quantiles, df=data_models, col='prompt_price', subset=['prompt_price'])
+                    .map(colorize_providers, subset=['model_name'])
+                    )
+
+    return data_models, style_models
+
+
+# helper method
+def colorize_quantiles(value, df, col):
+    if value < df[col].quantile(0.3):
+        return 'color:green;'
+    if value >= df[col].quantile(0.9):
+        return 'color:red;'
+    if value > df[col].quantile(0.6):
+        return 'color:orange;'
+    return ''
+
+
+def colorize_providers(value):
+    provider_name = value.split('/')[0]
+    if provider_name not in providers.keys():
+        # select a random color
+        color = random.choice(available_colors)
+        providers[provider_name] = color
+        available_colors.remove(color)
+
+    return 'color:' + providers[provider_name] + ';'
+
+
+# blocks UI method
+def on_row_selected(select_data: gr.SelectData, dataframe: DataFrame):
+    if select_data is not None:
+        return dataframe['model_name'][select_data.index[0]]
+    return None
 
 
 # blocks UI method
@@ -32,52 +82,13 @@ def append_user(user_message, chat_history, message_list):
 
 
 # blocks UI method
-def append_bot(chat_history, message_list):
-    yield from complete_with_llm(chat_history, message_list)
+def append_bot(chat_history, message_list, model_name):
+    yield from complete_with_llm(chat_history, message_list, model_name)
 
 
-# blocks UI method
-def on_load_ui(dd_models):
-    models = get_model_list(tools_only=False)
-
-    # large context
-    filtered_models = [m for m in models if m['context_length'] >= 100000]
-
-    # affordable price
-    filtered_models = [m for m in filtered_models if float(m['pricing']['prompt']) <= 0.000003]
-    filtered_models = [m for m in filtered_models if float(m['pricing']['completion']) <= 0.000015]
-
-    model_names = []
-    for model in filtered_models:
-        ppm_p = float(model['pricing']['prompt']) * 1000000
-        ppm_c = float(model['pricing']['completion']) * 1000000
-        label = f'{model['name']} - $PM: {ppm_p:.1f} + {ppm_c:.1f}'
-        model_names.append((label, model['id']))
-
-    return filtered_models, gr.Dropdown(choices=model_names)
-
-
-def model_selected(chosen_model):
-    print(chosen_model)
-    or_client.set_model(chosen_model)
-
-
-def get_model_list(tools_only=True):
-    models_url = 'https://openrouter.ai/api/v1/models'
-    if tools_only:
-        models_url += '?supported_parameters=tools'
-    response = requests.get(models_url)
-    response_json = json.loads(response.text)
-    models = []
-    if 'data' in response_json:
-        models = response_json['data']
-
-    # TODO: this sorting feels a bit brittle
-    models.sort(key=lambda model: (model['id'].split('/')[0], model['pricing']['completion']))
-    return models
-
-
-def complete_with_llm(chat_history, message_list):
+def complete_with_llm(chat_history, message_list, model_name):
+    or_client = OpenRouterClient(model_name=model_name,
+                                 api_key=os.getenv('OPENROUTER_API_KEY'))
     response_stream = or_client.create_completions_stream(message_list=message_list)
 
     partial_message = ''
@@ -151,40 +162,60 @@ custom_css = """
 with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_css) as llm_client_ui):
     # state
     messages = gr.State([system_instruction])
-    model_list = gr.State([])
+    selected_model = gr.State(GPT_4O_MINI)
+    df_models = gr.State(None)
 
     # ui
-    cb_live = gr.Chatbot(label='Chat', type='tuples',scale=1)
+    cb_live = gr.Chatbot(label='Chat', type='tuples', scale=1)
 
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False,
                                  info='Enter your prompt here. Use SHIFT + ENTER to send.',
                                  placeholder='Enter prompt here...',
-                                 lines=3,
-                                 scale=10)
+                                 lines=2,
+                                 scale=1)
+
             btn_send = gr.Button('', scale=0, min_width=64, elem_classes='blue',
                                  icon='../../assets/icons/send.png')
-
-        with gr.Row():
-            dd_models = gr.Dropdown(
-                [],
-                show_label=False,
-                filterable=True,
-                info="Select a different model (price per million tokens is shown as '$PM')",
-                scale=10,
-            )
             btn_clear = gr.Button('', scale=0, min_width=64, elem_classes='danger',
                                   icon='../../assets/icons/disposal.png')
 
+        lbl_model = gr.Textbox(label='Currently selected model:',
+                               value=selected_model.value,
+                               interactive=False,
+                               elem_classes='bold')
+        with gr.Row():
+            with gr.Accordion(label='Available models', open=False):
+                dfr_models = gr.DataFrame(df_models.value)
+
     # event handlers
-    tb_user.submit(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],
-                   queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
-    btn_send.click(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],
-                   queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
-    btn_clear.click(lambda: None, None, cb_live, queue=False)
-    dd_models.input(model_selected, [dd_models], [])
+    tb_user.submit(append_user,
+                   [tb_user, cb_live, messages],
+                   [tb_user, cb_live, messages],
+                   queue=False).then(append_bot,
+                                     [cb_live, messages, selected_model],
+                                     [cb_live, messages])
 
-    llm_client_ui.load(on_load_ui, [dd_models], [model_list, dd_models])
+    btn_send.click(append_user,
+                   [tb_user, cb_live, messages],
+                   [tb_user, cb_live, messages],
+                   queue=False).then(append_bot,
+                                     [cb_live, messages, selected_model],
+                                     [cb_live, messages])
 
-llm_client_ui.queue().launch(auth=None, server_name='0.0.0.0', server_port=24022)
+    btn_clear.click(lambda: None,
+                    None,
+                    [cb_live],
+                    queue=False)
+
+    llm_client_ui.load(fn=on_load_ui,
+                       inputs=None,
+                       outputs=[df_models, dfr_models])
+    dfr_models.select(fn=on_row_selected,
+                      inputs=[df_models],
+                      outputs=[lbl_model])
+
+llm_client_ui.queue().launch(auth=None,
+                             server_name='0.0.0.0',
+                             server_port=24022)
