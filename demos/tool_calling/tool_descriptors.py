@@ -5,8 +5,9 @@ tools_rag_descriptor = {
     "type": "function",
     "function": {
         "name": "lookup_in_documentation",
-        "description": "Get snippets from documents related to the domain you operate in."
-                       "Use this as a search engine and put in natural language questions or statements as search queries. "
+        "description": "Get snippets from documents related to the domain you operate in. "
+                       "Put in natural language questions or statements as search queries. "
+                       "Use compact phrases focusing on the essence of what you are looking for. "
                        "The method will return an array of JSON objects, containing a 'documents' part with the associated text, "
                        "a 'distances' value indicating how well the info matches your question (smaller numbers are better), "
                        "and a 'metadatas' object with some info about the text chunks: document name, page number, and a paragraph (chunk) number. "
@@ -15,7 +16,7 @@ tools_rag_descriptor = {
             "type": "object",
             "properties": {
                 "query": {"type": "string",
-                          "description": "A natural language question about company rules or policies"}
+                          "description": "A natural language statement to search for in the documentation"}
             },
             "required": ["query"],
         },
