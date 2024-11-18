@@ -32,7 +32,7 @@ def bigger_chunks(chunk_list, min_size):
 
 def pages_to_chunks(page_list, document_name):
     # https://www.llamaindex.ai/blog/evaluating-the-ideal-chunk-size-for-a-rag-system-using-llamaindex-6207e5d3fec5
-    min_size = 384
+    min_size = 512
 
     chunk_list = []
     chunk_id_list = []
