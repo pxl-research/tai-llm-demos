@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+from datetime import datetime
 
 import gradio as gr
 from dotenv import load_dotenv
@@ -28,7 +29,7 @@ system_instruction = {
                'If you do not know the answer to a question, just say you do not know. '
                'Only answer questions related to the documentation you are in charge of, '
                'feel free to deflect or refrain from answering unrelated queries. '
-               'Your responses should never exceed 2000 characters.'
+               'Your responses should never exceed 2000 characters. '
                'I would like you to take a deep breath before responding. '
                'Always think step by step. '
                'Be concise and precise in your responses. '
@@ -44,11 +45,25 @@ def append_user(user_message, chat_history, message_list):
 
 
 # blocks UI method
-def append_bot(chat_history, message_list):
-    yield from complete_with_llm(chat_history, message_list)
+def append_bot(chat_history, message_list, log_file_name):
+    yield from complete_with_llm(chat_history, message_list, log_file_name)
 
 
-def complete_with_llm(chat_history, message_list):
+def on_clear_clicked():
+    return [None, on_load_ui()]
+
+
+def on_load_ui():
+    log_folder = './logs'
+    if not os.path.exists(log_folder):
+        os.makedirs(log_folder)
+
+    file_name = datetime.now().strftime('%y%m%d_%H%M%S_%f.log')
+    print(f'Started a new log file named "{file_name}"')
+    return os.path.join(log_folder, file_name)
+
+
+def complete_with_llm(chat_history, message_list, log_file_name):
     response_stream = or_client.create_completions_stream(message_list=message_list)
 
     partial_message = ''
@@ -77,8 +92,14 @@ def complete_with_llm(chat_history, message_list):
     response_stream.close()
 
     # handle text responses
-    if chat_history[-1][1] is not None:
+    if chat_history[-1][1] is not None and chat_history[-1][1] != '':
         message_list.append({'role': 'assistant', 'content': chat_history[-1][1]})
+
+        # write to log file
+        log_string = json.dumps(message_list, indent=2)
+        log_file = open(log_file_name, 'wt')
+        log_file.write(log_string)
+        log_file.close()
 
     # handle tool requests
     if len(tool_calls) > 0:
@@ -110,7 +131,7 @@ def complete_with_llm(chat_history, message_list):
                              'content': json.dumps(fn_result)}
                 message_list.append(tool_resp)
         # recursively call completion message to give the LLM a chance to process results
-        yield from complete_with_llm(chat_history, message_list)
+        yield from complete_with_llm(chat_history, message_list, log_file_name)
 
 
 # Gradio UI
@@ -118,8 +139,12 @@ custom_css = """
     footer {display:none !important}
 """
 with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm_client_ui):
+    # state variables
     messages = gr.State([system_instruction])
-    cb_live = gr.Chatbot(label='Chat', type='tuples', scale=1)
+    log_file_name = gr.State()
+
+    # UI elements
+    cb_live = gr.Chatbot(label='Chat', type='tuples', scale=1, show_copy_all_button=True)
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False,
@@ -137,16 +162,18 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
                    [tb_user, cb_live, messages],
                    [tb_user, cb_live, messages],
                    queue=False).then(append_bot,
-                                     [cb_live, messages],
+                                     [cb_live, messages, log_file_name],
                                      [cb_live, messages])
 
     btn_send.click(append_user,
                    [tb_user, cb_live, messages],
                    [tb_user, cb_live, messages],
                    queue=False).then(append_bot,
-                                     [cb_live, messages],
+                                     [cb_live, messages, log_file_name],
                                      [cb_live, messages])
 
-    btn_clear.click(lambda: None, None, cb_live, queue=False)
+    btn_clear.click(on_clear_clicked, None, [cb_live, log_file_name], queue=False)
+    cb_live.clear(on_clear_clicked, None, [cb_live, log_file_name], queue=False)
+    llm_client_ui.load(on_load_ui, None, [log_file_name])
 
 llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=8080)
