@@ -1,6 +1,8 @@
 import gradio as gr
 from tqdm import tqdm
+import sys
 
+sys.path.append('../../')
 from demos.components.chroma_document_store import ChromaDocumentStore, sanitize_filename
 
 cdb_store = ChromaDocumentStore(path='store/')
