@@ -41,9 +41,14 @@ def get_models(names_only=True, as_dataframe=False):
     for model in filtered_data:
         ppm_p = float(model['pricing']['prompt']) * 1000000
         ppm_c = float(model['pricing']['completion']) * 1000000
-        md_data.append([model['id'], ppm_p, ppm_c, model['context_length']])
+        md_data.append([model['id'].split('/')[0], model['id'], ppm_p, ppm_c, model['context_length']])
 
-    df_models = pd.DataFrame(md_data, columns=['model_name', 'prompt_price', 'completion_price', 'context_length'])
+    df_models = pd.DataFrame(md_data,
+                             columns=['provider',
+                                      'model_name',
+                                      'prompt_price',
+                                      'completion_price',
+                                      'context_length'])
     df_models.style.background_gradient()
 
     pd.set_option('display.width', 200)
