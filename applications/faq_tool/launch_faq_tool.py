@@ -15,20 +15,26 @@ from tools_rag import lookup_in_documentation
 
 load_dotenv()
 
+custom_headers = {
+                'HTTP-Referer': 'https://pxl-digital.be/',
+                'X-Title': 'Pixie FAQ Tool'
+            }
+
 tool_list = [tools_rag_descriptor]
 or_client = OpenRouterClient(model_name=GPT_4O_MINI,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'),
-                             temperature=0.35)
+                             temperature=0.30,
+                             custom_headers=custom_headers)
 
 system_instruction = {
     'role': 'system',
-    'content': 'You are an assistant helping people understand complex documentation. '
+    'content': 'You are an assistant helping people with information based on documentation. '
                'Always consult the documentation before answering. '
-               'When using an external source, always include the reference. '
-               'If you do not know the answer to a question, just say you do not know. '
+               'Always include the reference when using an external source. '
+               'If you do not know the answer to a question, simply say you do not know. '
                'Only answer questions related to the documentation you are in charge of, '
-               'feel free to deflect or refrain from answering unrelated queries. '
+               'deflect or refrain from answering unrelated queries. '
                'Your responses should never exceed 2000 characters. '
                'I would like you to take a deep breath before responding. '
                'Always think step by step. '
