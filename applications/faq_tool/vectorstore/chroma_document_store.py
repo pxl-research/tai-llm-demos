@@ -49,14 +49,14 @@ class ChromaDocumentStore:
             names.append([collection.name])
         return names
 
-    def query_store(self, query: str):
+    def query_store(self, query: str, amount: int = 5):
         collections = self.cdb_client.list_collections()
         all_results = []
         for collection in collections:
             self.cdb_client.get_collection(collection.name)
             result = collection.query(
                 query_texts=[query],
-                n_results=5,
+                n_results=amount,
             )
             repacked = repack_query_results(result)
             all_results = all_results + repacked

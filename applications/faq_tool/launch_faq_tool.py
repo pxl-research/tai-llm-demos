@@ -16,9 +16,9 @@ from tools_rag import lookup_in_documentation
 load_dotenv()
 
 custom_headers = {
-                'HTTP-Referer': 'https://pxl-digital.be/',
-                'X-Title': 'Pixie FAQ Tool'
-            }
+    'HTTP-Referer': 'https://pxl-digital.be/',
+    'X-Title': 'Pixie FAQ Tool'
+}
 
 tool_list = [tools_rag_descriptor]
 or_client = OpenRouterClient(model_name=GPT_4O_MINI,
@@ -30,8 +30,8 @@ or_client = OpenRouterClient(model_name=GPT_4O_MINI,
 system_instruction = {
     'role': 'system',
     'content': 'You are an assistant helping people with information based on documentation. '
-               'Always consult the documentation before answering. '
-               'Always include the reference when using an external source. '
+               'Always consult this documentation before answering. '
+               'Always include the document reference when using an external source. '
                'If you do not know the answer to a question, simply say you do not know. '
                'Only answer questions related to the documentation you are in charge of, '
                'deflect or refrain from answering unrelated queries. '
@@ -70,7 +70,43 @@ def on_load_ui():
 
 
 def complete_with_llm(chat_history, message_list, log_file_name):
-    response_stream = or_client.create_completions_stream(message_list=message_list)
+    abbreviated_list = message_list
+
+    # truncate message list for longer chats
+    if len(message_list) > 2:
+        abbreviated_list = []
+        MAX_COUNT = 3
+        tool_msg_count = MAX_COUNT
+        tool_call_count = MAX_COUNT
+        for msg in reversed(message_list):
+            if msg['role'] == 'system' or msg['role'] == 'user':
+                abbreviated_list.append(msg)
+            elif msg['role'] == 'tool':
+                if tool_msg_count > 0:
+                    tool_msg_count -= 1
+                    abbreviated_list.append(msg)
+            elif msg['role'] == 'assistant':
+                if 'tool_calls' in msg:
+                    if tool_call_count > 0:
+                        tool_call_count -= 1
+                        abbreviated_list.append(msg)
+                else:
+                    abbreviated_list.append(msg)
+            else:
+                print('other: ' + msg['role'])
+                abbreviated_list.append(msg)
+        abbreviated_list.reverse()
+
+        # for msg in abbreviated_list:
+        #     content = ''
+        #     if msg['content'] is not None:
+        #         content = msg['content'][0:70]
+        #     print(f'{msg['role']} - {content}')
+        # print('---------\n')
+        # print(len(message_list), ' -> ', len(abbreviated_list))
+
+    # generate an answer
+    response_stream = or_client.create_completions_stream(message_list=abbreviated_list)
 
     partial_message = ''
     tool_calls = []
