@@ -77,4 +77,4 @@ def predict(message, history):
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
-gr.ChatInterface(predict).launch(server_name="0.0.0.0", server_port=24020)
+gr.ChatInterface(predict).launch(server_name="0.0.0.0", server_port=7020)
