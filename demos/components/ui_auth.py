@@ -99,4 +99,4 @@ with gr.Blocks(title='User Management', fill_height=True, css=custom_css) as aut
     btn_remove_user.click(on_remove_user, [df_users, st_selected_index], [df_users, st_selected_index])
     auth_demo.load(list_users, [], [df_users])
 
-auth_demo.launch(auth=(ADMIN_USER, ADMIN_PASS), server_name='0.0.0.0', server_port=24024)
+auth_demo.launch(auth=(ADMIN_USER, ADMIN_PASS), server_name='0.0.0.0', server_port=7024)

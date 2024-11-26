@@ -73,4 +73,4 @@ with gr.Blocks(fill_height=True, title='RAG Upload Demo', css=custom_css) as cdb
     btn_remove_rag_file.click(on_remove_rag, [df_rag_files, st_selected_index], [df_rag_files, st_selected_index])
     cdb_demo.load(list_documents, [], [df_rag_files])
 
-cdb_demo.queue().launch(server_name='0.0.0.0', server_port=24021)
+cdb_demo.queue().launch(server_name='0.0.0.0', server_port=7021)

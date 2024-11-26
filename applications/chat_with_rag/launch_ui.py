@@ -248,5 +248,5 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
 # To create a public link, set `share=True` in `launch()`.
 llm_client_ui.queue().launch(auth=auth_method,
                              server_name='0.0.0.0',
-                             server_port=24025,
+                             server_port=7025,
                              allowed_paths=['../../assets/'])

@@ -7,7 +7,7 @@ import gradio as gr
 from dotenv import load_dotenv
 
 sys.path.append('../../')
-from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI
+from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI_1807
 from demos.tool_calling.tool_descriptors import (tools_rag_descriptor)
 
 # noinspection PyUnresolvedReferences
@@ -15,20 +15,27 @@ from tools_rag import lookup_in_documentation
 
 load_dotenv()
 
+custom_headers = {
+    'HTTP-Referer': 'https://pxl-digital.be/',
+    'X-Title': 'Pixie FAQ Tool'
+}
+
 tool_list = [tools_rag_descriptor]
-or_client = OpenRouterClient(model_name=GPT_4O_MINI,
+or_client = OpenRouterClient(model_name=GPT_4O_MINI_1807,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'),
-                             temperature=0.35)
+                             temperature=0.25,
+                             custom_headers=custom_headers)
 
 system_instruction = {
     'role': 'system',
-    'content': 'You are an assistant helping people understand complex documentation. '
-               'Always consult the documentation before answering. '
-               'When using an external source, always include the reference. '
-               'If you do not know the answer to a question, just say you do not know. '
+    'content': 'You are an assistant helping people with information based on documentation. '
+               'Always consult this documentation before answering. '
+               'Always include the document reference when using an external source. '
+               'You can perform more than one lookup if need be. '
+               'If you do not know the answer to a question, simply say you do not know. '
                'Only answer questions related to the documentation you are in charge of, '
-               'feel free to deflect or refrain from answering unrelated queries. '
+               'deflect or refrain from answering unrelated queries. '
                'Your responses should never exceed 2000 characters. '
                'I would like you to take a deep breath before responding. '
                'Always think step by step. '
@@ -64,7 +71,32 @@ def on_load_ui():
 
 
 def complete_with_llm(chat_history, message_list, log_file_name):
-    response_stream = or_client.create_completions_stream(message_list=message_list)
+    abbreviated_list = message_list
+
+    # truncate message list for longer chats
+    if len(message_list) > 3:
+        abbreviated_list = []
+        MAX_COUNT = 3
+        user_msg_count = 0
+        for msg in reversed(message_list):
+            if msg['role'] == 'system':
+                abbreviated_list.append(msg)
+            elif msg['role'] == 'user':
+                user_msg_count += 1
+                abbreviated_list.append(msg)
+            else:
+                if user_msg_count < MAX_COUNT:
+                    abbreviated_list.append(msg)
+                else:
+                    if (msg['role'] == 'tool' or
+                            (msg['role'] == 'assistant' and 'tool_calls' in msg)):
+                        continue  # we skip these
+                    else:
+                        abbreviated_list.append(msg)
+        abbreviated_list.reverse()
+
+    # generate an answer
+    response_stream = or_client.create_completions_stream(message_list=abbreviated_list)
 
     partial_message = ''
     tool_calls = []
@@ -176,4 +208,4 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
     cb_live.clear(on_clear_clicked, None, [cb_live, log_file_name], queue=False)
     llm_client_ui.load(on_load_ui, None, [log_file_name])
 
-llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=8080)
+llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=10000)

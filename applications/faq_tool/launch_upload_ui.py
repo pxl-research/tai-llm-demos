@@ -79,4 +79,4 @@ with gr.Blocks(fill_height=True, title='Pixie FAQ Tool Upload', css=custom_css) 
 
 cdb_demo.queue().launch(auth=(ADMIN_USER, ADMIN_PASS),
                         server_name='0.0.0.0',
-                        server_port=8081)
+                        server_port=10001)

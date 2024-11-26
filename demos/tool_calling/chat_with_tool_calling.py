@@ -135,4 +135,4 @@ with (gr.Blocks(fill_height=True, title='Tool Calling', css=custom_css) as llm_c
                    queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
     btn_clear.click(lambda: None, None, cb_live, queue=False)
 
-llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=24023)
+llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=7023)
