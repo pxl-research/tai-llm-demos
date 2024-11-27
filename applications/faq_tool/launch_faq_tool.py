@@ -27,12 +27,14 @@ or_client = OpenRouterClient(model_name=GPT_4O_MINI_1807,
                              temperature=0.25,
                              custom_headers=custom_headers)
 
+main_topic = 'internships at a university college in Belgium'
+
 system_instruction = {
     'role': 'system',
     'content': 'You are an assistant helping people with information based on documentation. '
-               'Always consult this documentation before answering. '
+               'You should ALWAYS consult your documentation, for every question. '
                'Always include the document reference when using an external source. '
-               'You can perform more than one lookup if need be. '
+               f'Your area of expertise is {main_topic}. '
                'If you do not know the answer to a question, simply say you do not know. '
                'Only answer questions related to the documentation you are in charge of, '
                'deflect or refrain from answering unrelated queries. '

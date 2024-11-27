@@ -172,4 +172,7 @@ logs/
 # sonarqube
 .scannerwork/
 
+# data
+*.csv
+
 sonar-project.properties
