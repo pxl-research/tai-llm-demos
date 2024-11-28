@@ -7,7 +7,7 @@ import gradio as gr
 from dotenv import load_dotenv
 
 sys.path.append('../../')
-from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI_1807
+from demos.components.open_router_client import OpenRouterClient, LLAMA_405B_I
 from demos.tool_calling.tool_descriptors import (tools_rag_descriptor)
 
 # noinspection PyUnresolvedReferences
@@ -21,7 +21,7 @@ custom_headers = {
 }
 
 tool_list = [tools_rag_descriptor]
-or_client = OpenRouterClient(model_name=GPT_4O_MINI_1807,
+or_client = OpenRouterClient(model_name=LLAMA_405B_I,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'),
                              temperature=0.25,

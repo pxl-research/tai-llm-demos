@@ -40,18 +40,22 @@ class OpenRouterClient(OpenAI):
         self.model_name = model_name
 
 
-# some affordable models with tool calling
-JAMBA_LARGE = 'ai21/jamba-1-5-large'
-JAMBA_MINI = 'ai21/jamba-1-5-mini',
-CLAUDE3_HAIKU = 'anthropic/claude-3-haiku',
-DEEPSEEK = 'deepseek/deepseek-chat',
-GEMINI_FLASH_15 = 'google/gemini-flash-1.5',
-GEMINI_PRO = 'google/gemini-pro',
+# some models with tool calling (sorted from more to less powerful)
 GEMINI_PRO_15 = 'google/gemini-pro-1.5',
+GPT_4O_1305 = 'openai/gpt-4o-2024-05-13'
+CLAUDE_35_SONNET_2006 = 'anthropic/claude-3.5-sonnet-20240620'
 LLAMA_405B_I = 'meta-llama/llama-3.1-405b-instruct',
-LLAMA_70B_I = 'meta-llama/llama-3.1-70b-instruct',
-LLAMA_8B_I = 'meta-llama/llama-3.1-8b-instruct',
-MISTRAL_NEMO = 'mistralai/mistral-nemo',
 GPT_4O_0608 = 'openai/gpt-4o-2024-08-06',
-GPT_4O_MINI = 'openai/gpt-4o-mini',
 GPT_4O_MINI_1807 = 'openai/gpt-4o-mini-2024-07-18'
+GEMINI_FLASH_15 = 'google/gemini-flash-1.5',
+NEMOTRON_70B_I = 'nvidia/llama-3.1-nemotron-70b-instruct'
+GPT_4O_MINI = 'openai/gpt-4o-mini',
+QWEN_25_72B_I = 'qwen/qwen-2.5-72b-instruct'
+MISTRAL_LARGE_07 = 'mistralai/mistral-large-2407'
+LLAMA_31_70B_I = 'meta-llama/llama-3.1-70b-instruct',
+JAMBA_LARGE = 'ai21/jamba-1-5-large'
+LLAMA_3_70B_I = 'meta-llama/llama-3-70b-instruct'
+CLAUDE_3_SONNET = 'anthropic/claude-3-sonnet'
+CLAUDE3_HAIKU = 'anthropic/claude-3-haiku',
+JAMBA_MINI = 'ai21/jamba-1-5-mini',
+LLAMA_8B_I = 'meta-llama/llama-3.1-8b-instruct',
