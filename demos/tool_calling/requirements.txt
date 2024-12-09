@@ -1,6 +1,6 @@
 gradio~=5.5.0
 python-dotenv~=1.0.1
-openai~=1.13.3
+openai~=1.57.0
 markdownify~=0.13.1
 selenium~=4.27.1
 webdriver-manager~=4.0.2
