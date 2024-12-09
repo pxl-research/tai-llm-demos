@@ -1,0 +1,72 @@
+version: 2
+updates:
+
+  - package-ecosystem: pip
+    directory: "/applications/faq_tool"
+    schedule:
+      interval: daily
+      time: "04:00"
+    groups:
+      python-packages:
+        patterns:
+          - "*"
+
+  - package-ecosystem: pip
+    directory: "/applications/chat_with_rag"
+    schedule:
+      interval: daily
+      time: "04:00"
+    groups:
+      python-packages:
+        patterns:
+          - "*"
+
+  - package-ecosystem: pip
+    directory: "/demos/basic_chat"
+    schedule:
+      interval: daily
+      time: "04:00"
+    groups:
+      python-packages:
+        patterns:
+          - "*"
+
+  - package-ecosystem: pip
+    directory: "/demos/tool_calling"
+    schedule:
+      interval: daily
+      time: "04:00"
+    groups:
+      python-packages:
+        patterns:
+          - "*"
+
+  - package-ecosystem: pip
+    directory: "/demos/rag"
+    schedule:
+      interval: daily
+      time: "04:00"
+    groups:
+      python-packages:
+        patterns:
+          - "*"
+
+  - package-ecosystem: pip
+    directory: "/demos/slack_bot"
+    schedule:
+      interval: daily
+      time: "04:00"
+    groups:
+      python-packages:
+        patterns:
+          - "*"
+
+  - package-ecosystem: pip
+    directory: "/gui"
+    schedule:
+      interval: daily
+      time: "04:00"
+    groups:
+      python-packages:
+        patterns:
+          - "*"
