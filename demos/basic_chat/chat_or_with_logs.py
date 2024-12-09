@@ -59,8 +59,11 @@ def chat_completion(message, history):
 
     # clean up extra fields
     for event in history:
-        if 'metadata' in event:
-            del event['metadata']
+        for key in list(event):
+            if key == 'role' or key == 'content':
+                continue
+            else:
+                del event[key]
 
     # call the language model
     response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
