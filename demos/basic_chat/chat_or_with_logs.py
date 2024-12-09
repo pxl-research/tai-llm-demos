@@ -36,6 +36,10 @@ def store_history(history, log_folder):
     global log_filename
     global previous_history
 
+    for event in history:
+        if 'metadata' in event:
+            del event['metadata']
+
     current_history = json.dumps(history, indent=1)
 
     if log_filename is None or not current_history.startswith(previous_history[:-2]):
@@ -50,16 +54,16 @@ def store_history(history, log_folder):
 
 
 def chat_completion(message, history):
-    history_openai_format = [system_instruction]  # openai format
+    if system_instruction not in history:
+        # prepend system instructions
+        history.insert(0, system_instruction)
 
-    for human, assistant in history:
-        history_openai_format.append({'role': 'user', 'content': human})
-        history_openai_format.append({'role': 'assistant', 'content': assistant})
-    history_openai_format.append({'role': 'user', 'content': message})
+    # append latest prompt
+    history.append({'role': 'user', 'content': message})
 
     # call the language model
     response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
-                                                     messages=history_openai_format,
+                                                     messages=history,
                                                      extra_headers={
                                                          'HTTP-Referer': 'https://pxl-research.be/',
                                                          'X-Title': 'PXL Smart ICT'
@@ -72,9 +76,10 @@ def chat_completion(message, history):
             yield partial_message
 
     # store in a log file
-    history_openai_format.append({'role': 'assistant', 'content': partial_message})
-    store_history(history_openai_format, 'logs/')
+    history.append({'role': 'assistant', 'content': partial_message})
+    store_history(history, 'logs/')
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
-gr.ChatInterface(chat_completion).launch(server_name='0.0.0.0', server_port=7020)
+(gr.ChatInterface(chat_completion, type='messages')
+ .launch(server_name='0.0.0.0', server_port=7020))
