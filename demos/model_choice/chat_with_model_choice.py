@@ -78,9 +78,9 @@ def colorize_providers(full_model_name):
 
 
 # blocks UI method
-def on_row_selected(select_data: gr.SelectData, dataframe: DataFrame):
+def on_row_selected(select_data: gr.SelectData):
     if select_data is not None:
-        return dataframe['model_name'][select_data.index[0]]
+        return select_data.row_value[1]  # model name
     return None
 
 
@@ -223,7 +223,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                        inputs=None,
                        outputs=[df_models, dfr_models])
     dfr_models.select(fn=on_row_selected,
-                      inputs=[df_models],
+                      inputs=[],
                       outputs=[lbl_model])
 
 llm_client_ui.queue().launch(auth=None,
