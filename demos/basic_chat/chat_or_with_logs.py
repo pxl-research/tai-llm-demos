@@ -36,10 +36,6 @@ def store_history(history, log_folder):
     global log_filename
     global previous_history
 
-    for event in history:
-        if 'metadata' in event:
-            del event['metadata']
-
     current_history = json.dumps(history, indent=1)
 
     if log_filename is None or not current_history.startswith(previous_history[:-2]):
@@ -60,6 +56,11 @@ def chat_completion(message, history):
 
     # append latest prompt
     history.append({'role': 'user', 'content': message})
+
+    # clean up extra fields
+    for event in history:
+        if 'metadata' in event:
+            del event['metadata']
 
     # call the language model
     response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
