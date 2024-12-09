@@ -3,5 +3,5 @@ chromadb~=0.5.23
 python-dotenv~=1.0.1
 bcrypt~=4.2.1
 tiktoken~=0.7.0
-openai~=1.42.0
+openai~=1.57.0
 PyMuPDF~=1.25.0
