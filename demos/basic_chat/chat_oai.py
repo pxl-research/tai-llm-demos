@@ -37,8 +37,11 @@ def chat_completion(message, history):
 
     # clean up extra fields
     for event in history:
-        if 'metadata' in event:
-            del event['metadata']
+        for key in list(event):
+            if key == 'role' or key == 'content':
+                continue
+            else:
+                del event[key]
 
     # token estimation
     hist_string = json.dumps(history)
