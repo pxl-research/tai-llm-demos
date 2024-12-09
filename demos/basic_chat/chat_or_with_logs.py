@@ -1,6 +1,6 @@
+import datetime
 import json
 import os
-import time
 
 import gradio as gr
 from dotenv import load_dotenv
@@ -25,8 +25,8 @@ previous_history = ''
 
 
 def get_new_filename(log_folder):
-    ts_in_secs = round(time.time())
-    return f'{log_folder}{ts_in_secs}.json'
+    time_stamp = f'{datetime.datetime.now():%y%m%d_%H%M_%S}'
+    return f'{log_folder}{time_stamp}.json'
 
 
 def store_history(history, log_folder):
