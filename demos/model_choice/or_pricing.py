@@ -5,8 +5,12 @@ import pandas as pd
 import requests
 
 
-def get_models(names_only=True, as_dataframe=False):
-    response = requests.get('https://openrouter.ai/api/v1/models?supported_parameters=tools')  # tools only
+def get_models(tools_only=True, names_only=True, as_dataframe=False):
+    models_url = 'https://openrouter.ai/api/v1/models'
+    if tools_only:
+        models_url += '?supported_parameters=tools'
+
+    response = requests.get(models_url)
 
     model_list = json.loads(response.text)
     print(f'{len(model_list['data'])} models are available.')
@@ -18,7 +22,7 @@ def get_models(names_only=True, as_dataframe=False):
                      and ':free' not in m['id']]
 
     # context
-    filtered_data = [m for m in filtered_data if m['context_length'] >= 8000]  # at least medium-size context
+    filtered_data = [m for m in filtered_data if m['context_length'] >= 16000]  # at least medium-size context
 
     # price
     filtered_data = [m for m in filtered_data if
@@ -69,7 +73,7 @@ def no_duplicates(list_with_duplicates):
 
 # uncomment to see pricing in terminal
 # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-#     pp.pprint(get_models(as_dataframe=True))
+#     pp.pprint(get_models(tools_only=False, as_dataframe=True))
 
 # some results, taken november 5th
 some_models = [
