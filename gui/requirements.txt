@@ -1,6 +1,6 @@
 tiktoken~=0.8.0
 python-dotenv~=1.0.1
-openai~=1.57.0
+openai~=1.57.4
 Markdown~=3.7
 wxPython~=4.2.2
 Pygments
