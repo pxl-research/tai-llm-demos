@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import random
@@ -5,7 +6,6 @@ import sys
 
 import gradio as gr
 from dotenv import load_dotenv
-from pandas import DataFrame
 
 from demos.model_choice.or_pricing import get_models
 
@@ -23,14 +23,14 @@ system_instruction = {
                'When using an external source, always include the reference. '
 }
 
-available_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c',
+different_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c',
                     '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#aaffc3', '#808000', '#ffd8b1', '#808080']
 providers = {}
 
 
 # blocks UI method
 def on_load_ui():
-    data_models = get_models(as_dataframe=True)
+    data_models = get_models(tools_only=False, as_dataframe=True)
 
     # set precision of price values
     price_columns = data_models.filter(like='price').columns
@@ -68,11 +68,17 @@ def colorize_contexts(context_size):
 
 def colorize_providers(full_model_name):
     provider_name = full_model_name.split('/')[0]
+
+    available_colors = copy.deepcopy(different_colors)
     if provider_name not in providers.keys():
         # select a random color
         color = random.choice(available_colors)
         providers[provider_name] = color
         available_colors.remove(color)
+
+        if len(available_colors) < 1:
+            # start re-using these colors when we run out
+            available_colors = copy.deepcopy(different_colors)
 
     return 'color:' + providers[provider_name] + ';'
 
