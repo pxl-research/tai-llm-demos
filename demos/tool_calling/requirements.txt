@@ -1,6 +1,6 @@
-gradio~=5.8.0
+gradio~=5.9.1
 python-dotenv~=1.0.1
-openai~=1.57.0
+openai~=1.59.3
 markdownify~=0.14.1
 selenium~=4.27.1
 webdriver-manager~=4.0.2
