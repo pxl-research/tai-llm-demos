@@ -36,6 +36,7 @@ def on_load_ui():
     price_columns = data_models.filter(like='price').columns
     style_models = (data_models.style
                     .format({col: "{:.3f}" for col in price_columns})
+                    .format({col: "{:.0f}" for col in ['max_completion_tokens']})
                     .map(colorize_quantiles, df=data_models, col='completion_price', subset=['completion_price'])
                     .map(colorize_quantiles, df=data_models, col='prompt_price', subset=['prompt_price'])
                     .map(colorize_contexts, subset=['context_length'])
@@ -178,7 +179,7 @@ custom_css = """
 with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_css) as llm_client_ui):
     # state
     messages = gr.State([system_instruction])
-    selected_model = gr.State(GPT_4O_MINI)
+    selected_model = gr.State('openai/gpt-4o-mini-2024-07-18')
     df_models = gr.State(None)
 
     # ui
