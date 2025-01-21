@@ -11,7 +11,7 @@ from demos.model_choice.or_pricing import get_models
 
 sys.path.append('../')
 
-from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI
+from demos.components.open_router_client import OpenRouterClient
 
 load_dotenv()
 
@@ -87,7 +87,7 @@ def colorize_providers(full_model_name):
 # blocks UI method
 def on_row_selected(select_data: gr.SelectData):
     if select_data is not None:
-        return select_data.row_value[1]  # model name
+        return select_data.row_value[1], select_data.row_value[1]  # model name
     return None
 
 
@@ -231,7 +231,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                        outputs=[df_models, dfr_models])
     dfr_models.select(fn=on_row_selected,
                       inputs=[],
-                      outputs=[lbl_model])
+                      outputs=[lbl_model, selected_model])
 
 llm_client_ui.queue().launch(auth=None,
                              server_name='0.0.0.0',
