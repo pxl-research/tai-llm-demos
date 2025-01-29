@@ -1,3 +1,3 @@
-chromadb~=0.5.23
-pymupdf~=1.25.0
-gradio~=5.8.0
+chromadb~=0.6.3
+pymupdf~=1.25.2
+gradio~=5.13.2
