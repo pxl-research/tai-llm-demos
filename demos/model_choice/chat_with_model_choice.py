@@ -7,11 +7,10 @@ import sys
 import gradio as gr
 from dotenv import load_dotenv
 
-from demos.model_choice.or_pricing import get_models
-
-sys.path.append('../')
+sys.path.append('../../')
 
 from demos.components.open_router_client import OpenRouterClient
+from demos.model_choice.or_pricing import get_models
 
 load_dotenv()
 
