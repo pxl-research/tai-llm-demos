@@ -8,14 +8,12 @@ cdb_store = ChromaDocumentStore(path='store/')
 
 def on_file_uploaded(file_list, progress=gr.Progress(track_tqdm=True)):
     current_documents = cdb_store.list_documents()
-
     for file_path in file_list:
         collection_name = sanitize_filename(file_path)
         if collection_name not in current_documents:
             cdb_store.add_document(file_path, tqdm)
 
-    names = cdb_store.list_documents()
-    return [None, names]
+    return [None, wrap_document_list()]
 
 
 def on_remove_rag(file_list, select_data):
@@ -26,8 +24,12 @@ def on_remove_rag(file_list, select_data):
     return names, None
 
 
-def list_documents():
-    return cdb_store.list_documents()
+def wrap_document_list():
+    doc_list = cdb_store.list_documents()
+    wrapped_list = []
+    for doc_name in doc_list:
+        wrapped_list.append([doc_name])
+    return wrapped_list
 
 
 def on_row_selected(select_data: gr.SelectData):
@@ -71,6 +73,6 @@ with gr.Blocks(fill_height=True, title='RAG Upload Demo', css=custom_css) as cdb
     file_rag_upload.upload(on_file_uploaded, [file_rag_upload], [file_rag_upload, df_rag_files])
     df_rag_files.select(on_row_selected, None, [st_selected_index])
     btn_remove_rag_file.click(on_remove_rag, [df_rag_files, st_selected_index], [df_rag_files, st_selected_index])
-    cdb_demo.load(list_documents, [], [df_rag_files])
+    cdb_demo.load(wrap_document_list, [], [df_rag_files])
 
 cdb_demo.queue().launch(server_name='0.0.0.0', server_port=7021)

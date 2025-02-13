@@ -53,14 +53,17 @@ def handle_command(ack, say, command):
     ]
 
     response = complete_with_llm(history_openai_format)
-    say(f'{response}')  # respond to the command
+    if response:
+        say(f'{response}')  # respond to the command
+    else:
+        say('Sorry, I can\'t help you with that...')  # respond to the command
 
 
 def complete_with_llm(message_list):
     response = or_client.create_completions_stream(message_list=message_list, stream=False)
 
     message = response.choices[0].message
-    if message.content is not None:
+    if message.content is not None and message.content:
         slack_markup = convert_markdown_to_slack_markup(message.content)
         return f'{slack_markup}'
     if message.tool_calls is not None:
