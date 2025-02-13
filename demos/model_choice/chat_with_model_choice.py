@@ -7,11 +7,10 @@ import sys
 import gradio as gr
 from dotenv import load_dotenv
 
-from demos.model_choice.or_pricing import get_models
-
-sys.path.append('../')
+sys.path.append('../../')
 
 from demos.components.open_router_client import OpenRouterClient
+from demos.model_choice.or_pricing import get_models
 
 load_dotenv()
 
@@ -101,6 +100,12 @@ def append_user(user_message, chat_history, message_list):
 # blocks UI method
 def append_bot(chat_history, message_list, model_name):
     yield from complete_with_llm(chat_history, message_list, model_name)
+
+
+# blocks UI method
+def on_clear_clicked():
+    # empty the chat log on screen, and the messages internally
+    return [None, [system_instruction]]
 
 
 def complete_with_llm(chat_history, message_list, model_name):
@@ -221,9 +226,9 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                                      [cb_live, messages, selected_model],
                                      [cb_live, messages])
 
-    btn_clear.click(lambda: None,
+    btn_clear.click(on_clear_clicked,
                     None,
-                    [cb_live],
+                    [cb_live, messages],
                     queue=False)
 
     llm_client_ui.load(fn=on_load_ui,

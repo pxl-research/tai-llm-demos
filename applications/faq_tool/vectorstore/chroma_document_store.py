@@ -1,8 +1,11 @@
 import chromadb
 import pymupdf4llm
+import sys
 from tqdm import tqdm
 
-from applications.faq_tool.vectorstore.cdb_utilities import sanitize_filename, doc_to_chunks, repack_query_results
+sys.path.append('../')
+sys.path.append('../../')
+from vectorstore.cdb_utilities import sanitize_filename, doc_to_chunks, repack_query_results
 
 
 class ChromaDocumentStore:
