@@ -73,7 +73,7 @@ class ChromaDocumentStore:
         collections_list = self.cdb_client.list_collections()
         names = []
         for collection in collections_list:
-            names.append([collection.name])
+            names.append(collection.name)
         return names
 
     def query_store(self, query: str):
