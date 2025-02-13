@@ -53,10 +53,10 @@ class ChromaDocumentStore:
         return names
 
     def query_store(self, query: str, amount: int = 5):
-        collections = self.cdb_client.list_collections()
+        collection_names = self.cdb_client.list_collections()
         all_results = []
-        for collection in collections:
-            self.cdb_client.get_collection(collection.name)
+        for coll_name in collection_names:
+            collection = self.cdb_client.get_collection(coll_name)
             result = collection.query(
                 query_texts=[query],
                 n_results=amount,
