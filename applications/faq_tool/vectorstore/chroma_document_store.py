@@ -1,8 +1,12 @@
+import sys
+
 import chromadb
 import pymupdf4llm
 from tqdm import tqdm
 
-from applications.faq_tool.vectorstore.cdb_utilities import sanitize_filename, doc_to_chunks, repack_query_results
+sys.path.append('../')
+sys.path.append('../../')
+from vectorstore.cdb_utilities import sanitize_filename, doc_to_chunks, repack_query_results
 
 
 class ChromaDocumentStore:
@@ -43,17 +47,13 @@ class ChromaDocumentStore:
         self.cdb_client.delete_collection(document_name)
 
     def list_documents(self):
-        collections_list = self.cdb_client.list_collections()
-        names = []
-        for collection in collections_list:
-            names.append([collection.name])
-        return names
+        return self.cdb_client.list_collections()
 
     def query_store(self, query: str, amount: int = 5):
-        collections = self.cdb_client.list_collections()
+        collection_names = self.cdb_client.list_collections()
         all_results = []
-        for collection in collections:
-            self.cdb_client.get_collection(collection.name)
+        for coll_name in collection_names:
+            collection = self.cdb_client.get_collection(coll_name)
             result = collection.query(
                 query_texts=[query],
                 n_results=amount,
