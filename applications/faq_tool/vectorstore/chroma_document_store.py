@@ -1,6 +1,7 @@
+import sys
+
 import chromadb
 import pymupdf4llm
-import sys
 from tqdm import tqdm
 
 sys.path.append('../')
@@ -46,11 +47,7 @@ class ChromaDocumentStore:
         self.cdb_client.delete_collection(document_name)
 
     def list_documents(self):
-        collections_list = self.cdb_client.list_collections()
-        names = []
-        for collection in collections_list:
-            names.append([collection.name])
-        return names
+        return self.cdb_client.list_collections()
 
     def query_store(self, query: str, amount: int = 5):
         collection_names = self.cdb_client.list_collections()
