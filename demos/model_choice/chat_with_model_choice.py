@@ -103,6 +103,12 @@ def append_bot(chat_history, message_list, model_name):
     yield from complete_with_llm(chat_history, message_list, model_name)
 
 
+# blocks UI method
+def on_clear_clicked():
+    # empty the chat log on screen, and the messages internally
+    return [None, [system_instruction]]
+
+
 def complete_with_llm(chat_history, message_list, model_name):
     or_client = OpenRouterClient(model_name=model_name,
                                  api_key=os.getenv('OPENROUTER_API_KEY'))
@@ -221,9 +227,9 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                                      [cb_live, messages, selected_model],
                                      [cb_live, messages])
 
-    btn_clear.click(lambda: None,
+    btn_clear.click(on_clear_clicked,
                     None,
-                    [cb_live],
+                    [cb_live, messages],
                     queue=False)
 
     llm_client_ui.load(fn=on_load_ui,
