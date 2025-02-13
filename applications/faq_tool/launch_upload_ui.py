@@ -1,5 +1,9 @@
 import gradio as gr
 from tqdm import tqdm
+import sys
+
+sys.path.append('../')
+sys.path.append('../../')
 
 from vectorstore.chroma_document_store import ChromaDocumentStore, sanitize_filename
 

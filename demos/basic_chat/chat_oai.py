@@ -53,7 +53,7 @@ def chat_completion(message, history):
     if cost_in_cents > 0:
         print(f'Cost estimate: {cost_in_cents} cents')
 
-    response_stream = client.chat.completions.create(model='gpt-4-turbo-04-09',
+    response_stream = client.chat.completions.create(model='gpt-4o-mini',
                                                      messages=history,
                                                      temperature=1.0,
                                                      stream=True)
