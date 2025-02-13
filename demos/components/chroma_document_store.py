@@ -51,6 +51,10 @@ class ChromaDocumentStore:
     def add_document(self, file_path: str, tqdm_func=tqdm):
         collection_name = sanitize_filename(file_path)
 
+        document_list = self.cdb_client.list_collections()
+        if collection_name in document_list:
+            return  # collection name already in use / document already in store
+
         page_list = pdf_to_text(file_path)
         chunks, chunk_ids, meta_infos = pages_to_chunks(page_list, collection_name)
         print(f"Split {len(page_list)} pages into {len(chunk_ids)} chunks for '{collection_name}'")
