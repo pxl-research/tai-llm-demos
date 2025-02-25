@@ -209,7 +209,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                                elem_classes='bold')
         with gr.Row():
             with gr.Accordion(label='Available models', open=False):
-                dfr_models = gr.DataFrame(df_models.value)
+                dfr_models = gr.DataFrame(df_models.value, type="pandas", interactive=False)
 
     # event handlers
     tb_user.submit(append_user,
