@@ -184,7 +184,7 @@ custom_css = """
 with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_css) as llm_client_ui):
     # state
     messages = gr.State([system_instruction])
-    selected_model = gr.State('openai/gpt-4o-mini-2024-07-18')
+    selected_model = gr.State('google/gemini-2.0-flash-001')
     df_models = gr.State(None)
 
     # ui
