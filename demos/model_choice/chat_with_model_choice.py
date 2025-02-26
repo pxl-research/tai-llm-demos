@@ -33,9 +33,11 @@ def on_load_ui():
 
     # set precision of price values
     price_columns = data_models.filter(like='price').columns
+    format_dict = {col: "{:.3f}".format for col in price_columns}
+    format_dict.update({col: "{:.0f}".format for col in ['max_completion_tokens']})
+
     style_models = (data_models.style
-                    .format({col: "{:.3f}" for col in price_columns})
-                    .format({col: "{:.0f}" for col in ['max_completion_tokens']})
+                    .format(format_dict)
                     .map(colorize_quantiles, df=data_models, col='completion_price', subset=['completion_price'])
                     .map(colorize_quantiles, df=data_models, col='prompt_price', subset=['prompt_price'])
                     .map(colorize_contexts, subset=['context_length'])
