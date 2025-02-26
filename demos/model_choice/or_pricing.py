@@ -67,7 +67,7 @@ def get_models(tools_only=True, names_only=True, as_dataframe=False):
     df_models.style.background_gradient()
 
     pd.set_option('display.width', 200)
-    pd.set_option('display.precision', 2)
+    pd.set_option('display.precision', 3)
 
     df_models.to_csv('or_pricing.csv')
 
