@@ -66,7 +66,7 @@ def chat_completion(message, history):
                 del event[key]
 
     # call the language model
-    response_stream = client.chat.completions.create(model='openai/gpt-4o-mini',
+    response_stream = client.chat.completions.create(model='google/gemini-2.0-flash-001',
                                                      messages=history,
                                                      extra_headers={
                                                          'HTTP-Referer': 'https://pxl-research.be/',
@@ -85,5 +85,7 @@ def chat_completion(message, history):
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
-(gr.ChatInterface(chat_completion, type='messages')
+(gr.ChatInterface(chat_completion,
+                  type='messages',
+                  flagging_mode='manual')
  .launch(server_name='0.0.0.0', server_port=7020))
