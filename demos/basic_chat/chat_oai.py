@@ -65,5 +65,7 @@ def chat_completion(message, history):
 
 
 # https://www.gradio.app/guides/creating-a-chatbot-fast
-(gr.ChatInterface(chat_completion, type='messages')
+(gr.ChatInterface(chat_completion,
+                  type='messages',
+                  flagging_mode='manual')
  .launch(server_name='0.0.0.0', server_port=7020))
