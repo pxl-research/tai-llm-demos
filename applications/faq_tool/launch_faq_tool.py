@@ -181,6 +181,12 @@ custom_css = """
       --border-color-primary: #dfd7c1;
     }
 """
+
+feedback_message = (
+    f'*If you encounter any problems or bugs, '
+    f'please drop us a line at <{os.getenv('FEEDBACK_EMAIL')}>! '
+    f'Don\'t forget to include a screenshot of a copy of your chatlog.*')
+
 with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm_client_ui):
     # state variables
     messages = gr.State([system_instruction])
@@ -206,6 +212,7 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
 
     btn_clear = gr.Button('Clear',
                           elem_classes='fg-gold')
+    lbl_feedback = gr.Markdown(feedback_message)
 
     # event handlers
     tb_user.submit(append_user,
