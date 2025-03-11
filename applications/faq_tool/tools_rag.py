@@ -13,5 +13,6 @@ cdb_store = ChromaDocumentStore(path=cdb_path)  # on disk
 
 def lookup_in_documentation(query):
     print(f"Searching in documentation: '{query}'")
-    results = cdb_store.query_store(query, amount=7)
+    results = cdb_store.query_store(query, amount=5)
+    print(f'Retrieved {len(results)} results')
     return results

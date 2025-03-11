@@ -41,7 +41,7 @@ system_instruction = {
                'Your responses should never exceed 2000 characters. '
                'I would like you to take a deep breath before responding. '
                'Always think step by step. '
-               'Be concise and precise in your responses. '
+               'Be complete, precise and concise in your responses. '
                'Answer using Markdown syntax when appropriate. '
 }
 
