@@ -86,7 +86,7 @@ def show_upload():
 def on_login(request: gr.Request):
     user_folder = sanitize_string(request.username.lower())
     new_thread = client.beta.threads.create()
-    print(f"Created a thread with id: {new_thread.id} for user {user_folder}")
+    print(f'Created a thread with id: {new_thread.id} for user {user_folder}')
     return [set_folder(user_folder), new_thread]
 
 
@@ -139,7 +139,7 @@ icon_folder = '../../assets/icons/'
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_client_ui):
     # state that is unique to each user
-    st_log_folder = gr.State("logs/")
+    st_log_folder = gr.State('logs/')
     st_thread = gr.State()
     st_selected_index = gr.State()
 
@@ -150,7 +150,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
         gr.Image(value='../../assets/logo.png', width=50, height=50, show_label=False,
                  show_download_button=False, show_share_button=False, show_fullscreen_button=False,
                  interactive=False, elem_id='logo_img')
-        gr.Markdown("# PiXie Lite")
+        gr.Markdown('# PiXie Lite')
 
     # live chat UI
     cb_live_chat = gr.Chatbot(label='Chat', type='tuples', scale=1, visible=False)
@@ -180,7 +180,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
             dd_log_files = gr.Dropdown(
                 [],
                 show_label=False,
-                info="Select a log file to view the details",
+                info='Select a log file to view the details',
                 scale=10,
             )
             btn_reload_logs = gr.Button(value='', scale=0, min_width=64, icon=icon_folder + 'refresh.png')
@@ -194,12 +194,12 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
 
     # file upload UI
     lbl_rag_explainer = gr.HTML(rag_explainer, visible=False)
-    file_rag_upload = gr.File(label="Click to Upload a File",
-                              file_types=[".pdf"],
-                              file_count="multiple",
+    file_rag_upload = gr.File(label='Click to Upload a File',
+                              file_types=['.pdf'],
+                              file_count='multiple',
                               visible=False)
     with gr.Row(elem_classes='max_height'):
-        df_rag_files = gr.Dataframe(label="Documents",
+        df_rag_files = gr.Dataframe(label='Documents',
                                     headers=['Name'],
                                     col_count=1,
                                     interactive=False,
