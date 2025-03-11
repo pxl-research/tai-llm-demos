@@ -41,7 +41,7 @@ system_instruction = {
                'Your responses should never exceed 2000 characters. '
                'I would like you to take a deep breath before responding. '
                'Always think step by step. '
-               'Be concise and precise in your responses. '
+               'Be complete, precise and concise in your responses. '
                'Answer using Markdown syntax when appropriate. '
 }
 
@@ -171,6 +171,15 @@ def complete_with_llm(chat_history, message_list, log_file_name):
 # Gradio UI
 custom_css = """
     footer {display:none !important}
+    
+    .bg-gold {background: #ae9a64}
+    .fg-gold {color: #ae9a64}
+    
+    :root {
+      --color-accent-soft: #f7f5ef;
+      --border-color-accent-subdued: #ae9a64;
+      --border-color-primary: #dfd7c1;
+    }
 """
 with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm_client_ui):
     # state variables
@@ -178,7 +187,11 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
     log_file_name = gr.State()
 
     # UI elements
-    cb_live = gr.Chatbot(label='Chat', type='tuples', scale=1, show_copy_all_button=True)
+    cb_live = gr.Chatbot(label='Chat',
+                         type='tuples',
+                         scale=1,
+                         show_copy_all_button=True)
+
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False,
@@ -187,9 +200,12 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
                                  scale=10)
             btn_send = gr.Button('',
                                  icon='../../assets/icons/send.png',
+                                 elem_classes='bg-gold',
                                  min_width=64,
                                  scale=0)
-    btn_clear = gr.Button('Clear')
+
+    btn_clear = gr.Button('Clear',
+                          elem_classes='fg-gold')
 
     # event handlers
     tb_user.submit(append_user,
