@@ -196,7 +196,7 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
     cb_live = gr.Chatbot(label='Chat',
                          type='tuples',
                          scale=1,
-                         show_copy_all_button=True)
+                         show_copy_button=True)
 
     with gr.Group() as gr_live:
         with gr.Row():
