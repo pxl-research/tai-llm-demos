@@ -1,4 +1,6 @@
 gradio
+openai
+python-dotenv
 scipy
 torch
 transformers

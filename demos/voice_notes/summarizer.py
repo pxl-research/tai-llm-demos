@@ -127,7 +127,11 @@ with gr.Blocks(fill_height=True, title='Audio summary', css=custom_css) as block
         outputs=[md_transcript, full_transcript, file_download]
     )
 
-    btn_clear.add([aud_in, file_download, md_transcript, md_summary])
+    btn_clear.add([aud_in,
+                   file_download,
+                   md_transcript,
+                   md_summary,
+                   full_transcript])
 
     full_transcript.change(fn=on_transcript_made,
                            inputs=[full_transcript],

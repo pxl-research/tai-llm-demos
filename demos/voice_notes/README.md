@@ -4,7 +4,7 @@ TransformAI
 ## What's in this folder?
 This folder contains a basic **voice note summary** example:
 
-- `voice_notes/summary.py` the Gradio tool (website)  
+- `voice_notes/summarizer.py` the Gradio tool (website)
 
 - `voice_notes/llm_functions.py` the LLM summary prompt and methods (using OpenRouter)
 

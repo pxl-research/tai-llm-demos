@@ -5,6 +5,11 @@ from openai import OpenAI
 
 load_dotenv()
 
+if not os.getenv('OPENROUTER_ENDPOINT') or not os.getenv('OPENROUTER_API_KEY'):
+    raise ValueError("Missing required environment variables. "
+                     "Please ensure OPENROUTER_ENDPOINT and OPENROUTER_API_KEY are set in .env file.")
+
+
 client = OpenAI(
     base_url=os.getenv('OPENROUTER_ENDPOINT'),
     api_key=os.getenv('OPENROUTER_API_KEY'),
