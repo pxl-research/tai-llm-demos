@@ -166,6 +166,7 @@ logs/
 **/documents/
 **/store/
 **/tmp/
+**/test*.py
 
 # intellij
 .idea/
