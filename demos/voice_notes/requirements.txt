@@ -1,3 +1,4 @@
+scipy
+torch
 transformers
 accelerate
-torchaudio
