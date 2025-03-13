@@ -1,3 +1,4 @@
+gradio
 scipy
 torch
 transformers
