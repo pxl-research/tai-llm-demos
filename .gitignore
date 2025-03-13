@@ -165,6 +165,7 @@ logs/
 # project specific
 **/documents/
 **/store/
+**/tmp/
 
 # intellij
 .idea/

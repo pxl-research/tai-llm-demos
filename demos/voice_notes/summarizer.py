@@ -6,6 +6,8 @@ import scipy.io.wavfile as wavfile
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 
+from llm_functions import summarize_message
+
 TMP_FOLDER = './tmp/'
 
 # create tmp folder
@@ -41,11 +43,13 @@ pipe = pipeline(
 )
 
 
+# utility method
 def get_new_filename(extension='json'):
     time_stamp = f'{datetime.datetime.now():%y%m%d_%H%M_%S}'
     return f'{time_stamp}.{extension}'
 
 
+# UI event
 def on_click_transcribe_button(audio_data):
     # store audio file in tmp folder
     tmp_audio_fn = f"{TMP_FOLDER}{get_new_filename('wav')}"  # Or generate a unique filename
@@ -67,6 +71,7 @@ def on_click_transcribe_button(audio_data):
     return [f'{full_text}', full_text, transcript_fn]
 
 
+# UI event
 def on_audio_input_change(audio):
     if audio is not None:
         return [gr.Button(interactive=True), None]
@@ -74,12 +79,18 @@ def on_audio_input_change(audio):
         return [gr.Button(interactive=False), None]
 
 
+def on_transcript_made(transcript):
+    print(transcript)
+    yield from summarize_message(transcript)
+
+
 # GRADUI UI
 explainer = ('Upload an audio file to get a summary. \n'
              'Warning: transcription may take a long time depending on the length of the file.')
 
 custom_css = """
-    .gray {background: gray;}
+    .imit-height {max-height: 200px;}
+    footer {display:none !important}
 """
 with gr.Blocks(fill_height=True, title='Audio summary', css=custom_css) as blocks_ui:
     # state
@@ -92,11 +103,16 @@ with gr.Blocks(fill_height=True, title='Audio summary', css=custom_css) as block
     with gr.Row():
         with gr.Column():
             aud_in = gr.Audio(type="numpy")
-            btn_transcribe = gr.Button(value='Transcribe audio', interactive=False)
+            btn_transcribe = gr.Button(value='Transcribe audio',
+                                       interactive=False)
             btn_clear = gr.ClearButton()
         with gr.Column():
-            file_download = gr.File(label='Transcript file', interactive=False)
-            md_output = gr.Markdown(elem_classes='gray')
+            file_download = gr.File(label='Transcript file',
+                                    interactive=False)
+            md_transcript = gr.Textbox(label='Full transcript',
+                                       interactive=False)
+            gr.Markdown("Summary")
+            md_summary = gr.Markdown(label='Summary')
 
     # events
     aud_in.input(
@@ -108,10 +124,14 @@ with gr.Blocks(fill_height=True, title='Audio summary', css=custom_css) as block
     btn_transcribe.click(
         fn=on_click_transcribe_button,
         inputs=[aud_in],
-        outputs=[md_output, full_transcript, file_download]
+        outputs=[md_transcript, full_transcript, file_download]
     )
 
-    btn_clear.add([aud_in, file_download, md_output])
+    btn_clear.add([aud_in, file_download, md_transcript, md_summary])
+
+    full_transcript.change(fn=on_transcript_made,
+                           inputs=[full_transcript],
+                           outputs=[md_summary])
 
 blocks_ui.queue().launch(server_name='0.0.0.0',
                          server_port=7029)
