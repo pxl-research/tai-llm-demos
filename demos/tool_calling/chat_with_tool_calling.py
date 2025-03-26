@@ -10,9 +10,17 @@ from demos.tool_calling.tool_descriptors import (tools_weather_descriptor,
                                                  tools_search_descriptor,
                                                  tools_get_website_contents)
 # noinspection PyUnresolvedReferences
-from tools_search import search_on_google
+from demos.tool_calling.tools_fileio import (tools_fileio_descriptor,
+                                             list_files,
+                                             get_fs_properties,
+                                             read_file_contents,
+                                             write_file_contents,
+                                             append_file_contents,
+                                             create_folders)
 # noinspection PyUnresolvedReferences
 from tools_rag import lookup_in_documentation
+# noinspection PyUnresolvedReferences
+from tools_search import search_on_google
 # noinspection PyUnresolvedReferences
 from tools_surf import (get_webpage_content, get_webpage_with_js)
 # noinspection PyUnresolvedReferences
@@ -24,6 +32,7 @@ tool_list = tools_weather_descriptor
 tool_list.append(tools_rag_descriptor)
 tool_list.append(tools_search_descriptor)
 tool_list.extend(tools_get_website_contents)
+tool_list.extend(tools_fileio_descriptor)
 
 or_client = OpenRouterClient(model_name=GPT_4O_MINI_1807,
                              tools_list=tool_list,
@@ -34,6 +43,7 @@ system_instruction = {
     'content': 'Be concise. Be precise. Always think step by step. '
                'I would like you to take a deep breath before responding. '
                'You can answer using Markdown syntax when appropriate. '
+               'You have a lot of tools at your disposal, think about when to use them. '
                'When using an external source, always include the reference. '
 }
 
@@ -89,6 +99,7 @@ def complete_with_llm(chat_history, message_list):
     if len(tool_calls) > 0:
         print(f'Processing {len(tool_calls)} tool calls')
         for call in tool_calls:
+            print(f'\t- {call.function.name}')
             fn_pointer = globals()[call.function.name]
             fn_args = json.loads(call.function.arguments)
             tool_call_obj = {
