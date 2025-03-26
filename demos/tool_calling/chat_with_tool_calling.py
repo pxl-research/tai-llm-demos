@@ -4,7 +4,7 @@ import os
 import gradio as gr
 from dotenv import load_dotenv
 
-from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI
+from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI_1807
 from demos.tool_calling.tool_descriptors import (tools_weather_descriptor,
                                                  tools_rag_descriptor,
                                                  tools_search_descriptor,
@@ -25,7 +25,7 @@ tool_list.append(tools_rag_descriptor)
 tool_list.append(tools_search_descriptor)
 tool_list.extend(tools_get_website_contents)
 
-or_client = OpenRouterClient(model_name=GPT_4O_MINI,
+or_client = OpenRouterClient(model_name=GPT_4O_MINI_1807,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
@@ -40,8 +40,9 @@ system_instruction = {
 
 # blocks UI method
 def append_user(user_message, chat_history, message_list):
-    chat_history.append((user_message, None))
-    message_list.append({'role': 'user', 'content': user_message})
+    msg_obj = {'role': 'user', 'content': user_message}
+    chat_history.append(msg_obj)
+    message_list.append(msg_obj)
     return '', chat_history, message_list
 
 
@@ -55,12 +56,14 @@ def complete_with_llm(chat_history, message_list):
 
     partial_message = ''
     tool_calls = []
+    chat_history.append({'role': 'assistant', 'content': ''})  # append empty response?
+
     for chunk in response_stream:  # stream the response
         if len(chunk.choices) > 0:
             # LLM text reponses
             if chunk.choices[0].delta.content is not None:
                 partial_message = partial_message + chunk.choices[0].delta.content
-                chat_history[-1][1] = partial_message
+                chat_history[-1]['content'] = partial_message
                 yield chat_history, message_list
 
             # LLM tool call requests
@@ -79,8 +82,8 @@ def complete_with_llm(chat_history, message_list):
     response_stream.close()
 
     # handle text responses
-    if chat_history[-1][1] is not None:
-        message_list.append({'role': 'assistant', 'content': chat_history[-1][1]})
+    if chat_history[-1]['content'] is not None:
+        message_list.append(chat_history[-1])
 
     # handle tool requests
     if len(tool_calls) > 0:
@@ -121,7 +124,7 @@ custom_css = """
 """
 with (gr.Blocks(fill_height=True, title='Tool Calling', css=custom_css) as llm_client_ui):
     messages = gr.State([system_instruction])
-    cb_live = gr.Chatbot(label='Chat', type='tuples', scale=1)
+    cb_live = gr.Chatbot(label='Chat', type='messages', scale=1)
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
@@ -129,10 +132,20 @@ with (gr.Blocks(fill_height=True, title='Tool Calling', css=custom_css) as llm_c
     btn_clear = gr.Button('Clear')
 
     # event handlers
-    tb_user.submit(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],
-                   queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
-    btn_send.click(append_user, [tb_user, cb_live, messages], [tb_user, cb_live, messages],
-                   queue=False).then(append_bot, [cb_live, messages], [cb_live, messages])
+    tb_user.submit(append_user,
+                   [tb_user, cb_live, messages],
+                   [tb_user, cb_live, messages],
+                   queue=False).then(append_bot,
+                                     [cb_live, messages],
+                                     [cb_live, messages])
+
+    btn_send.click(append_user,
+                   [tb_user, cb_live, messages],
+                   [tb_user, cb_live, messages],
+                   queue=False).then(append_bot,
+                                     [cb_live, messages],
+                                     [cb_live, messages])
+
     btn_clear.click(lambda: None, None, cb_live, queue=False)
 
 llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=7023)
