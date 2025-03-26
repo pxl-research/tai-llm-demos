@@ -64,13 +64,16 @@ def append_file_contents(file_path: str, content: str = '') -> bool:
 
 def create_folders(folder_path: str) -> bool:
     if is_within_folder(folder_path, allowed_folder):
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-        return True
+        try:
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+            return True
+        except Exception as e:
+            print(f"Problem creating folder {folder_path}: {type(e).__name__} - {str(e)}")
+            return False
 
     print(f'Writing to {folder_path} is not allowed.')
     return False
-
 
 def get_fs_properties(path: str):
     if not os.path.exists(path):
