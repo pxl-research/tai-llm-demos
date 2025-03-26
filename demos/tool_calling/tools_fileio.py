@@ -11,15 +11,17 @@ allowed_folder = os.getenv("ALLOWED_FOLDER", "./")
 
 
 def list_files(folder_path: str):
-    return os.listdir(folder_path)
+    if is_within_folder(folder_path, allowed_folder):
+        return os.listdir(folder_path)
+    return None
 
 
 def read_file_contents(file_path: str):
-    if os.path.exists(file_path):
-        with open(file_path, 'rt') as fp_read:
-            contents = fp_read.read()
-            return contents
-
+    if is_within_folder(file_path, allowed_folder):
+        if os.path.exists(file_path):
+            with open(file_path, 'rt') as fp_read:
+                contents = fp_read.read()
+                return contents
     return None
 
 
