@@ -20,18 +20,31 @@ def read_file_contents(file_path: str):
 
 def write_file_contents(file_path: str, content: str = ''):
     if is_within_folder(file_path, allowed_folder):
-        with open(file_path, 'wt') as fp_write:
-            fp_write.write(content)
-        return True
+        try:
+            with open(file_path, 'wt') as fp_write:
+                fp_write.write(content)
+            return True
+        except Exception as e:
+            print(f'Problem writing to file {file_path}: {e}')
+            return False
 
     print(f'Writing to {file_path} is not allowed.')
     return False
 
 
 def append_file_contents(file_path: str, content: str = ''):
-    with open(file_path, 'at') as fp_write:
-        fp_write.write('\n')
-        fp_write.write(content)
+    if is_within_folder(file_path, allowed_folder):
+        try:
+            with open(file_path, 'at') as fp_write:
+                fp_write.write('\n')
+                fp_write.write(content)
+            return True
+        except Exception as e:
+            print(f'Problem appending to file {file_path}: {e}')
+            return False
+
+    print(f'Writing to {file_path} is not allowed.')
+    return False
 
 
 def create_folders(folder_path: str):
