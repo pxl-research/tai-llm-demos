@@ -6,11 +6,12 @@ TransformAI
 
 This repository contains an example chatbot using [OpenRouter](https://openrouter.ai/) with "**tool calling**".
 
-- the `tools_descriptors.py` file contains the JSON descriptions of all the callable functions
-- the `descriptors_fileio.py` file contains the JSON descriptions for the file I/O tools defined in `tools_fileio.py`.
+- the `tool_descriptors.py` file contains the JSON descriptions of several of the callable functions
 - the files starting with `tool_...` contain an implementation for the callable functions.
   E.g. a stub for the weather methods, a method for calling rag functions (see `rag` example),
-  a search tool (uses Google Search API), and a website download tool. The `tools_fileio.py` file provides functions for interacting with the file system, such as listing files, reading and writing file contents, creating folders, and deleting files/folders.
+  a search tool (uses Google Search API), and a website download tool. 
+- the `descriptors_fileio.py` file contains the JSON descriptions for the file I/O tools defined in `tools_fileio.py`.
+- the `tools_fileio.py` file provides functions for interacting with the file system, such as listing files, reading and writing file contents, creating folders, and deleting files/folders.
 
 N.B.: This program is a little longer and more convoluted because it uses _streaming responses_ from the LLM.
 
@@ -19,8 +20,8 @@ N.B.: This program is a little longer and more convoluted because it uses _strea
 To install the necessary libraries use `pip install -r requirements.txt`
 
 Please create an `.env` file with the same structure as the provided `.env.example` file,
-and enter your personal OpenRouter **api key** (and **endpoint**) therein. 
-Ensure the `.env` file is properly configured, especially the `ALLOWED_FOLDER` variable (when using file i/o), 
+and enter your personal OpenRouter **api key** (and **endpoint**) therein.  
+Ensure the `.env` file is properly configured when using file i/o, especially the `ALLOWED_FOLDER` variable, 
 which restricts the file system access of the file I/O tools for security reasons.
 
 ## Use
