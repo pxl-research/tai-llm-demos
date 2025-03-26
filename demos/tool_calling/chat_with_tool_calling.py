@@ -4,19 +4,21 @@ import os
 import gradio as gr
 from dotenv import load_dotenv
 
-from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI_1807
+from demos.components.open_router_client import OpenRouterClient, GEMINI_2_FLASH_1
+from demos.tool_calling.descriptors_fileio import tools_fileio_descriptor
 from demos.tool_calling.tool_descriptors import (tools_weather_descriptor,
                                                  tools_rag_descriptor,
                                                  tools_search_descriptor,
                                                  tools_get_website_contents)
 # noinspection PyUnresolvedReferences
-from demos.tool_calling.tools_fileio import (tools_fileio_descriptor,
-                                             list_files,
+from demos.tool_calling.tools_fileio import (list_files,
                                              get_fs_properties,
                                              read_file_contents,
                                              write_file_contents,
                                              append_file_contents,
-                                             create_folders)
+                                             create_folders,
+                                             delete_file,
+                                             delete_folder)
 # noinspection PyUnresolvedReferences
 from tools_rag import lookup_in_documentation
 # noinspection PyUnresolvedReferences
@@ -34,7 +36,7 @@ tool_list.append(tools_search_descriptor)
 tool_list.extend(tools_get_website_contents)
 tool_list.extend(tools_fileio_descriptor)
 
-or_client = OpenRouterClient(model_name=GPT_4O_MINI_1807,
+or_client = OpenRouterClient(model_name=GEMINI_2_FLASH_1,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 

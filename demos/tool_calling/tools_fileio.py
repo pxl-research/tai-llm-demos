@@ -1,8 +1,13 @@
 import datetime
 import os
+import shutil
 import stat
 
-allowed_folder = './'
+from dotenv import load_dotenv
+
+load_dotenv()
+
+allowed_folder = os.getenv("ALLOWED_FOLDER", "./")
 
 
 def list_files(folder_path: str):
@@ -18,21 +23,21 @@ def read_file_contents(file_path: str):
     return None
 
 
-def write_file_contents(file_path: str, content: str = ''):
+def write_file_contents(file_path: str, content: str = '') -> bool:
     if is_within_folder(file_path, allowed_folder):
         try:
             with open(file_path, 'wt') as fp_write:
                 fp_write.write(content)
             return True
         except Exception as e:
-            print(f'Problem writing to file {file_path}: {e}')
+            print(f"Problem writing to {file_path}: {type(e).__name__} - {str(e)}")
             return False
 
     print(f'Writing to {file_path} is not allowed.')
     return False
 
 
-def append_file_contents(file_path: str, content: str = ''):
+def append_file_contents(file_path: str, content: str = '') -> bool:
     if is_within_folder(file_path, allowed_folder):
         try:
             with open(file_path, 'at') as fp_write:
@@ -40,14 +45,14 @@ def append_file_contents(file_path: str, content: str = ''):
                 fp_write.write(content)
             return True
         except Exception as e:
-            print(f'Problem appending to file {file_path}: {e}')
+            print(f"Problem appending to {file_path}: {type(e).__name__} - {str(e)}")
             return False
 
     print(f'Writing to {file_path} is not allowed.')
     return False
 
 
-def create_folders(folder_path: str):
+def create_folders(folder_path: str) -> bool:
     if is_within_folder(folder_path, allowed_folder):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -57,7 +62,7 @@ def create_folders(folder_path: str):
     return False
 
 
-def get_fs_properties(path):
+def get_fs_properties(path: str):
     if not os.path.exists(path):
         return None
 
@@ -101,11 +106,11 @@ def get_fs_properties(path):
 
 
 # helper method
-def is_within_folder(path: str, folder_path: str):
+def is_within_folder(path: str, folder_path: str) -> bool:
     try:
         # normalize paths
-        inner_folder = os.path.abspath(path)
-        outer_folder = os.path.abspath(folder_path)
+        inner_folder = os.path.realpath(path)
+        outer_folder = os.path.realpath(folder_path)
 
         # check for common path
         common_path = os.path.commonpath([inner_folder, outer_folder])
@@ -115,128 +120,19 @@ def is_within_folder(path: str, folder_path: str):
         return False
 
 
-# "weather" demo
-tools_fileio_descriptor = [{
-    'type': 'function',
-    'function': {
-        'name': 'list_files',
-        'description': 'List the contents of a folder',
-        'parameters': {
-            'type': 'object',
-            'properties': {
-                'folder_path': {
-                    'type': 'string',
-                    'description': 'The path to the folder, this can be relative or absolute'
-                }
-            },
-            'required': [
-                'folder_path'
-            ]
-        }
-    }
-},
-    {
-        'type': 'function',
-        'function': {
-            'name': 'read_file_contents',
-            'description': 'Read the (text) contents of a file',
-            'parameters': {
-                'type': 'object',
-                'properties': {
-                    'file_path': {
-                        'type': 'string',
-                        'description': 'The path to the file, this can be relative or absolute'
-                    }
-                },
-                'required': [
-                    'file_path'
-                ]
-            }
-        }
-    },
-    {
-        'type': 'function',
-        'function': {
-            'name': 'write_file_contents',
-            'description': 'Write text to a file',
-            'parameters': {
-                'type': 'object',
-                'properties': {
-                    'file_path': {
-                        'type': 'string',
-                        'description': 'The path to the file, this can be relative or absolute'
-                    },
-                    'content': {
-                        'type': 'string',
-                        'description': 'The (text) content you want to write to the file'
-                    }
-                },
-                'required': [
-                    'file_path'
-                ]
-            }
-        }
-    },
-    {
-        'type': 'function',
-        'function': {
-            'name': 'append_file_contents',
-            'description': 'Append text to the end of an existing file',
-            'parameters': {
-                'type': 'object',
-                'properties': {
-                    'file_path': {
-                        'type': 'string',
-                        'description': 'The path to the file, this can be relative or absolute'
-                    },
-                    'content': {
-                        'type': 'string',
-                        'description': 'The (text) content you want to append to the file'
-                    }
-                },
-                'required': [
-                    'file_path'
-                ]
-            }
-        }
-    },
-    {
-        'type': 'function',
-        'function': {
-            'name': 'get_fs_properties',
-            'description': 'Get some more details from a file or folder, such as type, size, last modified, etc.',
-            'parameters': {
-                'type': 'object',
-                'properties': {
-                    'path': {
-                        'type': 'string',
-                        'description': 'The path to the file or folder, this can be relative or absolute'
-                    }
-                },
-                'required': [
-                    'path'
-                ]
-            }
-        }
-    },
-    {
-        'type': 'function',
-        'function': {
-            'name': 'create_folders',
-            'description': 'Create one or more folders',
-            'parameters': {
-                'type': 'object',
-                'properties': {
-                    'folder_path': {
-                        'type': 'string',
-                        'description': 'The path to the file or folder, this can be relative or absolute. '
-                                       'May contain multiple slashes to indicate multiple subfolders. '
-                    }
-                },
-                'required': [
-                    'folder_path'
-                ]
-            }
-        }
-    },
-]
+def delete_file(file_path: str):
+    if is_within_folder(file_path, allowed_folder):
+        os.remove(file_path)
+        return True
+
+    print(f'Removing {file_path} is not allowed.')
+    return False
+
+
+def delete_folder(folder_path: str):
+    if is_within_folder(folder_path, allowed_folder):
+        shutil.rmtree(folder_path)
+        return True
+
+    print(f'Removing {folder_path} is not allowed.')
+    return False
