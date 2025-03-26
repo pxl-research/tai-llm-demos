@@ -25,11 +25,14 @@ def list_files(folder_path: str):
 
 
 def read_file_contents(file_path: str):
-    if is_within_folder(file_path, allowed_folder):
-        if os.path.exists(file_path):
+    if is_within_folder(file_path, allowed_folder) and os.path.exists(file_path):
+        try:
             with open(file_path, 'rt') as fp_read:
                 contents = fp_read.read()
                 return contents
+        except Exception as e:
+            print(f"Problem reading from {file_path}: {type(e).__name__} - {str(e)}")
+            return None
     return None
 
 
