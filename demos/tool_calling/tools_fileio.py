@@ -78,6 +78,7 @@ def create_folders(folder_path: str) -> bool:
     print(f'Writing to {folder_path} is not allowed.')
     return False
 
+
 def get_fs_properties(path: str):
     if not os.path.exists(path):
         return None
@@ -151,6 +152,7 @@ def delete_file(file_path: str):
 
     print(f'Removing {file_path} is not allowed.')
     return False
+
 
 def delete_folder(folder_path: str):
     if is_within_folder(folder_path, allowed_folder):

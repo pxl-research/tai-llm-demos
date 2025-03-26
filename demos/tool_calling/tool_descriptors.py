@@ -1,7 +1,7 @@
 # JSON description of available methods
 
 # RAG
-tools_rag_descriptor = {
+tools_rag_descriptor = [{
     "type": "function",
     "function": {
         "name": "lookup_in_documentation",
@@ -21,7 +21,20 @@ tools_rag_descriptor = {
             "required": ["query"],
         },
     }
-}
+}, {
+    "type": "function",
+    "function": {
+        "name": "list_documents",
+        "description": "Get the titles of the documents in the database. "
+                       "Use this as a (very rough) guide to know the topics you can rely on the database for. ",
+
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+    }
+}]
 
 # "weather" demo
 tools_weather_descriptor = [{
