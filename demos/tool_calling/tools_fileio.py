@@ -12,7 +12,15 @@ allowed_folder = os.getenv("ALLOWED_FOLDER", "./")
 
 def list_files(folder_path: str):
     if is_within_folder(folder_path, allowed_folder):
-        return os.listdir(folder_path)
+        try:
+            if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                return os.listdir(folder_path)
+            else:
+                print(f"Folder does not exist or is not a directory: {folder_path}")
+                return None
+        except Exception as e:
+            print(f"Problem listing files in {folder_path}: {type(e).__name__} - {str(e)}")
+            return None
     return None
 
 
