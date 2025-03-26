@@ -132,12 +132,19 @@ def is_within_folder(path: str, folder_path: str) -> bool:
 
 def delete_file(file_path: str):
     if is_within_folder(file_path, allowed_folder):
-        os.remove(file_path)
-        return True
+        try:
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                os.remove(file_path)
+                return True
+            else:
+                print(f"File does not exist or is not a file: {file_path}")
+                return False
+        except Exception as e:
+            print(f"Problem deleting file {file_path}: {type(e).__name__} - {str(e)}")
+            return False
 
     print(f'Removing {file_path} is not allowed.')
     return False
-
 
 def delete_folder(folder_path: str):
     if is_within_folder(folder_path, allowed_folder):
