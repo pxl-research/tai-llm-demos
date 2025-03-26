@@ -10,7 +10,7 @@ from demos.tool_calling.tool_descriptors import (tools_weather_descriptor,
                                                  tools_search_descriptor,
                                                  tools_get_website_contents)
 # noinspection PyUnresolvedReferences
-from tool_search import search_on_google
+from tools_search import search_on_google
 # noinspection PyUnresolvedReferences
 from tools_rag import lookup_in_documentation
 # noinspection PyUnresolvedReferences

@@ -11,7 +11,7 @@ from demos.tool_calling.tool_descriptors import (tools_rag_descriptor,
                                                  tools_search_descriptor,
                                                  tools_get_website_contents)
 # noinspection PyUnresolvedReferences
-from demos.tool_calling.tool_search import search_on_google
+from demos.tool_calling.tools_search import search_on_google
 # noinspection PyUnresolvedReferences
 from demos.tool_calling.tools_rag import lookup_in_documentation
 # noinspection PyUnresolvedReferences
