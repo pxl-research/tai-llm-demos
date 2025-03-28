@@ -11,7 +11,7 @@ sys.path.append('../../')
 
 from demos.tool_calling.tool_descriptors import tools_rag_descriptor
 # noinspection PyUnresolvedReferences
-from fn_rag import lookup_in_documentation
+from fn_rag import lookup_in_documentation, list_documents
 
 load_dotenv()
 
@@ -29,10 +29,8 @@ general_instructions = ("I would like you to take a deep breath before respondin
                         "Consult the documentation when appropriate. "
                         "When using an external source, always include the reference. ")
 
-tools = [
-    {"type": "code_interpreter"},
-    tools_rag_descriptor
-]
+tools = tools_rag_descriptor
+tools.append({"type": "code_interpreter"})
 
 assistant = client.beta.assistants.create(
     name="Professional Assistant",
@@ -77,8 +75,12 @@ def call_to_action(run, thread):
         fn_pointer = globals()[function_name]
 
         if fn_pointer is not None:
-            query = json.loads(function_call.function.arguments)["query"]
-            result = fn_pointer(query)
+            arguments = json.loads(function_call.function.arguments)
+            if 'query' in arguments:
+                query = arguments["query"]
+                result = fn_pointer(query)
+            else:
+                result = fn_pointer()
             function_results[function_call.id] = result
         else:
             print(f"Unknown function name: {function_name}")
