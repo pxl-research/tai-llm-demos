@@ -1,6 +1,6 @@
-gradio
-openai
-python-dotenv
+gradio~=5.23.1
+openai~=1.69.0
+python-dotenv~=1.1.0
 scipy
 torch
 transformers
