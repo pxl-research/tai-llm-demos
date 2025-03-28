@@ -7,11 +7,11 @@ import gradio as gr
 from dotenv import load_dotenv
 
 sys.path.append('../../')
-from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI_1807
+from demos.components.open_router_client import OpenRouterClient, GEMINI_2_FLASH_1
 from demos.tool_calling.tool_descriptors import (tools_rag_descriptor)
 
 # noinspection PyUnresolvedReferences
-from tools_rag import lookup_in_documentation
+from tools_rag import lookup_in_documentation, list_documents
 
 load_dotenv()
 
@@ -20,8 +20,8 @@ custom_headers = {
     'X-Title': 'Pixie FAQ Tool'
 }
 
-tool_list = [tools_rag_descriptor]
-or_client = OpenRouterClient(model_name=GPT_4O_MINI_1807,
+tool_list = tools_rag_descriptor
+or_client = OpenRouterClient(model_name=GEMINI_2_FLASH_1,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'),
                              temperature=0.25,
