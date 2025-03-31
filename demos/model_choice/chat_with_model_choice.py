@@ -94,7 +94,7 @@ def on_row_selected(select_data: gr.SelectData):
 
 # blocks UI method
 def append_user(user_message, chat_history, message_list):
-    chat_history.append((user_message, None))
+    chat_history.append({'role': 'user', 'content': user_message})
     message_list.append({'role': 'user', 'content': user_message})
     return '', chat_history, message_list
 
@@ -116,65 +116,22 @@ def complete_with_llm(chat_history, message_list, model_name):
     response_stream = or_client.create_completions_stream(message_list=message_list)
 
     partial_message = ''
-    tool_calls = []
+
+    chat_history.append({'role': 'assistant', 'content': ''})  # append empty response
+
     for chunk in response_stream:  # stream the response
         if len(chunk.choices) > 0:
             # LLM text reponses
             if chunk.choices[0].delta.content is not None:
                 partial_message = partial_message + chunk.choices[0].delta.content
-                chat_history[-1][1] = partial_message
+                chat_history[-1]['content'] = partial_message
                 yield chat_history, message_list
-
-            # LLM tool call requests
-            if chunk.choices[0].delta.tool_calls is not None:
-                for tool_call_chunk in chunk.choices[0].delta.tool_calls:
-                    if tool_call_chunk.index >= len(tool_calls):
-                        tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
-                    else:
-                        if tool_call_chunk.function is not None:
-                            if tool_calls[tool_call_chunk.index].function is None:
-                                tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
-                            else:
-                                tool_calls[
-                                    tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
 
     response_stream.close()
 
     # handle text responses
-    if chat_history[-1][1] is not None:
-        message_list.append({'role': 'assistant', 'content': chat_history[-1][1]})
-
-    # handle tool requests
-    if len(tool_calls) > 0:
-        print(f'Processing {len(tool_calls)} tool calls')
-        for call in tool_calls:
-            fn_pointer = globals()[call.function.name]
-            fn_args = json.loads(call.function.arguments)
-            tool_call_obj = {
-                'role': 'assistant',
-                'content': None,
-                'tool_calls': [
-                    {
-                        'id': call.id,
-                        'type': 'function',
-                        'function': {
-                            'name': call.function.name,
-                            'arguments': call.function.arguments
-                        }
-                    }
-                ]
-            }
-            message_list.append(tool_call_obj)
-
-            if fn_pointer is not None:
-                fn_result = fn_pointer(**fn_args)
-                tool_resp = {'role': 'tool',
-                             'name': call.function.name,
-                             'tool_call_id': call.id,
-                             'content': json.dumps(fn_result)}
-                message_list.append(tool_resp)
-        # recursively call completion message to give the LLM a chance to process results
-        yield from complete_with_llm(chat_history, message_list)
+    if chat_history[-1]['content'] is not None:
+        message_list.append({'role': 'assistant', 'content': chat_history[-1]['content']})
 
 
 # Gradio UI
@@ -191,7 +148,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
 
     # ui
     cb_live = gr.Chatbot(label='Chat',
-                         type='tuples',
+                         type='messages',
                          scale=1,
                          show_copy_button=True)
 
