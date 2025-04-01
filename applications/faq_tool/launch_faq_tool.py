@@ -48,7 +48,7 @@ system_instruction = {
 
 # blocks UI method
 def append_user(user_message, chat_history, message_list):
-    chat_history.append((user_message, None))
+    chat_history.append({'role': 'user', 'content': user_message})
     message_list.append({'role': 'user', 'content': user_message})
     return '', chat_history, message_list
 
@@ -59,7 +59,7 @@ def append_bot(chat_history, message_list, log_file_name):
 
 
 def on_clear_clicked():
-    return [None, on_load_ui()]
+    return [None, on_load_ui(), [system_instruction]]
 
 
 def on_load_ui():
@@ -73,42 +73,30 @@ def on_load_ui():
 
 
 def complete_with_llm(chat_history, message_list, log_file_name):
-    abbreviated_list = message_list
-
     # truncate message list for longer chats
-    if len(message_list) > 3:
-        abbreviated_list = []
-        MAX_COUNT = 3
-        user_msg_count = 0
-        for msg in reversed(message_list):
-            if msg['role'] == 'system':
-                abbreviated_list.append(msg)
-            elif msg['role'] == 'user':
-                user_msg_count += 1
-                abbreviated_list.append(msg)
-            else:
-                if user_msg_count < MAX_COUNT:
-                    abbreviated_list.append(msg)
-                else:
-                    if (msg['role'] == 'tool' or
-                            (msg['role'] == 'assistant' and 'tool_calls' in msg)):
-                        continue  # we skip these
-                    else:
-                        abbreviated_list.append(msg)
-        abbreviated_list.reverse()
+    MAX_MESSAGE_COUNT = 7  # Keep the last 7 messages
+
+    if len(message_list) > MAX_MESSAGE_COUNT:
+        abbreviated_list = message_list[-MAX_MESSAGE_COUNT:]
+    else:
+        abbreviated_list = message_list
 
     # generate an answer
     response_stream = or_client.create_completions_stream(message_list=abbreviated_list)
 
     partial_message = ''
     tool_calls = []
+
+    chat_history.append({'role': 'assistant', 'content': ''})
+
     for chunk in response_stream:  # stream the response
         if len(chunk.choices) > 0:
             # LLM text reponses
             if chunk.choices[0].delta.content is not None:
                 partial_message = partial_message + chunk.choices[0].delta.content
-                chat_history[-1][1] = partial_message
-                yield chat_history, message_list
+                if partial_message:  # Check if partial_message is not empty
+                    chat_history[-1]['content'] = partial_message
+                    yield chat_history, message_list
 
             # LLM tool call requests
             if chunk.choices[0].delta.tool_calls is not None:
@@ -126,8 +114,8 @@ def complete_with_llm(chat_history, message_list, log_file_name):
     response_stream.close()
 
     # handle text responses
-    if chat_history[-1][1] is not None and chat_history[-1][1] != '':
-        message_list.append({'role': 'assistant', 'content': chat_history[-1][1]})
+    if chat_history[-1]['content'] is not None and chat_history[-1]['content'] != '':
+        message_list.append({'role': 'assistant', 'content': chat_history[-1]['content']})
 
         # write to log file
         log_string = json.dumps(message_list, indent=2)
@@ -139,6 +127,7 @@ def complete_with_llm(chat_history, message_list, log_file_name):
     if len(tool_calls) > 0:
         print(f'Processing {len(tool_calls)} tool calls')
         for call in tool_calls:
+            print(f'\t- {call.function.name}')
             fn_pointer = globals()[call.function.name]
             fn_args = json.loads(call.function.arguments)
             tool_call_obj = {
@@ -194,7 +183,7 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
 
     # UI elements
     cb_live = gr.Chatbot(label='Chat',
-                         type='tuples',
+                         type='messages',
                          scale=1,
                          show_copy_button=True)
 
@@ -229,8 +218,8 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
                                      [cb_live, messages, log_file_name],
                                      [cb_live, messages])
 
-    btn_clear.click(on_clear_clicked, None, [cb_live, log_file_name], queue=False)
-    cb_live.clear(on_clear_clicked, None, [cb_live, log_file_name], queue=False)
+    btn_clear.click(on_clear_clicked, None, [cb_live, log_file_name, messages], queue=False)
+    cb_live.clear(on_clear_clicked, None, [cb_live, log_file_name, messages], queue=False)
     llm_client_ui.load(on_load_ui, None, [log_file_name])
 
 llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=10000)
