@@ -1,16 +1,17 @@
 import re
 
-import pymupdf
+from markitdown import MarkItDown
 
 
 def pdf_to_text(filename):
-    page_list = []
+    # TODO: add image description through LLM?
+    mid = MarkItDown(enable_plugins=False)
+    conversion = mid.convert(filename)
+    doc_contents = conversion.text_content
 
-    doc_reader = pymupdf.open(filename)
-    for page in doc_reader:
-        page_text = page.get_text()  # convert page from pdf to text
-        page_list.append(page_text)
-    return page_list
+    # split into sections
+    section_list = re.split(r'^(#{1,6})\s+(.+)$', doc_contents)  # split on markdown headers
+    return section_list
 
 
 def bigger_chunks(chunk_list, min_size):

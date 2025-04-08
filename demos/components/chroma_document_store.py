@@ -22,6 +22,8 @@ def sanitize_string(some_text):
     cleaner_name = some_text.strip()
     cleaner_name = cleaner_name.replace(" ", "_")  # spaces to underscores
     cleaner_name = re.sub(r'[^a-zA-Z0-9_-]', '-', cleaner_name)  # replace invalid characters with spaces
+    cleaner_name = cleaner_name.rstrip('-')  # remove trailing dashes
+    cleaner_name = cleaner_name.rstrip('_')  # remove trailing underscores
     return cleaner_name
 
 
