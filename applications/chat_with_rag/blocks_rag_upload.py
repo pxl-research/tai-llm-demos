@@ -5,9 +5,10 @@ import gradio as gr
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-from demos.components.chroma_document_store import ChromaDocumentStore
-
+sys.path.append('../')
 sys.path.append('../../')
+
+from applications.faq_tool.vectorstore.chroma_document_store import ChromaDocumentStore
 
 load_dotenv()
 
