@@ -1,0 +1,4 @@
+gradio~=5.24.0
+python-dotenv~=1.2.0
+requests~=2.33.2
+pandas~=2.2.3
