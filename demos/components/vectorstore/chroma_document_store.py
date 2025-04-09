@@ -7,7 +7,7 @@ from tqdm import tqdm
 sys.path.append('../')
 sys.path.append('../../')
 
-from applications.faq_tool.vectorstore.cdb_utilities import sanitize_filename, doc_to_chunks, repack_query_results
+from demos.components.vectorstore.cdb_utilities import sanitize_filename, doc_to_chunks, repack_query_results
 
 
 class ChromaDocumentStore:

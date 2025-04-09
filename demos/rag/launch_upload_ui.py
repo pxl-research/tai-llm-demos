@@ -1,7 +1,8 @@
 import gradio as gr
 from tqdm import tqdm
 
-from demos.components.chroma_document_store import ChromaDocumentStore, sanitize_filename
+from demos.components.vectorstore.cdb_utilities import sanitize_filename
+from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore
 
 cdb_store = ChromaDocumentStore(path='store/')
 

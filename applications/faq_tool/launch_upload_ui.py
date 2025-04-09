@@ -6,7 +6,7 @@ from tqdm import tqdm
 sys.path.append('../')
 sys.path.append('../../')
 
-from vectorstore.chroma_document_store import ChromaDocumentStore, sanitize_filename
+from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore, sanitize_filename
 
 cdb_store = ChromaDocumentStore(path='store/')
 

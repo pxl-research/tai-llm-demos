@@ -3,7 +3,7 @@ import re
 from markitdown import MarkItDown
 
 
-def pdf_to_text(filename):
+def document_to_markdown_chunks(filename):
     # TODO: add image description through LLM?
     mid = MarkItDown(enable_plugins=False)
     conversion = mid.convert(filename)
