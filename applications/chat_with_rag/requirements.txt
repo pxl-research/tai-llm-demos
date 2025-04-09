@@ -1,4 +1,4 @@
-gradio~=5.23.1
+gradio~=5.24.0
 chromadb~=0.6.3
 python-dotenv~=1.1.0
 bcrypt~=4.2.1
