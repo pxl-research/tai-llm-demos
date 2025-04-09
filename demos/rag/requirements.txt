@@ -1,4 +1,4 @@
-chromadb~=0.6.3
-pymupdf~=1.25.3
-gradio~=5.23.1
+chromadb~=1.0.3
+pymupdf~=1.25.5
+gradio~=4.44.1
 markitdown[pdf, docx, pptx, xlsx, xls]
