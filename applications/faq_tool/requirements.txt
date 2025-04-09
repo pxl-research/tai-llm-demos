@@ -1,6 +1,7 @@
-python-dotenv~=1.1.0
-gradio~=5.23.1
-openai~=1.69.0
+python-dotenv~=1.2.0
+gradio~=5.24.0
+openai~=1.72.0
 chromadb~=0.6.3
-pymupdf4llm~=0.0.17
 tqdm~=4.67.1
+pymupdf4llm~=0.0.20
+markitdown[pdf, docx, pptx, xlsx, xls]~=0.1.1

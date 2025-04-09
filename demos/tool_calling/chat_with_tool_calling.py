@@ -133,6 +133,10 @@ def complete_with_llm(chat_history, message_list):
         yield from complete_with_llm(chat_history, message_list)
 
 
+def on_clear_clicked():
+    return [None, [system_instruction]]
+
+
 # Gradio UI
 custom_css = """
     footer {display:none !important}
@@ -161,6 +165,9 @@ with (gr.Blocks(fill_height=True, title='Tool Calling', css=custom_css) as llm_c
                                      [cb_live, messages],
                                      [cb_live, messages])
 
-    btn_clear.click(lambda: None, None, cb_live, queue=False)
+    btn_clear.click(on_clear_clicked,
+                    None,
+                    [cb_live, messages],
+                    queue=False)
 
 llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=7023)

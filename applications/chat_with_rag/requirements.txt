@@ -1,7 +1,9 @@
-gradio~=5.23.1
+gradio~=5.24.0
 chromadb~=0.6.3
-python-dotenv~=1.1.0
+python-dotenv~=1.2.0
 bcrypt~=4.2.1
-tiktoken~=0.8.0
-openai~=1.69.0
-PyMuPDF~=1.25.3
+tiktoken~=0.9.0
+openai~=1.72.0
+PyMuPDF~=1.25.5
+pymupdf4llm~=0.0.20
+markitdown[pdf, docx, pptx, xlsx, xls]~=0.1.1

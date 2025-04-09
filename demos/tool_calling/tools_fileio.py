@@ -62,8 +62,8 @@ def append_file_contents(file_path: str, content: str = '') -> bool:
     if is_within_folder(file_path, allowed_folder):
         try:
             with open(file_path, 'at') as fp_write:
-                fp_write.write('\n')
                 fp_write.write(content)
+                fp_write.write('\n')
             return True
         except Exception as e:
             print(f"Problem appending to {file_path}: {type(e).__name__} - {str(e)}")
