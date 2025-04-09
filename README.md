@@ -2,54 +2,45 @@
 
 ## What's in this repository?
 
-This repository contains some "chatbot" and related examples using [OpenRouter](https://openrouter.ai/)
-and [Azure OpenAI](https://oai.azure.com/) as the LLM providers under the hood.
+This repository contains chatbot and related examples using Azure OpenAI and OpenRouter as the LLM providers.
 
-- `demos/basic_chat` contains a basic chat app using the OpenAI Completions API and a similar example with OpenRouter
+- `demos/basic_chat` contains basic chat apps using the Azure OpenAI Chat API (with token/cost estimation) and OpenRouter.
 
-- `demos/rag` has some tools and utilities to showcase RAG retrieval
+- `demos/rag` demonstrates the document retrieval part of a RAG system, using ChromaDB for vector storage and markitdown for document parsing.
 
-- `demos/tool_calling` is a basic demo that links an LLM with some local methods
-  (including document retrieval, web search and surfing)
+- `demos/tool_calling` showcases tool calling with OpenRouter, including tools for document retrieval, web search, and file I/O.
 
-- `demos/model_choice` allows chatting with different models (based on OpenRouter API)
+- `demos/model_choice` allows chatting with different models via the OpenRouter API.
 
-- `demos/slack_bot` consists of demo code for a Slack bot with LLM integration
+- `demos/slack_bot` provides demo code for a Slack bot with LLM integration using Azure OpenAI and OpenRouter.
 
-- `applications/chat_with_rag` is a more fleshed out chat app using the OpenAI "Assistants API",
-  which includes RAG and a chat history viewer
+- `demos/voice_notes` provides a tool to transcribe and summarize voice notes using OpenRouter.
 
-- `applications/faq_tool` is a basic chatbot that can answer questions based on documentation.
-  It uses OpenRouter with RAG through tool calling
+- `applications/chat_with_rag` is a chat application using the Azure OpenAI "Assistants API" with RAG and a custom, bcrypt-based authentication method.
 
-- `gui` a proof-of-concept of a local GUI based llm-chat app using [wxPython](https://wxpython.org/index.html)
-  (WARNING: this is a work in progress)
+- `applications/faq_tool` is a chatbot that answers questions based on uploaded documents (PDF, DOCX, PPTX, XLSX, XLS). It uses OpenRouter for the LLM and RAG for document retrieval.
+
+- `gui` is a proof-of-concept local GUI-based LLM chat app using wxPython (WARNING: this is a work in progress).
 
 ## Configuration
 
-To install the necessary libraries use `pip install -r requirements.txt`
+To install the necessary libraries, use `pip install -r requirements.txt`
 
-Note: to minimize the amount of libraries installed,
-we have provided smaller (more specific) requirements files in the demo folders themselves.
+Note: to minimize the number of libraries installed, each demo folder has its own `requirements.txt` file with specific dependencies.
 
-Please create an `.env` file with the same structure as the provided `.env.example` files,
-and enter your personal (OpenRouter or Azure OpenAI) **key** and **endpoint** therein.
+Please create an `.env` file with the same structure as the provided `.env.example` files (found in each demo folder), and enter your personal API keys and endpoints therein.
 
 ## Use
 
 Run the Python script from the terminal (or your IDE).
 
-For more detailed information, open the README files in the respective demo folders
+For more detailed information, open the README files in the respective demo folders.
 
 ### Gradio
 
-For [Gradio](https://www.gradio.app/guides/creating-a-chatbot-fast) projects this will print a **URL** to the console.
-Surf to the generated address in your browser to use the Gradio web UI.
+For [Gradio](https://www.gradio.app/guides/creating-a-chatbot-fast) projects, this will print a **URL** to the console. Surf to the generated address in your browser to use the Gradio web UI.
 
-The default URL is http://127.0.0.1:7860, which runs local only.
-If the address is specified to `0.0.0.0`,
-it will also be available to other computers in your network, using your IP address.
-To create a publicly accessible link, set `share=True` in the Gradio `launch()` call.
+The default URL is http://127.0.0.1:7860, which runs locally. If the address is specified to `0.0.0.0`, it will also be available to other computers on your network, using your IP address. To create a publicly accessible link, set `share=True` in the Gradio `launch()` call.
 
 ## Screenshots
 
@@ -65,5 +56,4 @@ Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
 
 ## Feedback
 
-Feedback and bug reports are welcome,
-please [email us](mailto:servaas.tilkin@pxl.be) or submit a feature request. 
+Feedback and bug reports are welcome, please [email us](mailto:servaas.tilkin@pxl.be) or submit a feature request.
