@@ -13,8 +13,8 @@ cdb_store = ChromaDocumentStore(path="store/")  # on disk
 # TODO: add some files to the vector store first using the Gradio UI (launch_upload_ui.py)
 
 # perform a document search on the vector database
-query = "Wat is het gevolg van nonchalant loggen?"
+query = "Hoe moet ik een dossier opsplitsen?"
 
 print(query)
 results = cdb_store.query_store(query)
-pretty_print(results[:5])
+pretty_print(results[:3])
