@@ -20,9 +20,11 @@ N.B.: This program is a little longer and more convoluted because it uses _strea
 To install the necessary libraries use `pip install -r requirements.txt`
 
 Please create an `.env` file with the same structure as the provided `.env.example` file,
-and enter your personal OpenRouter **api key** (and **endpoint**) therein.  
-Ensure the `.env` file is properly configured when using file i/o, especially the `ALLOWED_FOLDER` variable, 
-which restricts the file system access of the file I/O tools for security reasons.
+and enter your personal OpenRouter **API key** (and **endpoint**) therein. You will also need to configure the Google Search API keys in the `.env` file if you want to use the search tool.
+
+If you intend to use the RAG tool, you must first set up and populate the document store as described in the `rag` demo.
+
+Ensure the `.env` file is properly configured when using file I/O, especially the `ALLOWED_FOLDER` variable, which restricts the file system access of the file I/O tools for security reasons. The `ALLOWED_FOLDER` variable should be set to an **absolute path** to the directory you want to allow the tool to access.
 
 ## Use
 
@@ -31,7 +33,7 @@ Run the python script from the terminal (or your IDE).
 You can ask a question like _"What's the weather like in Amsterdam?"_ and the LLM will
 try and call the relevant methods to get sufficient information to answer these questions.
 
-If you have added pdf files to the document store (see `rag` example),
+If you have added PDF files to the document store (see `rag` example),
 you can also ask the LLM questions about the contents of these documents.
 
 _For info regarding how Gradio works, please refer to the general README in this repository._
