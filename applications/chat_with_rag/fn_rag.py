@@ -3,9 +3,10 @@ import sys
 
 from dotenv import load_dotenv
 
-from demos.components.chroma_document_store import ChromaDocumentStore
-
+sys.path.append('../')
 sys.path.append('../../')
+
+from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore
 
 load_dotenv()
 

@@ -1,7 +1,8 @@
 import gradio as gr
 from tqdm import tqdm
 
-from demos.components.chroma_document_store import ChromaDocumentStore, sanitize_filename
+from demos.components.vectorstore.vs_utilities import sanitize_filename
+from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore
 
 cdb_store = ChromaDocumentStore(path='store/')
 
@@ -38,7 +39,7 @@ def on_row_selected(select_data: gr.SelectData):
 
 rag_explainer = (
     'Upload additional information here if you want the language model to be able to perform lookup into it. '
-    'Do not upload data files such as spreadsheets or tables; stick to PDF only. '
+    'You can upload documents such as PDFs, Word documents, PowerPoint presentations, and Excel spreadsheets. '
     'Processing may take considerable time depending on the size of the documents. '
     'Do not interrupt the processing step.')
 
@@ -54,7 +55,7 @@ with gr.Blocks(fill_height=True, title='RAG Upload Demo', css=custom_css) as cdb
     lbl_rag_explainer = gr.Markdown(rag_explainer)
 
     file_rag_upload = gr.File(label='Click to Upload a File',
-                              file_types=['.pdf'],
+                              file_types=['.pdf', '.docx', '.pptx', '.xlsx', '.xls'],
                               file_count='multiple')
 
     with gr.Row():

@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-from vectorstore.chroma_document_store import ChromaDocumentStore
+from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore
 
 load_dotenv()
 

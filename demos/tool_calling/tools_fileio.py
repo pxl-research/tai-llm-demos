@@ -10,6 +10,14 @@ load_dotenv()
 allowed_folder = os.getenv("ALLOWED_FOLDER", "./")
 
 
+def current_working_folder():
+    return os.getcwd()
+
+
+def get_allowed_folder():
+    return allowed_folder
+
+
 def list_files(folder_path: str):
     if is_within_folder(folder_path, allowed_folder):
         try:

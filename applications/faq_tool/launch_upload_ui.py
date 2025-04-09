@@ -6,7 +6,7 @@ from tqdm import tqdm
 sys.path.append('../')
 sys.path.append('../../')
 
-from vectorstore.chroma_document_store import ChromaDocumentStore, sanitize_filename
+from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore, sanitize_filename
 
 cdb_store = ChromaDocumentStore(path='store/')
 
@@ -63,7 +63,7 @@ with gr.Blocks(fill_height=True, title='Pixie FAQ Tool Upload', css=custom_css) 
     lbl_rag_explainer = gr.Markdown(rag_explainer)
 
     file_rag_upload = gr.File(label='Click to Upload a File',
-                              file_types=['.pdf'],
+                              file_types=['.pdf', '.docx', '.pptx', '.xlsx', '.xls'],
                               file_count='multiple')
 
     with gr.Row():
