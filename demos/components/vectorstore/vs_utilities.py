@@ -1,13 +1,23 @@
 import os
 import re
 
+import pymupdf4llm
+from markitdown import MarkItDown
 
-#  Expects a collection name that
-#  (1) contains 3-63 characters,
-#  (2) starts and ends with an alphanumeric character,
-#  (3) otherwise contains only alphanumeric characters, underscores or hyphens (-),
-#  (4) contains no two consecutive periods (..) and
-#  (5) is not a valid IPv4 address
+
+# pdf only
+def pdf_to_markdown(pdf_file_path):
+    md_text = pymupdf4llm.to_markdown(pdf_file_path)
+    return md_text
+
+
+# docx, pptx, xlsx
+def document_to_markdown(filename):
+    # TODO: add image description through LLM?
+    mid = MarkItDown(enable_plugins=False)
+    conversion = mid.convert(filename)
+    return conversion.text_content
+
 
 def sanitize_filename(full_file_path):
     cleaner_name = os.path.basename(full_file_path)  # remove path

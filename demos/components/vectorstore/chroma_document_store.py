@@ -1,13 +1,15 @@
 import sys
 
 import chromadb
-import pymupdf4llm
 from tqdm import tqdm
 
 sys.path.append('../')
 sys.path.append('../../')
 
-from demos.components.vectorstore.vs_utilities import sanitize_filename, doc_to_chunks, repack_query_results
+from demos.components.vectorstore.vs_utilities import (sanitize_filename,
+                                                       doc_to_chunks,
+                                                       repack_query_results,
+                                                       document_to_markdown)
 
 
 class ChromaDocumentStore:
@@ -19,8 +21,8 @@ class ChromaDocumentStore:
         else:
             self.cdb_client = chromadb.PersistentClient(path=path)  # on disk
 
-    def add_document(self, pdf_file_path: str, tqdm_func=tqdm):
-        collection_name = sanitize_filename(pdf_file_path)
+    def add_document(self, document_path: str, tqdm_func=tqdm):
+        collection_name = sanitize_filename(document_path)
 
         current_document_list = self.list_documents()
         if collection_name in current_document_list:
@@ -28,7 +30,7 @@ class ChromaDocumentStore:
             # self.remove_document(collection_name)
             return
 
-        md_text = pymupdf4llm.to_markdown(pdf_file_path)
+        md_text = document_to_markdown(document_path)
 
         chunks, chunk_ids, meta_infos = doc_to_chunks(md_text, collection_name)
         # print(f"Split {len(file_content)} characters into {len(chunk_ids)} chunks for '{collection_name}'")
