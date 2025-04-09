@@ -18,7 +18,9 @@ from demos.tool_calling.tools_fileio import (list_files,
                                              append_file_contents,
                                              create_folders,
                                              delete_file,
-                                             delete_folder)
+                                             delete_folder,
+                                             current_working_folder,
+                                             get_allowed_folder)
 # noinspection PyUnresolvedReferences
 from tools_rag import lookup_in_documentation, list_documents
 # noinspection PyUnresolvedReferences

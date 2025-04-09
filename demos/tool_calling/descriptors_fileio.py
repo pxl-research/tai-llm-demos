@@ -162,4 +162,29 @@ tools_fileio_descriptor = [{
             }
         }
     },
+    {
+        'type': 'function',
+        'function': {
+            'name': 'current_working_folder',
+            'description': 'Find out the directory we are currently working from. ',
+            'parameters': {
+                'type': 'object',
+                'properties': {},
+                'required': []
+            }
+        }
+    },
+    {
+        'type': 'function',
+        'function': {
+            'name': 'get_allowed_folder',
+            'description': 'Find out the root directory we are allowed to write to. '
+                           'You can read / write / edit in this folder and all of its subfolders. ',
+            'parameters': {
+                'type': 'object',
+                'properties': {},
+                'required': []
+            }
+        }
+    }
 ]
