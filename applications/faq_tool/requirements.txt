@@ -4,3 +4,4 @@ openai~=1.72.0
 chromadb~=0.6.3
 tqdm~=4.67.1
 pymupdf4llm~=0.0.20
+markitdown[pdf, docx, pptx, xlsx, xls]~=0.1.1
