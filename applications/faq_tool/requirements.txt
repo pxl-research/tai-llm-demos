@@ -1,7 +1,7 @@
 python-dotenv~=1.1.0
 gradio~=5.24.0
 openai~=1.72.0
-chromadb~=0.6.3
+chromadb~=1.0.4
 tqdm~=4.67.1
-pymupdf4llm~=0.0.20
+pymupdf4llm~=0.0.21
 markitdown[pdf, docx, pptx, xlsx, xls]~=0.1.1
