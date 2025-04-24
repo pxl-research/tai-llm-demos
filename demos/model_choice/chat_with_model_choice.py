@@ -1,5 +1,4 @@
 import copy
-import json
 import os
 import random
 import sys
@@ -87,8 +86,20 @@ def colorize_providers(full_model_name):
 
 # blocks UI method
 def on_row_selected(select_data: gr.SelectData):
+    # find the name of the model in the dataframe
     if select_data is not None:
-        return select_data.row_value[1], select_data.row_value[1]  # model name
+        if len(select_data.index) > 1 and select_data.target.value is not None:
+            row_idx = select_data.index[0]
+            df_data = select_data.target.value
+
+            if df_data['data'] is not None and len(df_data['data']) > row_idx:
+                selected_row = df_data['data'][row_idx]
+                return selected_row[1], selected_row[1]  # this should be the model name
+
+        # fallback option 1
+        return select_data.value, select_data.value  # value of clicked cell, might be wrong
+
+    # fallback option 2: nothing
     return None
 
 
@@ -171,7 +182,10 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                                elem_classes='bold')
         with gr.Row():
             with gr.Accordion(label='Available models', open=False):
-                dfr_models = gr.DataFrame(df_models.value, type="pandas", interactive=False)
+                dfr_models = gr.DataFrame(df_models.value,
+                                          type="pandas",
+                                          show_search='search',
+                                          interactive=False)
 
     # event handlers
     tb_user.submit(append_user,

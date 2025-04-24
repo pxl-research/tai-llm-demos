@@ -19,8 +19,7 @@ def get_models(tools_only=True, names_only=True, as_dataframe=False):
     filtered_data = [m for m in model_list['data']
                      if 'beta' not in m['id']
                      and '-exp' not in m['id']
-                     and ':free' not in m['id']
-                     and 'preview' not in m['id']]
+                     and ':free' not in m['id']]
 
     # context
     filtered_data = [m for m in filtered_data if m['context_length'] >= 16000]  # at least medium-size context
