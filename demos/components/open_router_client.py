@@ -44,6 +44,7 @@ class OpenRouterClient(OpenAI):
 GEMINI_2_FLASH_1 = 'google/gemini-2.0-flash-001'
 QWEN_25_MAX = 'qwen/qwen-max'
 O3_MINI_HIGH = 'openai/o3-mini-high'
+GPT_41_MINI = 'openai/gpt-4.1-mini'
 DEEPSEEK_V3 = 'deepseek/deepseek-chat'
 O3_MINI = 'openai/o3-mini'
 GEMINI_PRO_15 = 'google/gemini-pro-1.5'

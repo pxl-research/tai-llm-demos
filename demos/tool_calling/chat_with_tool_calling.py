@@ -4,7 +4,7 @@ import os
 import gradio as gr
 from dotenv import load_dotenv
 
-from demos.components.open_router_client import OpenRouterClient, GEMINI_2_FLASH_1
+from demos.components.open_router_client import OpenRouterClient, GPT_41_MINI
 from demos.tool_calling.descriptors_fileio import tools_fileio_descriptor
 from demos.tool_calling.tool_descriptors import (tools_weather_descriptor,
                                                  tools_rag_descriptor,
@@ -38,7 +38,7 @@ tool_list.append(tools_search_descriptor)
 tool_list.extend(tools_get_website_contents)
 tool_list.extend(tools_fileio_descriptor)
 
-or_client = OpenRouterClient(model_name=GEMINI_2_FLASH_1,
+or_client = OpenRouterClient(model_name=GPT_41_MINI,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
