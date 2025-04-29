@@ -15,9 +15,10 @@ load_dotenv()
 
 system_instruction = {
     'role': 'system',
-    'content': 'Be concise. Be precise. Always think step by step. '
-               'I would like you to take a deep breath before responding. '
-               'You can answer using Markdown syntax if you want to. '
+    'content': 'You are a helpful assistant. Try to be concise and precise. '
+               'Take a deep breath before responding. '
+               'Always think step by step, but only keep a minimum draft for each thinking step, with 25 words at most. '
+               'Answer using Markdown syntax to structure your text. '
                'When using an external source, always include the reference. '
 }
 
