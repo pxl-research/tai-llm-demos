@@ -107,7 +107,7 @@ def on_row_selected(select_data: gr.SelectData):
 
 rag_explainer = (
     'Upload additional information here if you want the language model to be able to perform lookup into it. '
-    'Do not upload data files such as spreadsheets or tables; stick to PDF only. '
+    'You can upload documents such as PDFs, Word documents, PowerPoint presentations, and Excel spreadsheets. '
     'Processing may take considerable time depending on the size of the documents. '
     'Do not interrupt the processing step.')
 
