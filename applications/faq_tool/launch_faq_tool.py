@@ -7,7 +7,7 @@ import gradio as gr
 from dotenv import load_dotenv
 
 sys.path.append('../../')
-from demos.components.open_router_client import OpenRouterClient, GEMINI_2_FLASH_1
+from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI_1807
 from demos.tool_calling.tool_descriptors import (tools_rag_descriptor)
 
 # noinspection PyUnresolvedReferences
@@ -21,21 +21,21 @@ custom_headers = {
 }
 
 tool_list = tools_rag_descriptor
-or_client = OpenRouterClient(model_name=GEMINI_2_FLASH_1,
+or_client = OpenRouterClient(model_name=GPT_4O_MINI_1807,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'),
                              temperature=0.25,
                              custom_headers=custom_headers)
 
-main_topic = 'internships at a university college in Belgium'
+main_topic = 'internships at PXL University College in Belgium'
 
 system_instruction = {
     'role': 'system',
     'content': 'You are an assistant helping people with information based on documentation. '
-               'You should ALWAYS consult your documentation, for every question. '
-               'Always include the document reference when using an external source. '
-               f'Your area of expertise is {main_topic}. '
-               'If you do not know the answer to a question, simply say you do not know. '
+               f'Your area of expertise is "{main_topic}". '
+               'Always consult your documentation, do this for every question you get. '
+               'Always include the source (document name, page, paragraph, ...) when using the documentation. '
+               'If you do not know the answer to a question, simply say that you do not know. '
                'Only answer questions related to the documentation you are in charge of, '
                'deflect or refrain from answering unrelated queries. '
                'Your responses should never exceed 2000 characters. '
@@ -73,16 +73,8 @@ def on_load_ui():
 
 
 def complete_with_llm(chat_history, message_list, log_file_name):
-    # truncate message list for longer chats
-    MAX_MESSAGE_COUNT = 7  # Keep the last 7 messages
-
-    if len(message_list) > MAX_MESSAGE_COUNT:
-        abbreviated_list = message_list[-MAX_MESSAGE_COUNT:]
-    else:
-        abbreviated_list = message_list
-
     # generate an answer
-    response_stream = or_client.create_completions_stream(message_list=abbreviated_list)
+    response_stream = or_client.create_completions_stream(message_list=message_list)
 
     partial_message = ''
     tool_calls = []
