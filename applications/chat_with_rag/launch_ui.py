@@ -22,7 +22,7 @@ from blocks_view_history import (
 sys.path.append('../../')
 
 from applications.chat_with_rag.blocks_rag_upload import remove_collection
-from demos.components.chroma_document_store import sanitize_string
+from demos.components.vectorstore.vs_utilities import sanitize_string
 from demos.components.fn_auth import auth_method
 
 
