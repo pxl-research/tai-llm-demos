@@ -167,9 +167,8 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False,
-                                 info='Enter your prompt here. Use SHIFT + ENTER to send.',
+                                 info='Enter your prompt here.',
                                  placeholder='Enter prompt here...',
-                                 lines=2,
                                  scale=1)
 
             btn_send = gr.Button('', scale=0, min_width=64, elem_classes='blue',
@@ -211,6 +210,7 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
     llm_client_ui.load(fn=on_load_ui,
                        inputs=None,
                        outputs=[df_models, dfr_models])
+
     dfr_models.select(fn=on_row_selected,
                       inputs=[],
                       outputs=[lbl_model, selected_model])
