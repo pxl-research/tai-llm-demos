@@ -143,7 +143,11 @@ custom_css = """
 """
 with (gr.Blocks(fill_height=True, title='Tool Calling', css=custom_css) as llm_client_ui):
     messages = gr.State([system_instruction])
-    cb_live = gr.Chatbot(label='Chat', type='messages', scale=1)
+    cb_live = gr.Chatbot(label='Chat',
+                         type='messages',
+                         scale=1,
+                         show_copy_button=True)
+
     with gr.Group() as gr_live:
         with gr.Row():
             tb_user = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
