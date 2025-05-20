@@ -122,10 +122,11 @@ custom_css = """
     #logo_img {
         border: none !important;
         background: none !important;
-        max-width: 75px;
-        max-height: 75px;
+        max-width: 50px;
+        max-height: 50px;
         padding: 0px;
         margin: 0px;
+        object-fit: contain !important;
     }
     .rotate { transform: rotate(270deg) }
     .max_height {
@@ -153,7 +154,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
         gr.Markdown('# PiXie Lite')
 
     # live chat UI
-    cb_live_chat = gr.Chatbot(label='Chat', type='tuples', scale=1, visible=False)
+    cb_live_chat = gr.Chatbot(label='Chat', type='tuples', scale=1, visible=False, show_copy_button=True)
 
     with gr.Group(elem_classes='max_height') as gr_live:
         with gr.Row():
