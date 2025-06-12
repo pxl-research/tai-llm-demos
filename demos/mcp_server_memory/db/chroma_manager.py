@@ -4,6 +4,7 @@ ChromaDB manager for the MCP Memory Server.
 
 import os
 import sys
+import json
 from typing import List, Dict, Any, Optional
 
 import chromadb
@@ -26,7 +27,6 @@ class ChromaManager:
     def __init__(self):
         """Initialize the ChromaDB manager."""
         self._ensure_dir_exists()
-        self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction()
         self.client = self._get_client()
 
     def _ensure_dir_exists(self):
@@ -60,15 +60,8 @@ class ChromaManager:
                     print(f"Warning during ChromaDB reset: {e}")
 
             # Create collections
-            self.client.get_or_create_collection(
-                name=MEMORY_COLLECTION,
-                embedding_function=self.embedding_function
-            )
-
-            self.client.get_or_create_collection(
-                name=TOPICS_COLLECTION,
-                embedding_function=self.embedding_function
-            )
+            self.client.get_or_create_collection(name=MEMORY_COLLECTION)
+            self.client.get_or_create_collection(name=TOPICS_COLLECTION)
 
             return True
 
@@ -90,7 +83,10 @@ class ChromaManager:
         """
         try:
             now = timestamp()
-            collection = self.client.get_collection(MEMORY_COLLECTION)
+            collection = self.client.get_collection(name=MEMORY_COLLECTION)
+            
+            # Convert tags list to JSON string
+            tags_json = json.dumps(tags)
 
             collection.add(
                 ids=[memory_id],
@@ -98,7 +94,7 @@ class ChromaManager:
                 metadatas=[{
                     "id": memory_id,
                     "topic": topic,
-                    "tags": tags,
+                    "tags": tags_json,  # Serialized as JSON string
                     "created_at": now,
                     "updated_at": now
                 }]
@@ -108,6 +104,8 @@ class ChromaManager:
 
         except Exception as e:
             print(f"Error storing memory in ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()  # Add detailed traceback
             return False
 
     def update_topic(self, topic: str, tags: Optional[List[str]] = None) -> bool:
@@ -122,8 +120,14 @@ class ChromaManager:
         """
         try:
             now = timestamp()
-            topic_collection = self.client.get_collection(TOPICS_COLLECTION)
-            topic_summary = f"Topic {topic} containing information about {', '.join(tags) if tags else topic}"
+            topic_collection = self.client.get_collection(name=TOPICS_COLLECTION)
+            
+            # Convert tags to a string format for storage
+            tags_str = ', '.join(tags) if tags else topic
+            topic_summary = f"Topic {topic} containing information about {tags_str}"
+            
+            # Convert tags list to JSON string if present
+            tags_json = json.dumps(tags) if tags else None
 
             try:
                 # Check if topic exists
@@ -134,6 +138,7 @@ class ChromaManager:
                     documents=[topic_summary],
                     metadatas=[{
                         "name": topic,
+                        "tags": tags_json,  # Store tags as JSON string
                         "updated_at": now
                     }]
                 )
@@ -144,6 +149,7 @@ class ChromaManager:
                     documents=[topic_summary],
                     metadatas=[{
                         "name": topic,
+                        "tags": tags_json,  # Store tags as JSON string
                         "created_at": now
                     }]
                 )
@@ -152,6 +158,8 @@ class ChromaManager:
 
         except Exception as e:
             print(f"Error updating topic in ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def search_memories(self, query: str, max_results: int = 5,
@@ -167,7 +175,7 @@ class ChromaManager:
             List[str]: List of memory IDs matching the query
         """
         try:
-            collection = self.client.get_collection(MEMORY_COLLECTION)
+            collection = self.client.get_collection(name=MEMORY_COLLECTION)
 
             # Prepare filter if topic is specified
             where_filter = {"topic": topic} if topic else None
@@ -183,11 +191,16 @@ class ChromaManager:
             memory_ids = []
             if results and len(results["ids"]) > 0 and len(results["ids"][0]) > 0:
                 memory_ids = results["ids"][0]
+                
+                # If we want to deserialize tags in metadatas, we could do it here
+                # But for this method we just return the IDs
 
             return memory_ids
 
         except Exception as e:
             print(f"Error searching memories in ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
             return []
 
     def update_memory(self, memory_id: str, content: str, topic: str,
@@ -206,7 +219,10 @@ class ChromaManager:
         """
         try:
             now = timestamp()
-            collection = self.client.get_collection(MEMORY_COLLECTION)
+            collection = self.client.get_collection(name=MEMORY_COLLECTION)
+            
+            # Convert tags list to JSON string
+            tags_json = json.dumps(tags)
 
             collection.update(
                 ids=[memory_id],
@@ -214,7 +230,7 @@ class ChromaManager:
                 metadatas=[{
                     "id": memory_id,
                     "topic": topic,
-                    "tags": tags,
+                    "tags": tags_json,  # Serialized as JSON string
                     "created_at": created_at,
                     "updated_at": now
                 }]
@@ -224,6 +240,8 @@ class ChromaManager:
 
         except Exception as e:
             print(f"Error updating memory in ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def get_status(self) -> Dict[str, Any]:
