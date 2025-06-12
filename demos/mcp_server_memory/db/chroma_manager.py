@@ -3,26 +3,32 @@ ChromaDB manager for the MCP Memory Server.
 """
 
 import os
+import sys
+from typing import List, Dict, Any, Optional
+
 import chromadb
 from chromadb.utils import embedding_functions
-from typing import List, Dict, Any, Optional, Union
 
-from ..config import CHROMA_PATH, MEMORY_COLLECTION, TOPICS_COLLECTION
-from ..utils import timestamp
+sys.path.append('../')
+sys.path.append('../../')
+
+from demos.mcp_server_memory.config import CHROMA_PATH, MEMORY_COLLECTION, TOPICS_COLLECTION
+from demos.mcp_server_memory.utils import timestamp
+
 
 class ChromaManager:
     """Manager for ChromaDB operations."""
-    
+
     def __init__(self):
         """Initialize the ChromaDB manager."""
         self._ensure_dir_exists()
         self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction()
         self.client = self._get_client()
-        
+
     def _ensure_dir_exists(self):
         """Ensure the database directory exists."""
         os.makedirs(CHROMA_PATH, exist_ok=True)
-    
+
     def _get_client(self):
         """Get a ChromaDB client.
         
@@ -30,7 +36,7 @@ class ChromaManager:
             chromadb.PersistentClient: A ChromaDB client
         """
         return chromadb.PersistentClient(path=CHROMA_PATH)
-    
+
     def initialize(self, reset: bool = False) -> bool:
         """Initialize the ChromaDB database.
         
@@ -48,24 +54,24 @@ class ChromaManager:
                     self.client = self._get_client()
                 except Exception as e:
                     print(f"Warning during ChromaDB reset: {e}")
-            
+
             # Create collections
             self.client.get_or_create_collection(
                 name=MEMORY_COLLECTION,
                 embedding_function=self.embedding_function
             )
-            
+
             self.client.get_or_create_collection(
                 name=TOPICS_COLLECTION,
                 embedding_function=self.embedding_function
             )
-            
+
             return True
-        
+
         except Exception as e:
             print(f"Error initializing ChromaDB: {e}")
             return False
-    
+
     def store_memory(self, memory_id: str, content: str, topic: str, tags: List[str]) -> bool:
         """Store a memory item in ChromaDB.
         
@@ -81,7 +87,7 @@ class ChromaManager:
         try:
             now = timestamp()
             collection = self.client.get_collection(MEMORY_COLLECTION)
-            
+
             collection.add(
                 ids=[memory_id],
                 documents=[content],
@@ -93,13 +99,13 @@ class ChromaManager:
                     "updated_at": now
                 }]
             )
-            
+
             return True
-        
+
         except Exception as e:
             print(f"Error storing memory in ChromaDB: {e}")
             return False
-    
+
     def update_topic(self, topic: str, tags: Optional[List[str]] = None) -> bool:
         """Update or create a topic in ChromaDB.
         
@@ -114,7 +120,7 @@ class ChromaManager:
             now = timestamp()
             topic_collection = self.client.get_collection(TOPICS_COLLECTION)
             topic_summary = f"Topic {topic} containing information about {', '.join(tags) if tags else topic}"
-            
+
             try:
                 # Check if topic exists
                 topic_collection.get(ids=[topic])
@@ -137,15 +143,15 @@ class ChromaManager:
                         "created_at": now
                     }]
                 )
-            
+
             return True
-        
+
         except Exception as e:
             print(f"Error updating topic in ChromaDB: {e}")
             return False
-    
-    def search_memories(self, query: str, max_results: int = 5, 
-                       topic: Optional[str] = None) -> List[str]:
+
+    def search_memories(self, query: str, max_results: int = 5,
+                        topic: Optional[str] = None) -> List[str]:
         """Search for memories using semantic search.
         
         Args:
@@ -158,30 +164,30 @@ class ChromaManager:
         """
         try:
             collection = self.client.get_collection(MEMORY_COLLECTION)
-            
+
             # Prepare filter if topic is specified
             where_filter = {"topic": topic} if topic else None
-            
+
             # Perform semantic search
             results = collection.query(
                 query_texts=[query],
                 n_results=max_results,
                 where=where_filter
             )
-            
+
             # Extract memory IDs
             memory_ids = []
             if results and len(results["ids"]) > 0 and len(results["ids"][0]) > 0:
                 memory_ids = results["ids"][0]
-                
+
             return memory_ids
-        
+
         except Exception as e:
             print(f"Error searching memories in ChromaDB: {e}")
             return []
-    
-    def update_memory(self, memory_id: str, content: str, topic: str, 
-                     tags: List[str], created_at: str) -> bool:
+
+    def update_memory(self, memory_id: str, content: str, topic: str,
+                      tags: List[str], created_at: str) -> bool:
         """Update a memory item in ChromaDB.
         
         Args:
@@ -197,7 +203,7 @@ class ChromaManager:
         try:
             now = timestamp()
             collection = self.client.get_collection(MEMORY_COLLECTION)
-            
+
             collection.update(
                 ids=[memory_id],
                 documents=[content],
@@ -209,13 +215,13 @@ class ChromaManager:
                     "updated_at": now
                 }]
             )
-            
+
             return True
-        
+
         except Exception as e:
             print(f"Error updating memory in ChromaDB: {e}")
             return False
-    
+
     def get_status(self) -> Dict[str, Any]:
         """Get ChromaDB status information.
         
@@ -227,7 +233,7 @@ class ChromaManager:
                 "chroma_collection_count": len(self.client.list_collections()),
                 "chroma_path": CHROMA_PATH
             }
-        
+
         except Exception as e:
             print(f"Error getting ChromaDB status: {e}")
             return {}
