@@ -7,11 +7,15 @@ import sqlite3
 import sys
 from typing import List, Dict, Any, Optional
 
-sys.path.append('../')
-sys.path.append('../../')
+# Get the absolute path to the project root
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-from demos.mcp_server_memory.config import SQLITE_PATH
-from demos.mcp_server_memory.utils import timestamp
+# Now import using local path
+from config import SQLITE_PATH
+from utils.helpers import timestamp
 
 
 class SQLiteManager:
