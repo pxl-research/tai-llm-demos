@@ -40,7 +40,7 @@ def get_image_capable_models() -> List[Dict[str, Any]]:
         pricing = model.get('pricing', {})
         prompt_price = float(pricing.get('prompt', 0))
         completion_price = float(pricing.get('completion', 0))
-        
+
         prompt_price_per_million = prompt_price * 1000000
         completion_price_per_million = completion_price * 1000000
 
@@ -80,31 +80,32 @@ def load_model_scores(csv_path="./lmarena_vision_250616.csv") -> Dict[str, float
         return {}
 
 
-def sort_models_by_score(model_objects: List[Dict[str, Any]], score_map: Dict[str, float]) -> Tuple[List[Dict[str, Any]], int]:
+def sort_models_by_score(model_objects: List[Dict[str, Any]], score_map: Dict[str, float]) -> Tuple[
+    List[Dict[str, Any]], int]:
     """
     Sorts models by performance score and returns the sorted list and count of matched models.
     Uses fuzzy matching when exact model ID matches aren't found in the score map.
     """
     scored_models = []
     matched_count = 0
-    FUZZY_MATCH_THRESHOLD = 80  
+    FUZZY_MATCH_THRESHOLD = 80
 
     for model in model_objects:
         model_id = model['id']
         # Try direct match first
         score = score_map.get(model_id.lower(), None)
-        
+
         # If no direct match, try fuzzy matching
         if score is None:
             best_match = None
             best_score = 0
-            
+
             for csv_key in score_map.keys():
                 match_score = fuzz.token_set_ratio(model_id.lower(), csv_key)
                 if match_score > best_score:
                     best_score = match_score
                     best_match = csv_key
-            
+
             # Use fuzzy match if it's good enough
             if best_match and best_score >= FUZZY_MATCH_THRESHOLD:
                 score = score_map[best_match]
@@ -113,7 +114,7 @@ def sort_models_by_score(model_objects: List[Dict[str, Any]], score_map: Dict[st
                 score = float('-inf')
         else:
             matched_count += 1
-            
+
         # Store the score in the model object for UI display
         model["lm_arena_score"] = score if score != float('-inf') else "N/A"
         scored_models.append((score, model))
@@ -121,7 +122,7 @@ def sort_models_by_score(model_objects: List[Dict[str, Any]], score_map: Dict[st
     # Sort by score (highest first)
     scored_models.sort(key=lambda x: x[0], reverse=True)
     sorted_models = [model for _, model in scored_models]
-    
+
     return sorted_models, matched_count
 
 
@@ -134,13 +135,13 @@ def encode_image_to_base64(image_file) -> str:
 
     # Read the image bytes
     image_bytes = image_file.read()
-    
+
     # Use the file's mime type or default to jpeg
     mime_type = image_file.type if hasattr(image_file, 'type') and image_file.type else "image/jpeg"
-    
+
     # Encode to base64
     base64_encoded = base64.b64encode(image_bytes).decode('utf-8')
-    
+
     # Return as data URL
     return f"data:{mime_type};base64,{base64_encoded}"
 
@@ -154,12 +155,12 @@ def call_openrouter_api(model_id: str, messages: List[Dict[str, Any]], api_key: 
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
-    
+
     payload = {
         "model": model_id,
         "messages": messages,
     }
-    
+
     try:
         response = requests.post(
             "https://openrouter.ai/api/v1/chat/completions",

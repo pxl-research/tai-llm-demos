@@ -1,17 +1,23 @@
 import os
+from typing import Dict, List, Any
 
 import streamlit as st
 from dotenv import load_dotenv
 
-from utils import get_image_capable_models, encode_image_to_base64, call_openrouter_api, load_model_scores, \
+from utils import (
+    get_image_capable_models,
+    encode_image_to_base64,
+    call_openrouter_api,
+    load_model_scores,
     sort_models_by_score
+)
 
-# Load environment variables
+# --- Configuration ---
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 DEFAULT_MODEL = 'google/gemini-2.0-flash-001'
 
-# Price thresholds for coloring (per million tokens for prompt/completion, per 10K tokens for image)
+# Price thresholds for highlighting expensive models (per million tokens)
 PROMPT_PRICE_THRESHOLD = 1.5
 COMPLETION_PRICE_THRESHOLD = 7.5
 IMAGE_PRICE_THRESHOLD = 7.5
@@ -20,209 +26,304 @@ IMAGE_PRICE_THRESHOLD = 7.5
 st.set_page_config(page_title="OpenRouter Image Analysis", layout="centered")
 st.title("OpenRouter Image Analysis Demo")
 
-# --- Initialize Session State ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "image_capable_models" not in st.session_state:
-    st.session_state.image_capable_models = []
-if "selected_model_id" not in st.session_state:
-    st.session_state.selected_model_id = None
-if "model_scores" not in st.session_state:
-    st.session_state.model_scores = {}
-if "matched_models_count" not in st.session_state:
-    st.session_state.matched_models_count = 0
-if "last_uploaded_file_id" not in st.session_state:
-    st.session_state.last_uploaded_file_id = None
-if "all_models_data" not in st.session_state:
-    st.session_state.all_models_data = [] # Stores full model objects
 
-# Callback function for model selection
-def _update_selected_model():
+# --- Initialize Session State ---
+def initialize_session_state():
+    """Initialize all required session state variables"""
+    session_vars = {
+        "messages": [],
+        "image_capable_models": [],
+        "selected_model_id": None,
+        "model_scores": {},
+        "matched_models_count": 0,
+        "last_uploaded_file_id": None,
+        "all_models_data": [],
+        "total_image_capable_models": 0,
+    }
+
+    for var, default in session_vars.items():
+        if var not in st.session_state:
+            st.session_state[var] = default
+
+
+initialize_session_state()
+
+
+# --- Model Loading and Selection Logic ---
+def load_and_sort_models():
+    """Load models from OpenRouter API and sort them by score"""
+    # Only load models if not already loaded
+    if not st.session_state.all_models_data:
+        # Get models that support image processing
+        models = get_image_capable_models()
+        st.session_state.all_models_data = models
+        st.session_state.total_image_capable_models = len(models)
+
+        # Load model scores from CSV
+        scores = load_model_scores()
+        st.session_state.model_scores = scores
+
+        if models and scores:
+            # Sort models by their performance scores
+            sorted_models, matched_count = sort_models_by_score(models, scores)
+            st.session_state.all_models_data = sorted_models
+            st.session_state.matched_models_count = matched_count
+
+            # Set default model
+            set_default_model(sorted_models)
+        elif models:
+            # No scores available, but we have models
+            set_default_model(models)
+            st.warning("Could not load model scores. Models are not sorted by capability.")
+        else:
+            st.error("No image-capable models found. Please check your internet connection or OpenRouter API.")
+
+
+def set_default_model(models):
+    """Set the default model from available options"""
+    # Try to use the preferred default model if available
+    if any(model['id'] == DEFAULT_MODEL for model in models):
+        st.session_state.selected_model_id = DEFAULT_MODEL
+    # Otherwise use the first available model
+    elif models:
+        st.session_state.selected_model_id = models[0]['id']
+
+
+def update_selected_model():
+    """Callback when user selects a different model"""
     st.session_state.selected_model_id = st.session_state.model_selector
 
-# --- Model Selection and Sorting ---
-if not st.session_state.all_models_data:
-    st.session_state.all_models_data = get_image_capable_models() # Now returns full model objects
-    st.session_state.total_image_capable_models = len(st.session_state.all_models_data) # Store total count
-    
-    # Load model scores from CSV
-    st.session_state.model_scores = load_model_scores()
-    
-    if st.session_state.all_models_data and st.session_state.model_scores:
-        # Sort models by score
-        sorted_models_data, matched_count = sort_models_by_score(
-            st.session_state.all_models_data,
-            st.session_state.model_scores
-        )
-        st.session_state.all_models_data = sorted_models_data
-        st.session_state.matched_models_count = matched_count
-        
-        # Set default model: prioritize DEFAULT_MODEL if available, else use the top-ranked
-        if any(model['id'] == DEFAULT_MODEL for model in st.session_state.all_models_data):
-            st.session_state.selected_model_id = DEFAULT_MODEL
-        else:
-            st.session_state.selected_model_id = st.session_state.all_models_data[0]['id']
 
-    elif st.session_state.all_models_data:
-        # If no scores loaded, still try to set DEFAULT_MODEL if available, else use first
-        if any(model['id'] == DEFAULT_MODEL for model in st.session_state.all_models_data):
-            st.session_state.selected_model_id = DEFAULT_MODEL
-        else:
-            st.session_state.selected_model_id = st.session_state.all_models_data[0]['id']
-        st.warning("Could not load model scores. Models are not sorted by capability.")
+# Load and prepare the models
+load_and_sort_models()
+
+# Display model selection dropdown
+model_ids = [model['id'] for model in st.session_state.all_models_data]
+
+
+def display_model_details(model: Dict[str, Any]):
+    """Display details about the selected model in the sidebar"""
+    st.sidebar.markdown(f"### **{model['id']}**")
+
+    # Extract model details
+    pricing = model.get('pricing', {})
+    prompt_price = float(pricing.get('prompt', 0)) * 1000000
+    completion_price = float(pricing.get('completion', 0)) * 1000000
+    image_price_raw = pricing.get('image')
+    lm_arena_score = model.get('lm_arena_score', 'N/A')
+    top_provider = model.get('top_provider', {})
+    max_completion_tokens = top_provider.get('max_completion_tokens', 'N/A')
+
+    # Show score
+    st.sidebar.markdown(f"**LM Arena Score:** {lm_arena_score}")
+
+    # Format and display image price
+    if image_price_raw is not None and float(image_price_raw) != 0:
+        image_price_per_10k = float(image_price_raw) * 10000
+        image_price_str = f"${image_price_per_10k:.2f} / 10K tokens"
+        if image_price_per_10k > IMAGE_PRICE_THRESHOLD:
+            image_price_str = f"<span style='color: orange;'>{image_price_str}</span>"
+        st.sidebar.markdown(f"**Image Price:** {image_price_str}", unsafe_allow_html=True)
     else:
-        st.error("No image-capable models found. Please check your internet connection or OpenRouter API.")
+        st.sidebar.markdown(f"**Image Price:** N/A")
 
-# Get list of model IDs for the selectbox
-model_ids_for_selectbox = [model['id'] for model in st.session_state.all_models_data]
+    # Format and display prompt price
+    prompt_price_str = f"${prompt_price:.2f} / M tokens"
+    if prompt_price > PROMPT_PRICE_THRESHOLD:
+        prompt_price_str = f"<span style='color: orange;'>{prompt_price_str}</span>"
+    st.sidebar.markdown(f"**Prompt Price:** {prompt_price_str}", unsafe_allow_html=True)
 
-if model_ids_for_selectbox:
+    # Format and display completion price
+    completion_price_str = f"${completion_price:.2f} / M tokens"
+    if completion_price > COMPLETION_PRICE_THRESHOLD:
+        completion_price_str = f"<span style='color: orange;'>{completion_price_str}</span>"
+    st.sidebar.markdown(f"**Completion Price:** {completion_price_str}", unsafe_allow_html=True)
+
+    # Show additional model details
+    st.sidebar.markdown(f"**Context Length:** {model.get('context_length', 'N/A')} tokens")
+    st.sidebar.markdown(f"**Max Completion Tokens:** {max_completion_tokens}")
+    st.sidebar.markdown(f"**Provider:** {model['id'].split('/')[0]}")
+
+
+if model_ids:
     st.sidebar.header("Model Settings")
-    
+
+    # Set the current selection index
     current_index = 0
-    if st.session_state.selected_model_id in model_ids_for_selectbox:
-        current_index = model_ids_for_selectbox.index(st.session_state.selected_model_id)
+    if st.session_state.selected_model_id in model_ids:
+        current_index = model_ids.index(st.session_state.selected_model_id)
 
     st.sidebar.selectbox(
         "Select a model:",
-        model_ids_for_selectbox,
-        index=current_index, # Set the index explicitly
-        key="model_selector", # Keep the unique key
-        on_change=_update_selected_model # Add the callback
+        model_ids,
+        index=current_index,
+        key="model_selector",
+        on_change=update_selected_model
     )
-    
-    # Find the full model object for the selected model ID
-    # This will now always use the value from st.session_state.selected_model_id
-    selected_model_data = next((model for model in st.session_state.all_models_data if model['id'] == st.session_state.selected_model_id), None)
 
-    if selected_model_data:
-        st.sidebar.markdown(f"### **{selected_model_data['id']}**")
+    # Get the selected model data
+    selected_model = next(
+        (model for model in st.session_state.all_models_data
+         if model['id'] == st.session_state.selected_model_id),
+        None
+    )
 
-        pricing = selected_model_data.get('pricing', {})
-        prompt_price = float(pricing.get('prompt', 0)) * 1000000
-        completion_price = float(pricing.get('completion', 0)) * 1000000
-        image_price_raw = pricing.get('image') # Get image price, might be None
-        lm_arena_score = selected_model_data.get('lm_arena_score', 'N/A')
-        top_provider = selected_model_data.get('top_provider', {})
-        max_completion_tokens = top_provider.get('max_completion_tokens', 'N/A')
+    # Display model details in sidebar
+    if selected_model:
+        display_model_details(selected_model)
 
-        st.sidebar.markdown(f"**LM Arena Score:** {lm_arena_score}")
-
-        # Format Image Price
-        if image_price_raw is not None and float(image_price_raw) != 0:
-            image_price_per_10k = float(image_price_raw) * 10000
-            image_price_str = f"${image_price_per_10k:.2f} / 10K tokens"
-            if image_price_per_10k > IMAGE_PRICE_THRESHOLD:
-                image_price_str = f"<span style='color: orange;'>{image_price_str}</span>"
-            st.sidebar.markdown(f"**Image Price:** {image_price_str}", unsafe_allow_html=True)
-        else:
-            st.sidebar.markdown(f"**Image Price:** N/A")
-
-        # Format Prompt Price
-        prompt_price_str = f"${prompt_price:.2f} / M tokens"
-        if prompt_price > PROMPT_PRICE_THRESHOLD:
-            prompt_price_str = f"<span style='color: orange;'>{prompt_price_str}</span>"
-        st.sidebar.markdown(f"**Prompt Price:** {prompt_price_str}", unsafe_allow_html=True)
-
-        # Format Completion Price
-        completion_price_str = f"${completion_price:.2f} / M tokens"
-        if completion_price > COMPLETION_PRICE_THRESHOLD:
-            completion_price_str = f"<span style='color: orange;'>{completion_price_str}</span>"
-        st.sidebar.markdown(f"**Completion Price:** {completion_price_str}", unsafe_allow_html=True)
-
-        st.sidebar.markdown(f"**Context Length:** {selected_model_data.get('context_length', 'N/A')} tokens")
-        st.sidebar.markdown(f"**Max Completion Tokens:** {max_completion_tokens}")
-        st.sidebar.markdown(f"**Provider:** {selected_model_data['id'].split('/')[0]}")
-
+    # Show match statistics
     if st.session_state.matched_models_count > 0:
-        st.sidebar.info(f"Matched {st.session_state.matched_models_count} out of {st.session_state.total_image_capable_models} models with scores from CSV.")
+        st.sidebar.info(
+            f"Matched {st.session_state.matched_models_count} out of "
+            f"{st.session_state.total_image_capable_models} models with scores from CSV."
+        )
     else:
-        st.sidebar.warning(f"No models matched with scores from CSV (out of {st.session_state.total_image_capable_models} total image-capable models).")
+        st.sidebar.warning(
+            f"No models matched with scores from CSV (out of "                f"{st.session_state.total_image_capable_models} total image-capable models)."
+        )
 else:
     st.sidebar.warning("No models available.")
 
-# --- Display Chat Messages ---
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        if message["type"] == "text":
-            st.markdown(message["content"])
-        elif message["type"] == "image":
-            st.image(message["content"], caption="Uploaded Image", use_column_width=True)
 
-# --- Image Upload ---
-uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg", "webp"], key="image_uploader")
+# --- Chat UI Functions ---
+def display_chat_history():
+    """Display all messages in the chat history"""
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            if message["type"] == "text":
+                st.markdown(message["content"])
+            elif message["type"] == "image":
+                st.image(message["content"], caption="Uploaded Image", use_column_width=True)
 
-if uploaded_file is not None:
-    # Check if this file has already been processed in the current session state
-    if uploaded_file.file_id != st.session_state.last_uploaded_file_id:
-        # Display uploaded image in chat
-        st.session_state.messages.append({"role": "user", "type": "image", "content": uploaded_file})
-        
-        # Encode image for API call
-        base64_image_data_url = encode_image_to_base64(uploaded_file)
-        
-        # Prepare message content for API
-        image_message_content = {
-            "type": "image_url",
-            "image_url": {"url": base64_image_data_url}
-        }
-        
-        # Add image message to current API request messages
-        st.session_state.current_image_message = image_message_content
-        
-        # Update the last processed file ID
-        st.session_state.last_uploaded_file_id = uploaded_file.file_id
-        
-        st.rerun() # Rerun to display the image immediately and process next steps
 
-# --- Chat Input ---
-if prompt := st.chat_input("Ask about the image or type your message..."):
-    if not OPENROUTER_API_KEY:
-        st.error("OpenRouter API Key not found. Please set it in your .env file.")
-        st.stop()
+def handle_image_upload():
+    """Process an uploaded image file"""
+    uploaded_file = st.file_uploader(
+        "Upload an image",
+        type=["png", "jpg", "jpeg", "webp"],
+        key="image_uploader"
+    )
 
-    if not st.session_state.selected_model_id:
-        st.error("No model selected. Please select a model from the sidebar.")
-        st.stop()
+    if uploaded_file is not None:
+        # Only process the file if it's new
+        if uploaded_file.file_id != st.session_state.last_uploaded_file_id:
+            # Add to chat history
+            st.session_state.messages.append({
+                "role": "user",
+                "type": "image",
+                "content": uploaded_file
+            })
 
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "type": "text", "content": prompt})
+            # Encode for API
+            image_data_url = encode_image_to_base64(uploaded_file)
 
-    # Prepare messages for API call
+            # Store for API request
+            st.session_state.current_image_message = {
+                "type": "image_url",
+                "image_url": {"url": image_data_url}
+            }
+
+            # Update tracking
+            st.session_state.last_uploaded_file_id = uploaded_file.file_id
+
+            # Refresh display
+            st.rerun()
+
+
+def prepare_api_messages(prompt: str) -> List[Dict[str, Any]]:
+    """Create API message format from chat history and current prompt"""
     api_messages = []
-    # Add previous messages from history
+
+    # Add chat history
     for msg in st.session_state.messages:
         if msg["type"] == "text":
-            api_messages.append({"role": msg["role"], "content": [{"type": "text", "text": msg["content"]}]})
-        elif msg["type"] == "image" and msg["role"] == "user":
-            # Re-encode image if it's from history (Streamlit re-runs might lose file object)
-            # For simplicity, we'll assume images are only sent once per turn for now
-            # A more robust solution would store base64 or handle re-upload
-            # For now, we'll only include the *current* uploaded image if any
-            pass # Handled by current_image_message
+            api_messages.append({
+                "role": msg["role"],
+                "content": [{"type": "text", "text": msg["content"]}]
+            })
 
-    # Add current user prompt
-    current_user_content = [{"type": "text", "text": prompt}]
-    
-    # Add current uploaded image if available
-    if "current_image_message" in st.session_state and st.session_state.current_image_message:
-        current_user_content.insert(0, st.session_state.current_image_message) # Prepend image to content
-        del st.session_state.current_image_message # Clear after use
+    # Create content for current message
+    current_content = [{"type": "text", "text": prompt}]
 
-    api_messages.append({"role": "user", "content": current_user_content})
+    # Add image if available
+    if "current_image_message" in st.session_state:
+        current_content.insert(0, st.session_state.current_image_message)
+        del st.session_state.current_image_message  # Clear after use
 
-    # Call OpenRouter API
+    # Add current message
+    api_messages.append({"role": "user", "content": current_content})
+
+    return api_messages
+
+
+def call_model_api(messages: List[Dict[str, Any]]):
+    """Call the selected model with the prepared messages"""
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            response_json = call_openrouter_api(
+            # Call API
+            response = call_openrouter_api(
                 st.session_state.selected_model_id,
-                api_messages,
+                messages,
                 OPENROUTER_API_KEY
             )
-            if response_json and response_json.get("choices"):
-                assistant_response = response_json["choices"][0]["message"]["content"]
-                st.markdown(assistant_response)
-                st.session_state.messages.append({"role": "assistant", "type": "text", "content": assistant_response})
+
+            # Process response
+            if response and response.get("choices"):
+                # Extract and display message
+                assistant_message = response["choices"][0]["message"]["content"]
+                st.markdown(assistant_message)
+
+                # Add to history
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "type": "text",
+                    "content": assistant_message
+                })
             else:
+                # Handle error
                 st.error("Failed to get a response from the model.")
-                st.session_state.messages.append({"role": "assistant", "type": "text", "content": "Error: Could not get a response."})
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "type": "text",
+                    "content": "Error: Could not get a response."
+                })
+
+
+# --- Main Application Flow ---
+def main():
+    """Main application flow"""
+    # Display existing chat messages
+    display_chat_history()
+
+    # Handle image upload
+    handle_image_upload()
+
+    # Process chat input
+    if prompt := st.chat_input("Ask about the image or type your message..."):
+        # Verify requirements
+        if not OPENROUTER_API_KEY:
+            st.error("OpenRouter API Key not found. Please set it in your .env file.")
+            st.stop()
+
+        if not st.session_state.selected_model_id:
+            st.error("No model selected. Please select a model from the sidebar.")
+            st.stop()
+
+        # Add to chat history
+        st.session_state.messages.append({
+            "role": "user",
+            "type": "text",
+            "content": prompt
+        })
+
+        # Prepare API messages
+        api_messages = prepare_api_messages(prompt)
+
+        # Call model API
+        call_model_api(api_messages)
+
+
+# Run the application
+if __name__ == "__main__":
+    main()
