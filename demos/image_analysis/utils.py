@@ -54,7 +54,7 @@ def get_image_capable_models():
         if prompt_price == 0:
             continue
 
-        filtered_models.append(model['id'])
+        filtered_models.append(model) # Append the full model object
 
     return filtered_models
 
@@ -83,24 +83,25 @@ def load_model_scores(csv_path="./lmarena_vision_250616.csv"):
         return {}
 
 
-def sort_models_by_score(model_ids, score_map):
+def sort_models_by_score(model_objects, score_map):
     """
-    Sorts a list of OpenRouter model IDs based on scores from the score_map.
+    Sorts a list of OpenRouter model objects based on scores from the score_map.
     Models not found in the score_map will be placed at the bottom.
-    Returns the sorted list of model IDs and the count of matched models.
+    Returns the sorted list of model objects and the count of matched models.
     """
     scored_models = []
     matched_count = 0
     FUZZY_MATCH_THRESHOLD = 85  # Define a threshold for fuzzy matching
 
-    for model_id in model_ids:
+    for model in model_objects:
+        model_id = model['id']
         # OpenRouter model_id format: "organization/model_name"
         # 1. Try to match directly with the score_map key
         score = score_map.get(model_id.lower(), float('-inf'))
 
         if score != float('-inf'):
             matched_count += 1
-            scored_models.append((score, model_id))
+            scored_models.append((score, model))
         else:
             # 2. If direct match fails, try fuzzy matching
             best_fuzzy_score = float('-inf')
@@ -117,14 +118,14 @@ def sort_models_by_score(model_ids, score_map):
                 score = score_map[best_matched_csv_key]
                 matched_count += 1
             # If no fuzzy match meets threshold, score remains float('-inf')
-            scored_models.append((score, model_id))
+            scored_models.append((score, model))
 
     # Sort in descending order by score
     scored_models.sort(key=lambda x: x[0], reverse=True)
 
-    sorted_model_ids = [model_id for score, model_id in scored_models]
+    sorted_model_objects = [model for score, model in scored_models]
 
-    return sorted_model_ids, matched_count
+    return sorted_model_objects, matched_count
 
 
 def encode_image_to_base64(image_file):

@@ -20,47 +20,80 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "image_capable_models" not in st.session_state:
     st.session_state.image_capable_models = []
-if "selected_model" not in st.session_state:
-    st.session_state.selected_model = None
+if "selected_model_id" not in st.session_state:
+    st.session_state.selected_model_id = None
 if "model_scores" not in st.session_state:
     st.session_state.model_scores = {}
 if "matched_models_count" not in st.session_state:
     st.session_state.matched_models_count = 0
 if "last_uploaded_file_id" not in st.session_state:
     st.session_state.last_uploaded_file_id = None
+if "all_models_data" not in st.session_state:
+    st.session_state.all_models_data = [] # Stores full model objects
 
 # --- Model Selection and Sorting ---
-if not st.session_state.image_capable_models:
-    initial_image_capable_models = get_image_capable_models()
-    st.session_state.total_image_capable_models = len(initial_image_capable_models) # Store total count
+if not st.session_state.all_models_data:
+    st.session_state.all_models_data = get_image_capable_models() # Now returns full model objects
+    st.session_state.total_image_capable_models = len(st.session_state.all_models_data) # Store total count
     
     # Load model scores from CSV
     st.session_state.model_scores = load_model_scores()
     
-    if initial_image_capable_models and st.session_state.model_scores:
+    if st.session_state.all_models_data and st.session_state.model_scores:
         # Sort models by score
-        sorted_models, matched_count = sort_models_by_score(
-            initial_image_capable_models,
+        sorted_models_data, matched_count = sort_models_by_score(
+            st.session_state.all_models_data,
             st.session_state.model_scores
         )
-        st.session_state.image_capable_models = sorted_models
+        st.session_state.all_models_data = sorted_models_data
         st.session_state.matched_models_count = matched_count
-        st.session_state.selected_model = DEFAULT_MODEL
-    elif initial_image_capable_models:
-        st.session_state.image_capable_models = initial_image_capable_models # Use unsorted list
-        st.session_state.selected_model = DEFAULT_MODEL
+        
+        # Set default model: prioritize DEFAULT_MODEL if available, else use the top-ranked
+        if any(model['id'] == DEFAULT_MODEL for model in st.session_state.all_models_data):
+            st.session_state.selected_model_id = DEFAULT_MODEL
+        else:
+            st.session_state.selected_model_id = st.session_state.all_models_data[0]['id']
+
+    elif st.session_state.all_models_data:
+        # If no scores loaded, still try to set DEFAULT_MODEL if available, else use first
+        if any(model['id'] == DEFAULT_MODEL for model in st.session_state.all_models_data):
+            st.session_state.selected_model_id = DEFAULT_MODEL
+        else:
+            st.session_state.selected_model_id = st.session_state.all_models_data[0]['id']
         st.warning("Could not load model scores. Models are not sorted by capability.")
     else:
         st.error("No image-capable models found. Please check your internet connection or OpenRouter API.")
 
-if st.session_state.image_capable_models:
+# Get list of model IDs for the selectbox
+model_ids_for_selectbox = [model['id'] for model in st.session_state.all_models_data]
+
+if model_ids_for_selectbox:
     st.sidebar.header("Model Settings")
-    st.session_state.selected_model = st.sidebar.selectbox(
+    st.session_state.selected_model_id = st.sidebar.selectbox(
         "Select a model:",
-        st.session_state.image_capable_models,
-        index=st.session_state.image_capable_models.index(st.session_state.selected_model) if st.session_state.selected_model in st.session_state.image_capable_models else 0
+        model_ids_for_selectbox,
+        index=model_ids_for_selectbox.index(st.session_state.selected_model_id) if st.session_state.selected_model_id in model_ids_for_selectbox else 0
     )
-    st.sidebar.info(f"Using model: **{st.session_state.selected_model}**")
+    
+    # Find the full model object for the selected model ID
+    selected_model_data = next((model for model in st.session_state.all_models_data if model['id'] == st.session_state.selected_model_id), None)
+
+    if selected_model_data:
+        st.sidebar.markdown(f"### **{selected_model_data['id']}**")
+        st.sidebar.markdown(f"**Provider:** {selected_model_data['id'].split('/')[0]}")
+        
+        pricing = selected_model_data.get('pricing', {})
+        prompt_price = float(pricing.get('prompt', 0)) * 1000000
+        completion_price = float(pricing.get('completion', 0)) * 1000000
+        
+        st.sidebar.markdown(f"**Prompt Price:** ${prompt_price:.2f} / M tokens")
+        st.sidebar.markdown(f"**Completion Price:** ${completion_price:.2f} / M tokens")
+        st.sidebar.markdown(f"**Context Length:** {selected_model_data.get('context_length', 'N/A')} tokens")
+        
+        top_provider = selected_model_data.get('top_provider', {})
+        max_completion_tokens = top_provider.get('max_completion_tokens', 'N/A')
+        st.sidebar.markdown(f"**Max Completion Tokens:** {max_completion_tokens}")
+
     if st.session_state.matched_models_count > 0:
         st.sidebar.info(f"Matched {st.session_state.matched_models_count} out of {st.session_state.total_image_capable_models} models with scores from CSV.")
     else:
@@ -108,7 +141,7 @@ if prompt := st.chat_input("Ask about the image or type your message..."):
         st.error("OpenRouter API Key not found. Please set it in your .env file.")
         st.stop()
 
-    if not st.session_state.selected_model:
+    if not st.session_state.selected_model_id:
         st.error("No model selected. Please select a model from the sidebar.")
         st.stop()
 
@@ -142,7 +175,7 @@ if prompt := st.chat_input("Ask about the image or type your message..."):
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             response_json = call_openrouter_api(
-                st.session_state.selected_model,
+                st.session_state.selected_model_id,
                 api_messages,
                 OPENROUTER_API_KEY
             )
