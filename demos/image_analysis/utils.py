@@ -3,6 +3,7 @@ import json
 
 import pandas as pd
 import requests
+from thefuzz import fuzz
 
 
 def get_image_capable_models():
@@ -90,16 +91,33 @@ def sort_models_by_score(model_ids, score_map):
     """
     scored_models = []
     matched_count = 0
+    FUZZY_MATCH_THRESHOLD = 85  # Define a threshold for fuzzy matching
 
     for model_id in model_ids:
         # OpenRouter model_id format: "organization/model_name"
-        # Try to match directly with the score_map key
-        score = score_map.get(model_id.lower(),
-                              float('-inf'))  # Use .lower() for consistency if model_id also has organization part
+        # 1. Try to match directly with the score_map key
+        score = score_map.get(model_id.lower(), float('-inf'))
 
         if score != float('-inf'):
             matched_count += 1
-        scored_models.append((score, model_id))
+            scored_models.append((score, model_id))
+        else:
+            # 2. If direct match fails, try fuzzy matching
+            best_fuzzy_score = float('-inf')
+            best_matched_csv_key = None
+
+            for csv_key in score_map.keys():
+                # Use token_set_ratio for robust fuzzy matching
+                current_fuzzy_score = fuzz.token_set_ratio(model_id.lower(), csv_key)
+                if current_fuzzy_score > best_fuzzy_score:
+                    best_fuzzy_score = current_fuzzy_score
+                    best_matched_csv_key = csv_key
+            
+            if best_fuzzy_score >= FUZZY_MATCH_THRESHOLD and best_matched_csv_key:
+                score = score_map[best_matched_csv_key]
+                matched_count += 1
+            # If no fuzzy match meets threshold, score remains float('-inf')
+            scored_models.append((score, model_id))
 
     # Sort in descending order by score
     scored_models.sort(key=lambda x: x[0], reverse=True)

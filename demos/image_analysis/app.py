@@ -31,22 +31,23 @@ if "last_uploaded_file_id" not in st.session_state:
 
 # --- Model Selection and Sorting ---
 if not st.session_state.image_capable_models:
-    st.session_state.image_capable_models = get_image_capable_models()
+    initial_image_capable_models = get_image_capable_models()
+    st.session_state.total_image_capable_models = len(initial_image_capable_models) # Store total count
     
     # Load model scores from CSV
     st.session_state.model_scores = load_model_scores()
     
-    if st.session_state.image_capable_models and st.session_state.model_scores:
+    if initial_image_capable_models and st.session_state.model_scores:
         # Sort models by score
         sorted_models, matched_count = sort_models_by_score(
-            st.session_state.image_capable_models,
+            initial_image_capable_models,
             st.session_state.model_scores
         )
-        print(sorted_models)
         st.session_state.image_capable_models = sorted_models
         st.session_state.matched_models_count = matched_count
         st.session_state.selected_model = DEFAULT_MODEL
-    elif st.session_state.image_capable_models:
+    elif initial_image_capable_models:
+        st.session_state.image_capable_models = initial_image_capable_models # Use unsorted list
         st.session_state.selected_model = DEFAULT_MODEL
         st.warning("Could not load model scores. Models are not sorted by capability.")
     else:
@@ -61,9 +62,9 @@ if st.session_state.image_capable_models:
     )
     st.sidebar.info(f"Using model: **{st.session_state.selected_model}**")
     if st.session_state.matched_models_count > 0:
-        st.sidebar.info(f"Matched {st.session_state.matched_models_count} models with scores from CSV.")
+        st.sidebar.info(f"Matched {st.session_state.matched_models_count} out of {st.session_state.total_image_capable_models} models with scores from CSV.")
     else:
-        st.sidebar.warning("No models matched with scores from CSV.")
+        st.sidebar.warning(f"No models matched with scores from CSV (out of {st.session_state.total_image_capable_models} total image-capable models).")
 else:
     st.sidebar.warning("No models available.")
 
