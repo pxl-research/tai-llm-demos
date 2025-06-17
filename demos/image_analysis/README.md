@@ -9,6 +9,17 @@ This Streamlit application provides a chat interface that leverages the OpenRout
 - **Dynamic Model Selection:** Choose from a curated list of OpenRouter models that support multimodal input.
 - **Capability-Based Sorting:** Models are sorted by their performance scores from an external ranking, helping you identify the most capable options.
 - **Detailed Model Information:** View comprehensive details for the selected model, including provider, pricing (per million tokens), context length, and maximum completion tokens.
+- **Modular Code Structure:** Well-organized codebase with clear separation of concerns for easier maintenance and extension.
+
+## Code Structure
+
+The application is organized into several modules for better maintainability:
+
+- **image_analysis.py** - Main entry point and application flow
+- **app_config.py** - Configuration variables and constants
+- **model_manager.py** - Model loading, selection and API interaction
+- **ui_components.py** - User interface components and display functions
+- **utils.py** - Utility functions for API communication and data processing
 
 ## Prerequisites
 
