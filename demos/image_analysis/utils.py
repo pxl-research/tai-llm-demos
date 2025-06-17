@@ -91,7 +91,7 @@ def sort_models_by_score(model_objects, score_map):
     """
     scored_models = []
     matched_count = 0
-    FUZZY_MATCH_THRESHOLD = 85  # Define a threshold for fuzzy matching
+    FUZZY_MATCH_THRESHOLD = 80  # Define a threshold for fuzzy matching
 
     for model in model_objects:
         model_id = model['id']
@@ -101,6 +101,7 @@ def sort_models_by_score(model_objects, score_map):
 
         if score != float('-inf'):
             matched_count += 1
+            model["lm_arena_score"] = score if score != float('-inf') else "N/A"
             scored_models.append((score, model))
         else:
             # 2. If direct match fails, try fuzzy matching
@@ -117,8 +118,10 @@ def sort_models_by_score(model_objects, score_map):
             if best_fuzzy_score >= FUZZY_MATCH_THRESHOLD and best_matched_csv_key:
                 score = score_map[best_matched_csv_key]
                 matched_count += 1
-            # If no fuzzy match meets threshold, score remains float('-inf')
-            scored_models.append((score, model))
+            
+            # Assign score to the model object
+            model["lm_arena_score"] = score if score != float('-inf') else "N/A"
+            scored_models.append((score, model)) # Append (score, model_object) tuple
 
     # Sort in descending order by score
     scored_models.sort(key=lambda x: x[0], reverse=True)
@@ -177,12 +180,32 @@ def call_openrouter_api(model_id, messages, api_key):
 
 
 if __name__ == '__main__':
-    # Example usage for get_image_capable_models:
-    print("Fetching image-capable models...")
-    models = get_image_capable_models()
-    if models:
-        print("Found image-capable models:")
-        for model_id in models:
-            print(f"- {model_id}")
+    print("--- Testing get_image_capable_models ---")
+    all_image_capable_models = get_image_capable_models()
+    if all_image_capable_models:
+        print(f"Found {len(all_image_capable_models)} image-capable models (before sorting).")
+        # Uncomment to print all models before sorting:
+        # for model in all_image_capable_models:
+        #     print(f"- {model['id']}")
     else:
         print("No image-capable models found or an error occurred.")
+
+    print("\n--- Testing load_model_scores ---")
+    model_scores_map = load_model_scores()
+    if model_scores_map:
+        print(f"Loaded {len(model_scores_map)} scores from CSV.")
+        # Uncomment to print all loaded scores:
+        # for key, score in model_scores_map.items():
+        #     print(f"- {key}: {score}")
+    else:
+        print("No model scores loaded from CSV or an error occurred.")
+
+    print("\n--- Testing sort_models_by_score ---")
+    if all_image_capable_models and model_scores_map:
+        sorted_models, matched_count = sort_models_by_score(all_image_capable_models, model_scores_map)
+        print(f"\nSorted {len(sorted_models)} models. Matched {matched_count} models with scores from CSV.")
+        print("Sorted Models (ID and LM Arena Score):")
+        for model in sorted_models:
+            print(f"- {model['id']} (Score: {model.get('lm_arena_score', 'N/A')})")
+    else:
+        print("Skipping model sorting test due to missing models or scores.")

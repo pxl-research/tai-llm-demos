@@ -105,6 +105,10 @@ if model_ids_for_selectbox:
         top_provider = selected_model_data.get('top_provider', {})
         max_completion_tokens = top_provider.get('max_completion_tokens', 'N/A')
         st.sidebar.markdown(f"**Max Completion Tokens:** {max_completion_tokens}")
+        
+        # Display LM Arena Score
+        lm_arena_score = selected_model_data.get('lm_arena_score', 'N/A')
+        st.sidebar.markdown(f"**LM Arena Score:** {lm_arena_score}")
 
     if st.session_state.matched_models_count > 0:
         st.sidebar.info(f"Matched {st.session_state.matched_models_count} out of {st.session_state.total_image_capable_models} models with scores from CSV.")
