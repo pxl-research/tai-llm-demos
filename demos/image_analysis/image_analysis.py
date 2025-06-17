@@ -11,6 +11,11 @@ load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 DEFAULT_MODEL = 'google/gemini-2.0-flash-001'
 
+# Price thresholds for coloring (per million tokens for prompt/completion, per 10K tokens for image)
+PROMPT_PRICE_THRESHOLD = 1.5
+COMPLETION_PRICE_THRESHOLD = 7.5
+IMAGE_PRICE_THRESHOLD = 7.5
+
 # --- Streamlit Page Configuration ---
 st.set_page_config(page_title="OpenRouter Image Analysis", layout="centered")
 st.title("OpenRouter Image Analysis Demo")
@@ -92,23 +97,42 @@ if model_ids_for_selectbox:
 
     if selected_model_data:
         st.sidebar.markdown(f"### **{selected_model_data['id']}**")
-        st.sidebar.markdown(f"**Provider:** {selected_model_data['id'].split('/')[0]}")
-        
+
         pricing = selected_model_data.get('pricing', {})
         prompt_price = float(pricing.get('prompt', 0)) * 1000000
         completion_price = float(pricing.get('completion', 0)) * 1000000
-        
-        st.sidebar.markdown(f"**Prompt Price:** ${prompt_price:.2f} / M tokens")
-        st.sidebar.markdown(f"**Completion Price:** ${completion_price:.2f} / M tokens")
-        st.sidebar.markdown(f"**Context Length:** {selected_model_data.get('context_length', 'N/A')} tokens")
-        
+        image_price_raw = pricing.get('image') # Get image price, might be None
+        lm_arena_score = selected_model_data.get('lm_arena_score', 'N/A')
         top_provider = selected_model_data.get('top_provider', {})
         max_completion_tokens = top_provider.get('max_completion_tokens', 'N/A')
-        st.sidebar.markdown(f"**Max Completion Tokens:** {max_completion_tokens}")
-        
-        # Display LM Arena Score
-        lm_arena_score = selected_model_data.get('lm_arena_score', 'N/A')
+
         st.sidebar.markdown(f"**LM Arena Score:** {lm_arena_score}")
+
+        # Format Image Price
+        if image_price_raw is not None and float(image_price_raw) != 0:
+            image_price_per_10k = float(image_price_raw) * 10000
+            image_price_str = f"${image_price_per_10k:.2f} / 10K tokens"
+            if image_price_per_10k > IMAGE_PRICE_THRESHOLD:
+                image_price_str = f"<span style='color: orange;'>{image_price_str}</span>"
+            st.sidebar.markdown(f"**Image Price:** {image_price_str}", unsafe_allow_html=True)
+        else:
+            st.sidebar.markdown(f"**Image Price:** N/A")
+
+        # Format Prompt Price
+        prompt_price_str = f"${prompt_price:.2f} / M tokens"
+        if prompt_price > PROMPT_PRICE_THRESHOLD:
+            prompt_price_str = f"<span style='color: orange;'>{prompt_price_str}</span>"
+        st.sidebar.markdown(f"**Prompt Price:** {prompt_price_str}", unsafe_allow_html=True)
+
+        # Format Completion Price
+        completion_price_str = f"${completion_price:.2f} / M tokens"
+        if completion_price > COMPLETION_PRICE_THRESHOLD:
+            completion_price_str = f"<span style='color: orange;'>{completion_price_str}</span>"
+        st.sidebar.markdown(f"**Completion Price:** {completion_price_str}", unsafe_allow_html=True)
+
+        st.sidebar.markdown(f"**Context Length:** {selected_model_data.get('context_length', 'N/A')} tokens")
+        st.sidebar.markdown(f"**Max Completion Tokens:** {max_completion_tokens}")
+        st.sidebar.markdown(f"**Provider:** {selected_model_data['id'].split('/')[0]}")
 
     if st.session_state.matched_models_count > 0:
         st.sidebar.info(f"Matched {st.session_state.matched_models_count} out of {st.session_state.total_image_capable_models} models with scores from CSV.")
