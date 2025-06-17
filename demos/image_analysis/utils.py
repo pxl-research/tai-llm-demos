@@ -98,10 +98,10 @@ def sort_models_by_score(model_objects, score_map):
         # OpenRouter model_id format: "organization/model_name"
         # 1. Try to match directly with the score_map key
         score = score_map.get(model_id.lower(), float('-inf'))
+        model["lm_arena_score"] = score if score != float('-inf') else "N/A"
 
         if score != float('-inf'):
             matched_count += 1
-            model["lm_arena_score"] = score if score != float('-inf') else "N/A"
             scored_models.append((score, model))
         else:
             # 2. If direct match fails, try fuzzy matching
