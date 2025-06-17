@@ -31,6 +31,10 @@ if "last_uploaded_file_id" not in st.session_state:
 if "all_models_data" not in st.session_state:
     st.session_state.all_models_data = [] # Stores full model objects
 
+# Callback function for model selection
+def _update_selected_model():
+    st.session_state.selected_model_id = st.session_state.model_selector
+
 # --- Model Selection and Sorting ---
 if not st.session_state.all_models_data:
     st.session_state.all_models_data = get_image_capable_models() # Now returns full model objects
@@ -70,19 +74,20 @@ model_ids_for_selectbox = [model['id'] for model in st.session_state.all_models_
 if model_ids_for_selectbox:
     st.sidebar.header("Model Settings")
     
-    # Get the currently selected model from the selectbox
-    selected_model_from_selectbox = st.sidebar.selectbox(
+    current_index = 0
+    if st.session_state.selected_model_id in model_ids_for_selectbox:
+        current_index = model_ids_for_selectbox.index(st.session_state.selected_model_id)
+
+    st.sidebar.selectbox(
         "Select a model:",
         model_ids_for_selectbox,
-        key="model_selector" # Add a unique key
+        index=current_index, # Set the index explicitly
+        key="model_selector", # Keep the unique key
+        on_change=_update_selected_model # Add the callback
     )
     
-    # Update session state only if the selectbox value has changed
-    if selected_model_from_selectbox != st.session_state.selected_model_id:
-        st.session_state.selected_model_id = selected_model_from_selectbox
-        st.rerun() # Rerun to update displayed info based on new selection
-
     # Find the full model object for the selected model ID
+    # This will now always use the value from st.session_state.selected_model_id
     selected_model_data = next((model for model in st.session_state.all_models_data if model['id'] == st.session_state.selected_model_id), None)
 
     if selected_model_data:
