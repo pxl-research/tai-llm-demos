@@ -69,12 +69,19 @@ model_ids_for_selectbox = [model['id'] for model in st.session_state.all_models_
 
 if model_ids_for_selectbox:
     st.sidebar.header("Model Settings")
-    st.session_state.selected_model_id = st.sidebar.selectbox(
+    
+    # Get the currently selected model from the selectbox
+    selected_model_from_selectbox = st.sidebar.selectbox(
         "Select a model:",
         model_ids_for_selectbox,
-        index=model_ids_for_selectbox.index(st.session_state.selected_model_id) if st.session_state.selected_model_id in model_ids_for_selectbox else 0
+        key="model_selector" # Add a unique key
     )
     
+    # Update session state only if the selectbox value has changed
+    if selected_model_from_selectbox != st.session_state.selected_model_id:
+        st.session_state.selected_model_id = selected_model_from_selectbox
+        st.rerun() # Rerun to update displayed info based on new selection
+
     # Find the full model object for the selected model ID
     selected_model_data = next((model for model in st.session_state.all_models_data if model['id'] == st.session_state.selected_model_id), None)
 
