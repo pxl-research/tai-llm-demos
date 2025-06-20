@@ -88,7 +88,7 @@ def sort_models_by_score(model_objects: List[Dict[str, Any]], score_map: Dict[st
     """
     scored_models = []
     matched_count = 0
-    FUZZY_MATCH_THRESHOLD = 80
+    FUZZY_MATCH_THRESHOLD = 90
 
     for model in model_objects:
         model_id = model['id']
@@ -101,7 +101,7 @@ def sort_models_by_score(model_objects: List[Dict[str, Any]], score_map: Dict[st
             best_score = 0
 
             for csv_key in score_map.keys():
-                match_score = fuzz.token_set_ratio(model_id.lower(), csv_key)
+                match_score = fuzz.WRatio(model_id.lower(), csv_key)
                 if match_score > best_score:
                     best_score = match_score
                     best_match = csv_key
