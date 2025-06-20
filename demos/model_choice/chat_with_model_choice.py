@@ -42,7 +42,8 @@ def on_load_ui():
                     .map(colorize_quantiles, df=data_models, col='prompt_price', subset=['prompt_price'])
                     .map(colorize_contexts, subset=['context_length'])
                     .map(colorize_providers, subset=['provider'])
-                    .map(colorize_scores, df=data_models, col='lm_arena_score', subset=['lm_arena_score']) # Add colorization for lm_arena_score
+                    .map(colorize_scores, df=data_models, col='lm_arena_score', subset=['lm_arena_score'])
+                    # Add colorization for lm_arena_score
                     )
 
     return data_models, style_models
@@ -92,9 +93,9 @@ def colorize_scores(value, df, col):
     if isinstance(value, str) and value == "N/A":
         numeric_value = float('-inf')
     else:
-        numeric_value = float(value) # Ensure it's a float for comparison
+        numeric_value = float(value)  # Ensure it's a float for comparison
 
-    if numeric_value == -1 or numeric_value == float('-inf'): # Models with no score or -inf from fuzzy matching
+    if numeric_value == -1 or numeric_value == float('-inf'):  # Models with no score or -inf from fuzzy matching
         return 'color:grey;'
     if numeric_value >= df[col].quantile(0.9):
         return 'color:green;'
@@ -206,7 +207,9 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                                           type="pandas",
                                           show_search='search',
                                           interactive=False,
-                                          headers=['Provider', 'Full Model Name', 'Prompt Price', 'Completion Price', 'Context Length', 'Max Completion Tokens', 'LM Arena Score'])
+                                          headers=['Full Model Name', 'LM Arena Score', 'Prompt Price',
+                                                   'Completion Price', 'Context Length', 'Max Completion Tokens',
+                                                   'Provider'])
 
     # event handlers
     tb_user.submit(append_user,

@@ -80,15 +80,16 @@ def load_model_scores(csv_path="./lmarena_vision_250616.csv") -> Dict[str, float
         return {}
 
 
-def sort_models_by_score(model_objects: List[Dict[str, Any]], score_map: Dict[str, float]) -> Tuple[
-    List[Dict[str, Any]], int]:
+def sort_models_by_score(model_objects: List[Dict[str, Any]],
+                         score_map: Dict[str, float],
+                         fuzzy_match_threshold: int = 80
+                         ) -> Tuple[List[Dict[str, Any]], int]:
     """
     Sorts models by performance score and returns the sorted list and count of matched models.
     Uses fuzzy matching when exact model ID matches aren't found in the score map.
     """
     scored_models = []
     matched_count = 0
-    FUZZY_MATCH_THRESHOLD = 90
 
     for model in model_objects:
         model_id = model['id']
@@ -107,7 +108,7 @@ def sort_models_by_score(model_objects: List[Dict[str, Any]], score_map: Dict[st
                     best_match = csv_key
 
             # Use fuzzy match if it's good enough
-            if best_match and best_score >= FUZZY_MATCH_THRESHOLD:
+            if best_match and best_score >= fuzzy_match_threshold:
                 score = score_map[best_match]
                 matched_count += 1
             else:
