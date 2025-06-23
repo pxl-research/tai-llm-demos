@@ -57,6 +57,9 @@ def main():
             "type": "text",
             "content": prompt
         })
+        # Display user message immediately
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
         # Prepare API messages
         api_messages = prepare_api_messages(prompt)
