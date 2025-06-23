@@ -23,4 +23,5 @@ SESSION_KEYS = {
     "last_uploaded_file_id": None,
     "all_models_data": [],
     "total_image_capable_models": 0,
+    "file_uploader_key_counter": 0, # New key for resetting file uploader
 }

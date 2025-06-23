@@ -123,7 +123,7 @@ def handle_image_upload():
     uploaded_file = st.file_uploader(
         "Upload an image",
         type=["png", "jpg", "jpeg", "webp"],
-        key="image_uploader"
+        key=f"image_uploader_{st.session_state.file_uploader_key_counter}"
     )
 
     if uploaded_file is not None:
@@ -150,3 +150,14 @@ def handle_image_upload():
 
             # Refresh display
             st.rerun()
+
+def clear_chat_history():
+    """Clears the chat history and resets image-related session state."""
+    st.session_state.messages = []
+    st.session_state.current_image_message = None
+    st.session_state.last_uploaded_file_id = None
+    st.session_state.file_uploader_key_counter += 1 # Increment to reset file uploader
+
+def add_clear_chat_button():
+    """Adds a button to clear the chat history."""
+    st.sidebar.button("Clear Chat", on_click=clear_chat_history)

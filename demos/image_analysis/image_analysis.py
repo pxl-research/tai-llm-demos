@@ -10,7 +10,8 @@ from ui_components import (
     initialize_session_state,
     setup_model_selector,
     display_chat_history,
-    handle_image_upload
+    handle_image_upload,
+    add_clear_chat_button
 )
 
 # --- Streamlit Page Configuration ---
@@ -29,6 +30,9 @@ def main():
 
     # Setup sidebar model selector
     setup_model_selector()
+
+    # Add clear chat button to sidebar
+    add_clear_chat_button()
 
     # Display existing chat messages
     display_chat_history()
