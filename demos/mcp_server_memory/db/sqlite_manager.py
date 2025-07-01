@@ -351,3 +351,43 @@ class SQLiteManager:
         except Exception as e:
             print(f"Error getting status from SQLite: {e}")
             return {}
+
+    def delete_memory(self, memory_id: str) -> bool:
+        """Delete a memory item from the database.
+
+        Args:
+            memory_id: The ID of the memory to delete
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            # Get the topic of the memory item before deleting
+            cursor.execute("SELECT topic FROM memory_items WHERE id = ?", (memory_id,))
+            item = cursor.fetchone()
+
+            if not item:
+                conn.close()
+                return False  # Memory item not found
+
+            topic = item["topic"]
+
+            # Delete the memory item
+            cursor.execute("DELETE FROM memory_items WHERE id = ?", (memory_id,))
+
+            # Decrement the item_count for the associated topic
+            cursor.execute(
+                "UPDATE topics SET item_count = item_count - 1 WHERE name = ?",
+                (topic,)
+            )
+
+            conn.commit()
+            conn.close()
+            return True
+
+        except Exception as e:
+            print(f"Error deleting memory from SQLite: {e}")
+            return False

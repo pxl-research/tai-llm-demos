@@ -259,3 +259,22 @@ class ChromaManager:
         except Exception as e:
             print(f"Error getting ChromaDB status: {e}")
             return {}
+
+    def delete_memory(self, memory_id: str) -> bool:
+        """Delete a memory item from ChromaDB.
+
+        Args:
+            memory_id: The ID of the memory to delete
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            collection = self.client.get_collection(name=MEMORY_COLLECTION)
+            collection.delete(ids=[memory_id])
+            return True
+        except Exception as e:
+            print(f"Error deleting memory from ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
+            return False

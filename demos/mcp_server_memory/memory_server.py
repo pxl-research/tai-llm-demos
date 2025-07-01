@@ -5,14 +5,14 @@ This server provides a set of tools for storing, retrieving, and managing
 persistent memory for LLMs through the Model Context Protocol (MCP).
 """
 
-from typing import List, Optional, Dict, Any, Annotated
+from typing import List, Optional, Annotated
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
+from config import DB_PATH
 from db import SQLiteManager, ChromaManager
 from utils import create_memory_id, timestamp, format_response
-from config import DB_PATH
 
 # Initialize the MCP server
 mcp = FastMCP("memory_server")
@@ -21,16 +21,17 @@ mcp = FastMCP("memory_server")
 sqlite_manager = SQLiteManager()
 chroma_manager = ChromaManager()
 
+
 @mcp.tool()
 def memory_initialize(
-    reset: Annotated[
-        bool,
-        Field(
-            description="Whether to reset existing memory", 
-            default=False,
-            examples=[False, True]
-        )
-    ] = False
+        reset: Annotated[
+            bool,
+            Field(
+                description="Whether to reset existing memory",
+                default=False,
+                examples=[False, True]
+            )
+        ] = False
 ) -> dict:
     """Initialize or reset the memory system databases.
     
@@ -43,10 +44,10 @@ def memory_initialize(
     try:
         # Initialize SQLite
         sqlite_success = sqlite_manager.initialize(reset)
-        
+
         # Initialize ChromaDB
         chroma_success = chroma_manager.initialize(reset)
-        
+
         if sqlite_success and chroma_success:
             return format_response(
                 success=True,
@@ -62,37 +63,38 @@ def memory_initialize(
                     "chroma_success": chroma_success
                 }
             )
-    
+
     except Exception as e:
         return format_response(
             success=False,
             message=f"Error initializing memory system: {str(e)}"
         )
 
+
 @mcp.tool()
 def memory_store(
-    content: Annotated[
-        str,
-        Field(
-            description="The content to store in memory",
-            examples=["Quantum computing uses qubits which can exist in multiple states simultaneously."]
-        )
-    ],
-    topic: Annotated[
-        str,
-        Field(
-            description="Primary topic/category for this content",
-            examples=["quantum_computing", "machine_learning", "history"]
-        )
-    ],
-    tags: Annotated[
-        List[str],
-        Field(
-            description="Optional tags for better retrieval",
-            default=[],
-            examples=[["physics", "computing", "technology"], ["ai", "neural_networks"]]
-        )
-    ] = []
+        content: Annotated[
+            str,
+            Field(
+                description="The content to store in memory",
+                examples=["Quantum computing uses qubits which can exist in multiple states simultaneously."]
+            )
+        ],
+        topic: Annotated[
+            str,
+            Field(
+                description="Primary topic/category for this content",
+                examples=["quantum_computing", "machine_learning", "history"]
+            )
+        ],
+        tags: Annotated[
+            List[str],
+            Field(
+                description="Optional tags for better retrieval",
+                default=[],
+                examples=[["physics", "computing", "technology"], ["ai", "neural_networks"]]
+            )
+        ] = []
 ) -> dict:
     """Store new information in the persistent memory system.
     
@@ -107,16 +109,16 @@ def memory_store(
     try:
         memory_id = create_memory_id()
         now = timestamp()
-        
+
         # Store in SQLite
         sqlite_success = sqlite_manager.store_memory(memory_id, content, topic, tags)
-        
+
         # Store in ChromaDB
         chroma_success = chroma_manager.store_memory(memory_id, content, topic, tags)
-        
+
         # Update topic in ChromaDB
         topic_success = chroma_manager.update_topic(topic, tags)
-        
+
         if sqlite_success and chroma_success:
             return format_response(
                 success=True,
@@ -138,38 +140,39 @@ def memory_store(
                     "topic_success": topic_success
                 }
             )
-    
+
     except Exception as e:
         return format_response(
             success=False,
             message=f"Error storing content: {str(e)}"
         )
 
+
 @mcp.tool()
 def memory_retrieve(
-    query: Annotated[
-        str,
-        Field(
-            description="The query to search for in memory",
-            examples=["How do quantum computers work?", "Tell me about machine learning"]
-        )
-    ],
-    max_results: Annotated[
-        int,
-        Field(
-            description="Maximum number of results to return",
-            default=5,
-            examples=[3, 5, 10]
-        )
-    ] = 5,
-    topic: Annotated[
-        Optional[str],
-        Field(
-            description="Optional topic to restrict search to",
-            default=None,
-            examples=["quantum_computing", "machine_learning"]
-        )
-    ] = None
+        query: Annotated[
+            str,
+            Field(
+                description="The query to search for in memory",
+                examples=["How do quantum computers work?", "Tell me about machine learning"]
+            )
+        ],
+        max_results: Annotated[
+            int,
+            Field(
+                description="Maximum number of results to return",
+                default=5,
+                examples=[3, 5, 10]
+            )
+        ] = 5,
+        topic: Annotated[
+            Optional[str],
+            Field(
+                description="Optional topic to restrict search to",
+                default=None,
+                examples=["quantum_computing", "machine_learning"]
+            )
+        ] = None
 ) -> List[dict]:
     """Retrieve information from memory using semantic search.
     
@@ -184,57 +187,58 @@ def memory_retrieve(
     try:
         # Perform semantic search in ChromaDB
         memory_ids = chroma_manager.search_memories(query, max_results, topic)
-        
+
         # Retrieve full content from SQLite
         memory_items = []
         for memory_id in memory_ids:
             item = sqlite_manager.get_memory(memory_id)
             if item:
                 memory_items.append(item)
-        
+
         return memory_items if memory_items else [
             format_response(success=True, message="No matching memories found")
         ]
-    
+
     except Exception as e:
         return [format_response(
             success=False,
             message=f"Error retrieving from memory: {str(e)}"
         )]
 
+
 @mcp.tool()
 def memory_update(
-    memory_id: Annotated[
-        str,
-        Field(
-            description="ID of the memory item to update",
-            examples=["550e8400-e29b-41d4-a716-446655440000"]
-        )
-    ],
-    content: Annotated[
-        Optional[str],
-        Field(
-            description="New content (if updating content)",
-            default=None,
-            examples=["Updated information about quantum computing"]
-        )
-    ] = None,
-    topic: Annotated[
-        Optional[str],
-        Field(
-            description="New topic (if changing)",
-            default=None,
-            examples=["quantum_physics"]
-        )
-    ] = None,
-    tags: Annotated[
-        Optional[List[str]],
-        Field(
-            description="New tags (if updating)",
-            default=None,
-            examples=[["updated", "revised", "quantum"]]
-        )
-    ] = None
+        memory_id: Annotated[
+            str,
+            Field(
+                description="ID of the memory item to update",
+                examples=["550e8400-e29b-41d4-a716-446655440000"]
+            )
+        ],
+        content: Annotated[
+            Optional[str],
+            Field(
+                description="New content (if updating content)",
+                default=None,
+                examples=["Updated information about quantum computing"]
+            )
+        ] = None,
+        topic: Annotated[
+            Optional[str],
+            Field(
+                description="New topic (if changing)",
+                default=None,
+                examples=["quantum_physics"]
+            )
+        ] = None,
+        tags: Annotated[
+            Optional[List[str]],
+            Field(
+                description="New tags (if updating)",
+                default=None,
+                examples=[["updated", "revised", "quantum"]]
+            )
+        ] = None
 ) -> dict:
     """Update an existing memory item.
     
@@ -252,17 +256,17 @@ def memory_update(
             success=False,
             message="At least one of content, topic, or tags must be provided"
         )
-    
+
     try:
         # Get current memory item
         current_item = sqlite_manager.get_memory(memory_id)
-        
+
         if not current_item:
             return format_response(
                 success=False,
                 message=f"Memory item with ID {memory_id} not found"
             )
-        
+
         # Update in SQLite
         sqlite_success = sqlite_manager.update_memory(
             memory_id=memory_id,
@@ -270,10 +274,10 @@ def memory_update(
             topic=topic,
             tags=tags
         )
-        
+
         # Get updated item for ChromaDB update
         updated_item = sqlite_manager.get_memory(memory_id)
-        
+
         # Update in ChromaDB
         chroma_success = chroma_manager.update_memory(
             memory_id=memory_id,
@@ -282,11 +286,11 @@ def memory_update(
             tags=updated_item["tags"],
             created_at=updated_item["created_at"]
         )
-        
+
         # Update topic in ChromaDB if topic changed
         if topic is not None:
             chroma_manager.update_topic(topic, updated_item["tags"])
-        
+
         if sqlite_success and chroma_success:
             return format_response(
                 success=True,
@@ -310,12 +314,13 @@ def memory_update(
                     "chroma_success": chroma_success
                 }
             )
-    
+
     except Exception as e:
         return format_response(
             success=False,
             message=f"Error updating memory item: {str(e)}"
         )
+
 
 @mcp.tool()
 def memory_list_topics() -> List[dict]:
@@ -326,16 +331,17 @@ def memory_list_topics() -> List[dict]:
     """
     try:
         topics = sqlite_manager.list_topics()
-        
+
         return topics if topics else [
             format_response(success=True, message="No topics found")
         ]
-    
+
     except Exception as e:
         return [format_response(
             success=False,
             message=f"Error listing topics: {str(e)}"
         )]
+
 
 @mcp.tool()
 def memory_status() -> dict:
@@ -347,10 +353,10 @@ def memory_status() -> dict:
     try:
         # Get SQLite statistics
         sqlite_stats = sqlite_manager.get_status()
-        
+
         # Get ChromaDB information
         chroma_stats = chroma_manager.get_status()
-        
+
         return format_response(
             success=True,
             message="Memory status retrieved successfully",
@@ -363,19 +369,63 @@ def memory_status() -> dict:
                 }
             }
         )
-    
+
     except Exception as e:
         return format_response(
             success=False,
             message=f"Error getting memory status: {str(e)}"
         )
 
+
+@mcp.tool()
+def memory_delete(
+        memory_id: Annotated[
+            str,
+            Field(
+                description="ID of the memory item to delete",
+                examples=["550e8400-e29b-41d4-a716-446655440000"]
+            )
+        ]
+) -> dict:
+    """Delete a memory item from the system.
+
+    Args:
+        memory_id: ID of the memory item to delete.
+
+    Returns:
+        dict: Status of the deletion operation.
+    """
+    try:
+        sqlite_success = sqlite_manager.delete_memory(memory_id)
+        chroma_success = chroma_manager.delete_memory(memory_id)
+
+        if sqlite_success and chroma_success:
+            return format_response(
+                success=True,
+                message=f"Memory item {memory_id} deleted successfully"
+            )
+        else:
+            return format_response(
+                success=False,
+                message=f"Error deleting memory item {memory_id}",
+                data={
+                    "sqlite_success": sqlite_success,
+                    "chroma_success": chroma_success
+                }
+            )
+    except Exception as e:
+        return format_response(
+            success=False,
+            message=f"Error deleting memory item: {str(e)}"
+        )
+
+
 if __name__ == "__main__":
     print('Initializing memory server...')
-    
+
     # Initialize the memory system on startup
     init_result = memory_initialize()
     print(f"Initialization result: {init_result['status']}")
-    
+
     # Run the MCP server
     mcp.run(transport='stdio')
