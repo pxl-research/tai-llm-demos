@@ -598,3 +598,37 @@ class SQLiteManager:
         except Exception as e:
             print(f"Error deleting memory from SQLite: {e}")
             return False
+
+    def delete_topic_if_empty(self, topic_name: str) -> bool:
+        """Delete a topic if its item_count is 0.
+
+        Args:
+            topic_name: The name of the topic to delete.
+
+        Returns:
+            bool: True if the topic was deleted, False otherwise.
+        """
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            # Check if topic exists and its item_count is 0
+            cursor.execute("SELECT item_count FROM topics WHERE name = ?", (topic_name,))
+            topic_info = cursor.fetchone()
+
+            if not topic_info:
+                conn.close()
+                return False  # Topic not found
+
+            if topic_info["item_count"] == 0:
+                cursor.execute("DELETE FROM topics WHERE name = ?", (topic_name,))
+                conn.commit()
+                conn.close()
+                return True
+            else:
+                conn.close()
+                return False  # Topic is not empty
+
+        except Exception as e:
+            print(f"Error deleting topic from SQLite: {e}")
+            return False

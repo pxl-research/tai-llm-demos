@@ -216,6 +216,18 @@ Deletes a memory item from the system.
 
 - Status of the deletion operation.
 
+### `memory_delete_empty_topic`
+
+Deletes a topic from the system if it has no associated memory items.
+
+**Parameters:**
+
+- `topic_name` (str): The name of the topic to delete.
+
+**Returns:**
+
+- Status of the deletion operation.
+
 ### `memory_summarize`
 
 Generates a summary of memory items.
