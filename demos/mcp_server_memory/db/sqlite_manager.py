@@ -13,6 +13,12 @@ project_root = os.path.abspath(os.path.join(current_dir, '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+# Get the absolute path to the project root
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 # Now import using local path
 from config import SQLITE_PATH
 from utils.helpers import timestamp
@@ -55,6 +61,7 @@ class SQLiteManager:
             if reset:
                 cursor.execute("DROP TABLE IF EXISTS memory_items")
                 cursor.execute("DROP TABLE IF EXISTS topics")
+                cursor.execute("DROP TABLE IF EXISTS summaries")  # New: Drop summaries table
 
             # Create tables if they don't exist
             cursor.execute("""
@@ -117,12 +124,212 @@ class SQLiteManager:
                            )
                            """)
 
+            # New: Create summaries table
+            cursor.execute("""
+                           CREATE TABLE IF NOT EXISTS summaries
+                           (
+                               id
+                               TEXT
+                               PRIMARY
+                               KEY,
+                               memory_id
+                               TEXT
+                               NOT
+                               NULL,
+                               summary_type
+                               TEXT
+                               NOT
+                               NULL,
+                               summary_text
+                               TEXT
+                               NOT
+                               NULL,
+                               created_at
+                               TEXT
+                               NOT
+                               NULL,
+                               updated_at
+                               TEXT
+                               NOT
+                               NULL,
+                               FOREIGN
+                               KEY
+                           (
+                               memory_id
+                           ) REFERENCES memory_items
+                           (
+                               id
+                           ) ON DELETE CASCADE
+                               )
+                           """)
+
             conn.commit()
             conn.close()
             return True
 
         except Exception as e:
             print(f"Error initializing SQLite database: {e}")
+            return False
+
+    def store_summary(self, summary_id: str, memory_id: str, summary_type: str, summary_text: str) -> bool:
+        """Store a summary item in the database.
+
+        Args:
+            summary_id: Unique ID for the summary item
+            memory_id: The ID of the memory item this summary belongs to
+            summary_type: The type of summary (e.g., 'abstractive_medium')
+            summary_text: The summary content
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            now = timestamp()
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                INSERT INTO summaries
+                    (id, memory_id, summary_type, summary_text, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (summary_id, memory_id, summary_type, summary_text, now, now)
+            )
+
+            conn.commit()
+            conn.close()
+            return True
+
+        except Exception as e:
+            print(f"Error storing summary in SQLite: {e}")
+            return False
+
+    def get_summary(self, memory_id: str, summary_type: str) -> Optional[Dict[str, Any]]:
+        """Get a summary item by memory ID and summary type.
+
+        Args:
+            memory_id: The ID of the memory to retrieve summary for
+            summary_type: The type of summary to retrieve
+
+        Returns:
+            Optional[Dict[str, Any]]: The summary item or None if not found
+        """
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM summaries WHERE memory_id = ? AND summary_type = ?",
+                (memory_id, summary_type)
+            )
+            item = cursor.fetchone()
+            conn.close()
+
+            if not item:
+                return None
+
+            return {
+                "id": item["id"],
+                "memory_id": item["memory_id"],
+                "summary_type": item["summary_type"],
+                "summary_text": item["summary_text"],
+                "created_at": item["created_at"],
+                "updated_at": item["updated_at"]
+            }
+
+        except Exception as e:
+            print(f"Error getting summary from SQLite: {e}")
+            return None
+
+    def get_summary_by_id(self, summary_id: str) -> Optional[Dict[str, Any]]:
+        """Get a summary item by its unique ID.
+
+        Args:
+            summary_id: The unique ID of the summary to retrieve
+
+        Returns:
+            Optional[Dict[str, Any]]: The summary item or None if not found
+        """
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM summaries WHERE id = ?",
+                (summary_id,)
+            )
+            item = cursor.fetchone()
+            conn.close()
+
+            if not item:
+                return None
+
+            return {
+                "id": item["id"],
+                "memory_id": item["memory_id"],
+                "summary_type": item["summary_type"],
+                "summary_text": item["summary_text"],
+                "created_at": item["created_at"],
+                "updated_at": item["updated_at"]
+            }
+
+        except Exception as e:
+            print(f"Error getting summary by ID from SQLite: {e}")
+            return None
+
+    def update_summary(self, summary_id: str, new_summary_text: str) -> bool:
+        """Update an existing summary item.
+
+        Args:
+            summary_id: The ID of the summary to update
+            new_summary_text: The new summary content
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            now = timestamp()
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                UPDATE summaries
+                SET summary_text = ?,
+                    updated_at   = ?
+                WHERE id = ?
+                """,
+                (new_summary_text, now, summary_id)
+            )
+
+            conn.commit()
+            conn.close()
+            return True
+
+        except Exception as e:
+            print(f"Error updating summary in SQLite: {e}")
+            return False
+
+    def delete_summaries(self, memory_id: str) -> bool:
+        """Delete all summaries associated with a memory ID.
+
+        Args:
+            memory_id: The ID of the memory whose summaries to delete
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("DELETE FROM summaries WHERE memory_id = ?", (memory_id,))
+
+            conn.commit()
+            conn.close()
+            return True
+
+        except Exception as e:
+            print(f"Error deleting summaries from SQLite: {e}")
             return False
 
     def store_memory(self, memory_id: str, content: str, topic: str, tags: List[str]) -> bool:

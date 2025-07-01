@@ -5,14 +5,15 @@ This server provides a set of tools for storing, retrieving, and managing
 persistent memory for LLMs through the Model Context Protocol (MCP).
 """
 
-from typing import List, Optional, Annotated
+from typing import List, Optional, Annotated, Literal
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
-from config import DB_PATH
+from config import DB_PATH, OPENROUTER_API_KEY
 from db import SQLiteManager, ChromaManager
 from utils import create_memory_id, timestamp, format_response
+from utils.summarizer import Summarizer # New: Import Summarizer
 
 # Initialize the MCP server
 mcp = FastMCP("memory_server")
@@ -20,6 +21,9 @@ mcp = FastMCP("memory_server")
 # Initialize database managers
 sqlite_manager = SQLiteManager()
 chroma_manager = ChromaManager()
+
+# Initialize summarizer
+summarizer = Summarizer(api_key=OPENROUTER_API_KEY) # New: Initialize Summarizer
 
 
 @mcp.tool()
@@ -119,6 +123,21 @@ def memory_store(
         # Update topic in ChromaDB
         topic_success = chroma_manager.update_topic(topic, tags)
 
+        # New: Generate and store summary
+        summary_id = create_memory_id()
+        generated_summary = summarizer.generate_summary(content, summary_type="abstractive", length="medium")
+
+        summary_stored = False
+        if generated_summary:
+            summary_stored = sqlite_manager.store_summary(summary_id, memory_id, "abstractive_medium", generated_summary)
+            chroma_manager.store_summary_embedding(
+                summary_id,
+                generated_summary,
+                {"memory_id": memory_id, "summary_type": "abstractive_medium", "topic": topic}
+            )
+        else:
+            print(f"Warning: Failed to generate summary for memory_id {memory_id}. Original content stored without summary.")
+
         if sqlite_success and chroma_success:
             return format_response(
                 success=True,
@@ -127,7 +146,9 @@ def memory_store(
                     "memory_id": memory_id,
                     "topic": topic,
                     "tags": tags,
-                    "timestamp": now
+                    "timestamp": now,
+                    "summary_generated": bool(generated_summary), # New: Indicate if summary was generated
+                    "summary_stored": summary_stored # New: Indicate if summary was stored
                 }
             )
         else:
@@ -137,7 +158,9 @@ def memory_store(
                 data={
                     "sqlite_success": sqlite_success,
                     "chroma_success": chroma_success,
-                    "topic_success": topic_success
+                    "topic_success": topic_success,
+                    "summary_generated": bool(generated_summary), # New: Indicate if summary was generated
+                    "summary_stored": summary_stored # New: Indicate if summary was stored
                 }
             )
 
@@ -172,7 +195,15 @@ def memory_retrieve(
                 default=None,
                 examples=["quantum_computing", "machine_learning"]
             )
-        ] = None
+        ] = None,
+        return_type: Annotated[
+            Literal["full_text", "summary", "both"],
+            Field(
+                description="The type of content to return: full_text, summary, or both",
+                default="full_text",
+                examples=["full_text", "summary", "both"]
+            )
+        ] = "full_text"
 ) -> List[dict]:
     """Retrieve information from memory using semantic search.
     
@@ -180,20 +211,40 @@ def memory_retrieve(
         query: The search query to find relevant information.
         max_results: Maximum number of results to return.
         topic: Optional topic to restrict search to.
+        return_type: The type of content to return (full_text, summary, or both).
         
     Returns:
         List[dict]: List of matching memory items with content and metadata
     """
     try:
-        # Perform semantic search in ChromaDB
-        memory_ids = chroma_manager.search_memories(query, max_results, topic)
-
-        # Retrieve full content from SQLite
+        # Prioritize semantic search on summaries for efficiency
+        summary_ids = chroma_manager.search_summary_embeddings(query, max_results, topic)
+        
         memory_items = []
-        for memory_id in memory_ids:
-            item = sqlite_manager.get_memory(memory_id)
-            if item:
-                memory_items.append(item)
+        for summary_id in summary_ids:
+            summary_item = sqlite_manager.get_summary_by_id(summary_id) # Assuming a new method to get summary by its own ID
+            if summary_item:
+                memory_id = summary_item["memory_id"]
+                full_memory_item = sqlite_manager.get_memory(memory_id)
+                
+                if full_memory_item:
+                    result_data = {
+                        "id": memory_id,
+                        "topic": full_memory_item["topic"],
+                        "tags": full_memory_item["tags"],
+                        "created_at": full_memory_item["created_at"],
+                        "updated_at": full_memory_item["updated_at"]
+                    }
+                    
+                    if return_type == "full_text":
+                        result_data["content"] = full_memory_item["content"]
+                    elif return_type == "summary":
+                        result_data["summary"] = summary_item["summary_text"]
+                    elif return_type == "both":
+                        result_data["content"] = full_memory_item["content"]
+                        result_data["summary"] = summary_item["summary_text"]
+                    
+                    memory_items.append(result_data)
 
         return memory_items if memory_items else [
             format_response(success=True, message="No matching memories found")
@@ -291,6 +342,33 @@ def memory_update(
         if topic is not None:
             chroma_manager.update_topic(topic, updated_item["tags"])
 
+        # New: Regenerate and update summary if content changed
+        summary_updated = False
+        if content is not None:
+            generated_summary = summarizer.generate_summary(updated_item["content"], summary_type="abstractive", length="medium")
+            if generated_summary:
+                # Assuming there's only one default summary type for now
+                existing_summary = sqlite_manager.get_summary(memory_id, "abstractive_medium")
+                if existing_summary:
+                    summary_updated = sqlite_manager.update_summary(existing_summary["id"], generated_summary)
+                    chroma_manager.store_summary_embedding( # Re-store to update embedding
+                        existing_summary["id"],
+                        generated_summary,
+                        {"memory_id": memory_id, "summary_type": "abstractive_medium", "topic": updated_item["topic"]}
+                    )
+                else:
+                    # If no existing summary, create one (e.g., if content was added before summarization feature)
+                    summary_id = create_memory_id()
+                    summary_updated = sqlite_manager.store_summary(summary_id, memory_id, "abstractive_medium", generated_summary)
+                    chroma_manager.store_summary_embedding(
+                        summary_id,
+                        generated_summary,
+                        {"memory_id": memory_id, "summary_type": "abstractive_medium", "topic": updated_item["topic"]}
+                    )
+            else:
+                print(f"Warning: Failed to regenerate summary for memory_id {memory_id} during update.")
+
+
         if sqlite_success and chroma_success:
             return format_response(
                 success=True,
@@ -302,7 +380,8 @@ def memory_update(
                         "topic": topic is not None,
                         "tags": tags is not None
                     },
-                    "timestamp": timestamp()
+                    "timestamp": timestamp(),
+                    "summary_updated": summary_updated # New: Indicate if summary was updated
                 }
             )
         else:
@@ -311,7 +390,8 @@ def memory_update(
                 message="Error updating memory item",
                 data={
                     "sqlite_success": sqlite_success,
-                    "chroma_success": chroma_success
+                    "chroma_success": chroma_success,
+                    "summary_updated": summary_updated # New: Indicate if summary was updated
                 }
             )
 
@@ -398,25 +478,160 @@ def memory_delete(
     try:
         sqlite_success = sqlite_manager.delete_memory(memory_id)
         chroma_success = chroma_manager.delete_memory(memory_id)
+        
+        # New: Delete associated summaries
+        sqlite_summary_delete_success = sqlite_manager.delete_summaries(memory_id)
+        # Note: ChromaDB delete_summary_embeddings takes summary_id, not memory_id.
+        # We would need to retrieve summary_ids first or modify delete_summary_embeddings
+        # to handle memory_id for bulk deletion. For now, we'll assume a single default summary.
+        # A more robust solution would involve iterating through all summaries for a memory_id.
+        # For simplicity, assuming we only delete the default 'abstractive_medium' summary for now.
+        # In a real scenario, we'd fetch all summary_ids for this memory_id from SQLite first.
+        
+        # For now, let's assume we need to fetch the summary_id from SQLite first
+        # This part needs a more robust implementation if multiple summaries per memory_id are expected
+        # For simplicity, we'll just try to delete the default summary embedding if it exists
+        default_summary = sqlite_manager.get_summary(memory_id, "abstractive_medium")
+        chroma_summary_delete_success = True # Assume success if no default summary or deletion works
+        if default_summary:
+            chroma_summary_delete_success = chroma_manager.delete_summary_embeddings(default_summary["id"])
 
-        if sqlite_success and chroma_success:
+
+        if sqlite_success and chroma_success and sqlite_summary_delete_success and chroma_summary_delete_success:
             return format_response(
                 success=True,
-                message=f"Memory item {memory_id} deleted successfully"
+                message=f"Memory item {memory_id} and its summaries deleted successfully"
             )
         else:
             return format_response(
                 success=False,
-                message=f"Error deleting memory item {memory_id}",
+                message=f"Error deleting memory item {memory_id} or its summaries",
                 data={
                     "sqlite_success": sqlite_success,
-                    "chroma_success": chroma_success
+                    "chroma_success": chroma_success,
+                    "sqlite_summary_delete_success": sqlite_summary_delete_success,
+                    "chroma_summary_delete_success": chroma_summary_delete_success
                 }
             )
     except Exception as e:
         return format_response(
             success=False,
             message=f"Error deleting memory item: {str(e)}"
+        )
+
+
+@mcp.tool()
+def memory_summarize(
+        memory_id: Annotated[
+            Optional[str],
+            Field(
+                description="ID of the memory item to summarize",
+                examples=["550e8400-e29b-41d4-a716-446655440000"]
+            )
+        ] = None,
+        query: Annotated[
+            Optional[str],
+            Field(
+                description="A query to find relevant memories to summarize",
+                examples=["key points of quantum computing"]
+            )
+        ] = None,
+        topic: Annotated[
+            Optional[str],
+            Field(
+                description="A topic to find relevant memories to summarize",
+                examples=["quantum_computing"]
+            )
+        ] = None,
+        summary_type: Annotated[
+            Literal["abstractive", "extractive", "query_focused"],
+            Field(
+                description="The type of summary to generate",
+                default="abstractive",
+                examples=["abstractive", "extractive", "query_focused"]
+            )
+        ] = "abstractive",
+        length: Annotated[
+            Literal["short", "medium", "detailed"],
+            Field(
+                description="The desired length of the summary",
+                default="medium",
+                examples=["short", "medium", "detailed"]
+            )
+        ] = "medium"
+) -> dict:
+    """Generate a summary of memory items.
+
+    Args:
+        memory_id: ID of a specific memory item to summarize.
+        query: A query to find relevant memories to summarize.
+        topic: A topic to find relevant memories to summarize.
+        summary_type: The type of summary to generate.
+        length: The desired length of the summary.
+
+    Returns:
+        dict: The generated summary or an error message.
+    """
+    if not any([memory_id, query, topic]):
+        return format_response(
+            success=False,
+            message="At least one of memory_id, query, or topic must be provided."
+        )
+
+    content_to_summarize = ""
+    if memory_id:
+        item = sqlite_manager.get_memory(memory_id)
+        if item:
+            content_to_summarize = item["content"]
+        else:
+            return format_response(success=False, message=f"Memory item with ID {memory_id} not found.")
+    elif query or topic:
+        # Search for relevant memories (using full content embeddings for broader search)
+        # Note: This might need refinement to search summary embeddings first for efficiency
+        # and then retrieve full content for summarization.
+        retrieved_memory_ids = chroma_manager.search_memories(query=query if query else "", max_results=10, topic=topic)
+        
+        if not retrieved_memory_ids:
+            return format_response(success=True, message="No relevant memories found to summarize.")
+        
+        # Retrieve full content for summarization
+        contents = []
+        for mid in retrieved_memory_ids:
+            item = sqlite_manager.get_memory(mid)
+            if item:
+                contents.append(item["content"])
+        
+        if not contents:
+            return format_response(success=True, message="Could not retrieve content for relevant memories.")
+            
+        content_to_summarize = "\n\n".join(contents)
+
+    if not content_to_summarize:
+        return format_response(success=False, message="No content found to summarize.")
+
+    try:
+        generated_summary = summarizer.generate_summary(
+            content_to_summarize,
+            summary_type=summary_type,
+            length=length,
+            query=query if summary_type == "query_focused" else None
+        )
+
+        if generated_summary:
+            return format_response(
+                success=True,
+                message="Summary generated successfully",
+                data={"summary": generated_summary}
+            )
+        else:
+            return format_response(
+                success=False,
+                message="Failed to generate summary. LLM might have encountered an issue or returned empty."
+            )
+    except Exception as e:
+        return format_response(
+            success=False,
+            message=f"Error generating summary: {str(e)}"
         )
 
 

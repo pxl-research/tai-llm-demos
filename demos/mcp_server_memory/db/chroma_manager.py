@@ -2,13 +2,12 @@
 ChromaDB manager for the MCP Memory Server.
 """
 
+import json
 import os
 import sys
-import json
 from typing import List, Dict, Any, Optional
 
 import chromadb
-from chromadb.utils import embedding_functions
 
 # Get the absolute path to the project root
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,7 +16,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 # Now import using local path
-from config import CHROMA_PATH, MEMORY_COLLECTION, TOPICS_COLLECTION
+from config import CHROMA_PATH, MEMORY_COLLECTION, TOPICS_COLLECTION, SUMMARY_COLLECTION
 from utils.helpers import timestamp
 
 
@@ -39,6 +38,7 @@ class ChromaManager:
         Returns:
             chromadb.PersistentClient: A ChromaDB client
         """
+        print(CHROMA_PATH)
         return chromadb.PersistentClient(path=CHROMA_PATH)
 
     def initialize(self, reset: bool = False) -> bool:
@@ -57,11 +57,12 @@ class ChromaManager:
                     # Re-initialize the client after reset
                     self.client = self._get_client()
                 except Exception as e:
-                    print(f"Warning during ChromaDB reset: {e}")
+                    print(f"Exception during ChromaDB reset: {e}")
 
             # Create collections
             self.client.get_or_create_collection(name=MEMORY_COLLECTION)
             self.client.get_or_create_collection(name=TOPICS_COLLECTION)
+            self.client.get_or_create_collection(name=SUMMARY_COLLECTION)
 
             return True
 
@@ -84,7 +85,7 @@ class ChromaManager:
         try:
             now = timestamp()
             collection = self.client.get_collection(name=MEMORY_COLLECTION)
-            
+
             # Convert tags list to JSON string
             tags_json = json.dumps(tags)
 
@@ -121,11 +122,11 @@ class ChromaManager:
         try:
             now = timestamp()
             topic_collection = self.client.get_collection(name=TOPICS_COLLECTION)
-            
+
             # Convert tags to a string format for storage
             tags_str = ', '.join(tags) if tags else topic
             topic_summary = f"Topic {topic} containing information about {tags_str}"
-            
+
             # Convert tags list to JSON string if present
             tags_json = json.dumps(tags) if tags else None
 
@@ -191,7 +192,7 @@ class ChromaManager:
             memory_ids = []
             if results and len(results["ids"]) > 0 and len(results["ids"][0]) > 0:
                 memory_ids = results["ids"][0]
-                
+
                 # If we want to deserialize tags in metadatas, we could do it here
                 # But for this method we just return the IDs
 
@@ -220,7 +221,7 @@ class ChromaManager:
         try:
             now = timestamp()
             collection = self.client.get_collection(name=MEMORY_COLLECTION)
-            
+
             # Convert tags list to JSON string
             tags_json = json.dumps(tags)
 
@@ -259,6 +260,80 @@ class ChromaManager:
         except Exception as e:
             print(f"Error getting ChromaDB status: {e}")
             return {}
+
+    def store_summary_embedding(self, summary_id: str, summary_text: str, metadata: Dict[str, Any]) -> bool:
+        """Store a summary embedding in ChromaDB.
+
+        Args:
+            summary_id: Unique ID for the summary item
+            summary_text: The summary content
+            metadata: Metadata associated with the summary
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            collection = self.client.get_collection(name=SUMMARY_COLLECTION)
+            collection.add(
+                ids=[summary_id],
+                documents=[summary_text],
+                metadatas=[metadata]
+            )
+            return True
+        except Exception as e:
+            print(f"Error storing summary embedding in ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+    def search_summary_embeddings(self, query: str, max_results: int = 5,
+                                  topic: Optional[str] = None) -> List[str]:
+        """Search for summaries using semantic search.
+
+        Args:
+            query: The search query
+            max_results: Maximum number of results to return
+            topic: Optional topic to restrict search to
+
+        Returns:
+            List[str]: List of summary IDs matching the query
+        """
+        try:
+            collection = self.client.get_collection(name=SUMMARY_COLLECTION)
+            where_filter = {"topic": topic} if topic else None
+            results = collection.query(
+                query_texts=[query],
+                n_results=max_results,
+                where=where_filter
+            )
+            summary_ids = []
+            if results and len(results["ids"]) > 0 and len(results["ids"][0]) > 0:
+                summary_ids = results["ids"][0]
+            return summary_ids
+        except Exception as e:
+            print(f"Error searching summary embeddings in ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
+
+    def delete_summary_embeddings(self, summary_id: str) -> bool:
+        """Delete a summary embedding from ChromaDB.
+
+        Args:
+            summary_id: The ID of the summary to delete
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            collection = self.client.get_collection(name=SUMMARY_COLLECTION)
+            collection.delete(ids=[summary_id])
+            return True
+        except Exception as e:
+            print(f"Error deleting summary embedding from ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
 
     def delete_memory(self, memory_id: str) -> bool:
         """Delete a memory item from ChromaDB.
