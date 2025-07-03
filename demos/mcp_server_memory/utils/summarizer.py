@@ -2,7 +2,6 @@ import os
 import sys
 from typing import Optional, Literal
 
-from openai import OpenAI
 from openai.types.chat import ChatCompletionMessageParam
 
 # Get the absolute path to the project root
@@ -10,16 +9,17 @@ sys.path.append('../../')
 
 from demos.components.open_router_client import OpenRouterClient
 
+
 class Summarizer:
     def __init__(self, api_key: str, model_name: str = 'openai/gpt-4o-mini'):
         self.client = OpenRouterClient(api_key=api_key, model_name=model_name)
 
     def generate_summary(
-        self,
-        text: str,
-        summary_type: Literal["abstractive", "extractive", "query_focused"] = "abstractive",
-        length: Literal["short", "medium", "detailed"] = "medium",
-        query: Optional[str] = None
+            self,
+            text: str,
+            summary_type: Literal["abstractive", "extractive", "query_focused"] = "abstractive",
+            length: Literal["short", "medium", "detailed"] = "medium",
+            query: Optional[str] = None
     ) -> Optional[str]:
         """
         Generates a summary of the given text using an LLM.
@@ -48,10 +48,10 @@ class Summarizer:
             return None
 
     def _get_system_prompt(
-        self,
-        summary_type: Literal["abstractive", "extractive", "query_focused"],
-        length: Literal["short", "medium", "detailed"],
-        query: Optional[str]
+            self,
+            summary_type: Literal["abstractive", "extractive", "query_focused"],
+            length: Literal["short", "medium", "detailed"],
+            query: Optional[str]
     ) -> str:
         """
         Generates the system prompt for the LLM based on summary type and length.
@@ -78,6 +78,7 @@ class Summarizer:
 
         return prompt
 
+
 if __name__ == '__main__':
     # Example Usage (replace with your actual API key)
     # You might need to set OPENROUTER_API_KEY in your environment variables
@@ -102,7 +103,8 @@ if __name__ == '__main__':
 
         print("\n--- Query-Focused Detailed Summary (What are the challenges?) ---")
         query_focused_summary = summarizer.generate_summary(
-            sample_text, summary_type="query_focused", length="detailed", query="What are the challenges of quantum computing?"
+            sample_text, summary_type="query_focused", length="detailed",
+            query="What are the challenges of quantum computing?"
         )
         print(query_focused_summary)
 

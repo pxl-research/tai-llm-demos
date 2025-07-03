@@ -88,7 +88,7 @@ def store_memory(
         # Update topic in ChromaDB
         topic_success = chroma_manager.update_topic(topic, tags)
 
-        # New: Generate and store summary
+        # Generate and store summary
         summary_id = create_memory_id()
         generated_summary = summarizer.generate_summary(content, summary_type="abstractive", length="medium")
 
