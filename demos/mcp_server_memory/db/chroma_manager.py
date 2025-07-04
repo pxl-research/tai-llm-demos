@@ -30,7 +30,11 @@ class ChromaManager:
 
     def _ensure_dir_exists(self):
         """Ensure the database directory exists."""
-        os.makedirs(CHROMA_PATH, exist_ok=True)
+        print("Database path: ", CHROMA_PATH)
+        try:
+            os.makedirs(os.path.dirname(CHROMA_PATH), exist_ok=True)
+        except Exception as e:
+            print(f"Error creating directory: {e}")
 
     def _get_client(self):
         """Get a ChromaDB client.
@@ -38,7 +42,6 @@ class ChromaManager:
         Returns:
             chromadb.PersistentClient: A ChromaDB client
         """
-        print(CHROMA_PATH)
         return chromadb.PersistentClient(path=CHROMA_PATH)
 
     def initialize(self, reset: bool = False) -> bool:
@@ -70,7 +73,10 @@ class ChromaManager:
             print(f"Error initializing ChromaDB: {e}")
             return False
 
-    def store_memory(self, memory_id: str, content: str, topic: str, tags: List[str]) -> bool:
+    def store_memory(self, memory_id: str,
+                     content: str,
+                     topic: str,
+                     tags: List[str]) -> bool:
         """Store a memory item in ChromaDB.
         
         Args:
@@ -86,8 +92,7 @@ class ChromaManager:
             now = timestamp()
             collection = self.client.get_collection(name=MEMORY_COLLECTION)
 
-            # Convert tags list to JSON string
-            tags_json = json.dumps(tags)
+            tags_json = json.dumps(tags)  # Serialized as JSON string
 
             collection.add(
                 ids=[memory_id],
@@ -95,7 +100,7 @@ class ChromaManager:
                 metadatas=[{
                     "id": memory_id,
                     "topic": topic,
-                    "tags": tags_json,  # Serialized as JSON string
+                    "tags": tags_json,
                     "created_at": now,
                     "updated_at": now
                 }]
@@ -109,7 +114,8 @@ class ChromaManager:
             traceback.print_exc()  # Add detailed traceback
             return False
 
-    def update_topic(self, topic: str, tags: Optional[List[str]] = None) -> bool:
+    def update_topic(self, topic: str,
+                     tags: Optional[List[str]] = None) -> bool:
         """Update or create a topic in ChromaDB.
         
         Args:
@@ -163,7 +169,8 @@ class ChromaManager:
             traceback.print_exc()
             return False
 
-    def search_memories(self, query: str, max_results: int = 5,
+    def search_memories(self, query: str,
+                        max_results: int = 5,
                         topic: Optional[str] = None) -> List[str]:
         """Search for memories using semantic search.
         
@@ -204,8 +211,11 @@ class ChromaManager:
             traceback.print_exc()
             return []
 
-    def update_memory(self, memory_id: str, content: str, topic: str,
-                      tags: List[str], created_at: str) -> bool:
+    def update_memory(self, memory_id: str,
+                      content: str,
+                      topic: str,
+                      tags: List[str],
+                      created_at: str) -> bool:
         """Update a memory item in ChromaDB.
         
         Args:
@@ -261,7 +271,9 @@ class ChromaManager:
             print(f"Error getting ChromaDB status: {e}")
             return {}
 
-    def store_summary_embedding(self, summary_id: str, summary_text: str, metadata: Dict[str, Any]) -> bool:
+    def store_summary_embedding(self, summary_id: str,
+                                summary_text: str,
+                                metadata: Dict[str, Any]) -> bool:
         """Store a summary embedding in ChromaDB.
 
         Args:
@@ -286,7 +298,8 @@ class ChromaManager:
             traceback.print_exc()
             return False
 
-    def search_summary_embeddings(self, query: str, max_results: int = 5,
+    def search_summary_embeddings(self, query: str,
+                                  max_results: int = 5,
                                   topic: Optional[str] = None) -> List[str]:
         """Search for summaries using semantic search.
 
