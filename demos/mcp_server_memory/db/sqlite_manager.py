@@ -13,7 +13,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 # Now import using local path
-from config import SQLITE_PATH
+from config import SQLITE_PATH, MEMORY_COLLECTION, TOPICS_COLLECTION, SUMMARY_COLLECTION
 from utils.helpers import timestamp
 from .sqlite_connection import SQLiteConnection
 
@@ -27,7 +27,6 @@ class SQLiteManager:
 
     def _ensure_dir_exists(self):
         """Ensure the database directory exists."""
-        print("Database path: ", SQLITE_PATH)
         try:
             os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
         except Exception as e:
@@ -62,13 +61,13 @@ class SQLiteManager:
                 cursor = conn.cursor()
 
                 if reset:
-                    cursor.execute("DROP TABLE IF EXISTS memory_items")
-                    cursor.execute("DROP TABLE IF EXISTS topics")
-                    cursor.execute("DROP TABLE IF EXISTS summaries")  # New: Drop summaries table
+                    cursor.execute(f"DROP TABLE IF EXISTS {MEMORY_COLLECTION}")
+                    cursor.execute(f"DROP TABLE IF EXISTS {TOPICS_COLLECTION}")
+                    cursor.execute(f"DROP TABLE IF EXISTS {SUMMARY_COLLECTION}")
 
                 # Create tables if they don't exist
-                cursor.execute("""
-                               CREATE TABLE IF NOT EXISTS topics
+                cursor.execute(f"""
+                               CREATE TABLE IF NOT EXISTS {TOPICS_COLLECTION}
                                (
                                    name        TEXT PRIMARY KEY,
                                    description TEXT,
@@ -78,8 +77,8 @@ class SQLiteManager:
                                )
                                """)
 
-                cursor.execute("""
-                               CREATE TABLE IF NOT EXISTS memory_items
+                cursor.execute(f"""
+                               CREATE TABLE IF NOT EXISTS {MEMORY_COLLECTION}
                                (
                                    id         TEXT PRIMARY KEY,
                                    content    TEXT NOT NULL,
@@ -88,12 +87,12 @@ class SQLiteManager:
                                    created_at TEXT NOT NULL,
                                    updated_at TEXT NOT NULL,
                                    version    INTEGER DEFAULT 1,
-                                   FOREIGN KEY (topic_name) REFERENCES topics (name) ON DELETE CASCADE
+                                   FOREIGN KEY (topic_name) REFERENCES {TOPICS_COLLECTION} (name) ON DELETE CASCADE
                                )
                                """)
 
-                cursor.execute("""
-                               CREATE TABLE IF NOT EXISTS summaries
+                cursor.execute(f"""
+                               CREATE TABLE IF NOT EXISTS {SUMMARY_COLLECTION}
                                (
                                    id           TEXT PRIMARY KEY,
                                    memory_id    TEXT NOT NULL,
@@ -101,7 +100,7 @@ class SQLiteManager:
                                    summary_text TEXT NOT NULL,
                                    created_at   TEXT NOT NULL,
                                    updated_at   TEXT NOT NULL,
-                                   FOREIGN KEY (memory_id) REFERENCES memory_items (id) ON DELETE CASCADE
+                                   FOREIGN KEY (memory_id) REFERENCES {MEMORY_COLLECTION} (id) ON DELETE CASCADE
                                )
                                """)
 
@@ -134,8 +133,8 @@ class SQLiteManager:
 
                 # Store the memory item
                 cursor.execute(
-                    """
-                    INSERT INTO memory_items
+                    f"""
+                    INSERT INTO {MEMORY_COLLECTION}
                         (id, content, topic_name, tags, created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?)
                     """,
@@ -155,17 +154,17 @@ class SQLiteManager:
             cursor = conn.cursor()
 
             # Check if topic exists, create if not
-            cursor.execute("SELECT * FROM topics WHERE name = ?", (topic,))
+            cursor.execute(f"SELECT * FROM {TOPICS_COLLECTION} WHERE name = ?", (topic,))
             topic_exists = cursor.fetchone()
 
             if not topic_exists:
                 cursor.execute(
-                    "INSERT INTO topics (name, item_count, created_at, updated_at ) VALUES (?, ?, ?, ?)",
+                    f"INSERT INTO {TOPICS_COLLECTION} (name, item_count, created_at, updated_at ) VALUES (?, ?, ?, ?)",
                     (topic, 1, now, now)
                 )
             else:
                 cursor.execute(
-                    """UPDATE topics
+                    f"""UPDATE {TOPICS_COLLECTION}
                        SET item_count = item_count + 1,
                            updated_at = ?
                        WHERE name = ?""",
@@ -184,14 +183,14 @@ class SQLiteManager:
             cursor = conn.cursor()
 
             # Check if topic exists, create if not
-            cursor.execute("SELECT * FROM topics WHERE name = ?", (topic,))
+            cursor.execute(f"SELECT * FROM {TOPICS_COLLECTION} WHERE name = ?", (topic,))
             current_topic = cursor.fetchone()
 
             if current_topic:
                 # Only decrement if count > 1
                 if current_topic["item_count"] > 1:
                     cursor.execute(
-                        """UPDATE topics
+                        f"""UPDATE {TOPICS_COLLECTION}
                            SET item_count = item_count + 1,
                                updated_at = ?
                            WHERE name = ?""",
@@ -199,7 +198,7 @@ class SQLiteManager:
                     )
                 else:
                     # If count is 1, delete the topic
-                    cursor.execute("DELETE FROM topics WHERE name = ?", (topic,))
+                    cursor.execute(f"DELETE FROM {TOPICS_COLLECTION} WHERE name = ?", (topic,))
 
             conn.commit()
             return True
@@ -219,7 +218,7 @@ class SQLiteManager:
         try:
             with SQLiteConnection(SQLITE_PATH) as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM memory_items WHERE id = ?", (memory_id,))
+                cursor.execute(f"SELECT * FROM {MEMORY_COLLECTION} WHERE id = ?", (memory_id,))
                 item = cursor.fetchone()
 
                 if not item:
@@ -260,7 +259,7 @@ class SQLiteManager:
                 cursor = conn.cursor()
 
                 # Get current item
-                cursor.execute("SELECT * FROM memory_items WHERE id = ?", (memory_id,))
+                cursor.execute(f"SELECT * FROM {MEMORY_COLLECTION} WHERE id = ?", (memory_id,))
                 current_item = cursor.fetchone()
 
                 if not current_item:
@@ -281,8 +280,8 @@ class SQLiteManager:
 
                 # Update SQLite record
                 cursor.execute(
-                    """
-                    UPDATE memory_items
+                    f"""
+                    UPDATE {MEMORY_COLLECTION}
                     SET content    = ?,
                         topic_name = ?,
                         tags       = ?,
@@ -309,7 +308,7 @@ class SQLiteManager:
         try:
             with SQLiteConnection(SQLITE_PATH) as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM topics ORDER BY updated_at DESC")
+                cursor.execute(f"SELECT * FROM {TOPICS_COLLECTION} ORDER BY updated_at DESC")
 
                 result = []
                 for topic in cursor.fetchall():
@@ -338,19 +337,19 @@ class SQLiteManager:
                 cursor = conn.cursor()
 
                 # Get memory items count
-                cursor.execute("SELECT COUNT(*) as count FROM memory_items")
+                cursor.execute(f"SELECT COUNT(*) as count FROM {MEMORY_COLLECTION}")
                 memory_count = cursor.fetchone()["count"]
 
                 # Get topics count
-                cursor.execute("SELECT COUNT(*) as count FROM topics")
+                cursor.execute(f"SELECT COUNT(*) as count FROM {TOPICS_COLLECTION}")
                 topics_count = cursor.fetchone()["count"]
 
                 # Get top topics
-                cursor.execute("SELECT name, item_count FROM topics ORDER BY item_count DESC LIMIT 5")
+                cursor.execute(f"SELECT name, item_count FROM {TOPICS_COLLECTION} ORDER BY item_count DESC LIMIT 5")
                 top_topics = cursor.fetchall()
 
                 # Get latest item
-                cursor.execute("SELECT created_at FROM memory_items ORDER BY created_at DESC LIMIT 1")
+                cursor.execute(f"SELECT created_at FROM {MEMORY_COLLECTION} ORDER BY created_at DESC LIMIT 1")
                 latest_item = cursor.fetchone()
 
                 return {
@@ -379,7 +378,7 @@ class SQLiteManager:
                 cursor = conn.cursor()
 
                 # Get the topic of the memory item before deleting
-                cursor.execute("SELECT topic_name FROM memory_items WHERE id = ?", (memory_id,))
+                cursor.execute(f"SELECT topic_name FROM {MEMORY_COLLECTION} WHERE id = ?", (memory_id,))
                 topic_item = cursor.fetchone()
 
                 if not topic_item:
@@ -388,7 +387,7 @@ class SQLiteManager:
                 topic = topic_item["topic_name"]
 
                 # Delete the memory item
-                cursor.execute("DELETE FROM memory_items WHERE id = ?", (memory_id,))
+                cursor.execute(f"DELETE FROM {MEMORY_COLLECTION} WHERE id = ?", (memory_id,))
 
                 # Decrement the item_count for the associated topic
                 self._remove_from_topic(topic, conn)
@@ -418,8 +417,8 @@ class SQLiteManager:
                 cursor = conn.cursor()
 
                 cursor.execute(
-                    """
-                    INSERT INTO summaries
+                    f"""
+                    INSERT INTO {SUMMARY_COLLECTION}
                         (id, memory_id, summary_type, summary_text, created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?)
                     """,
@@ -443,7 +442,7 @@ class SQLiteManager:
             with SQLiteConnection(SQLITE_PATH) as conn:
                 cursor = conn.cursor()
                 summaries = cursor.execute(
-                    "SELECT summary_type, count(id) AS id_count FROM summaries WHERE memory_id = ? GROUP BY summary_type ORDER BY id_count DESC",
+                    f"SELECT summary_type, count(id) AS id_count FROM {SUMMARY_COLLECTION} WHERE memory_id = ? GROUP BY summary_type ORDER BY id_count DESC",
                     (memory_id,))
 
                 result = []
@@ -472,7 +471,7 @@ class SQLiteManager:
             with SQLiteConnection(SQLITE_PATH) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "SELECT * FROM summaries WHERE memory_id = ? AND summary_type = ?",
+                    f"SELECT * FROM {SUMMARY_COLLECTION} WHERE memory_id = ? AND summary_type = ?",
                     (memory_id, summary_type)
                 )
                 item = cursor.fetchone()
@@ -506,7 +505,7 @@ class SQLiteManager:
             with SQLiteConnection(SQLITE_PATH) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "SELECT * FROM summaries WHERE id = ?",
+                    f"SELECT * FROM {SUMMARY_COLLECTION} WHERE id = ?",
                     (summary_id,)
                 )
                 item = cursor.fetchone()
@@ -543,8 +542,8 @@ class SQLiteManager:
                 cursor = conn.cursor()
 
                 cursor.execute(
-                    """
-                    UPDATE summaries
+                    f"""
+                    UPDATE {SUMMARY_COLLECTION}
                     SET summary_text = ?,
                         updated_at   = ?
                     WHERE id = ?
@@ -572,7 +571,7 @@ class SQLiteManager:
             with SQLiteConnection(SQLITE_PATH) as conn:
                 cursor = conn.cursor()
 
-                cursor.execute("DELETE FROM summaries WHERE memory_id = ?", (memory_id,))
+                cursor.execute(f"DELETE FROM {SUMMARY_COLLECTION} WHERE memory_id = ?", (memory_id,))
 
                 conn.commit()
                 return True
