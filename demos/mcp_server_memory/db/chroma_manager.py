@@ -114,61 +114,6 @@ class ChromaManager:
             traceback.print_exc()  # Add detailed traceback
             return False
 
-    def update_topic(self, topic: str,
-                     tags: Optional[List[str]] = None) -> bool:
-        """Update or create a topic in ChromaDB.
-        
-        Args:
-            topic: The topic name
-            tags: Associated tags
-            
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            now = timestamp()
-            topic_collection = self.client.get_collection(name=TOPICS_COLLECTION)
-
-            # Convert tags to a string format for storage
-            tags_str = ', '.join(tags) if tags else topic
-            topic_summary = f"Topic {topic} containing information about {tags_str}"
-
-            # Convert tags list to JSON string if present
-            tags_json = json.dumps(tags) if tags else None
-
-            try:
-                # Check if topic exists
-                topic_collection.get(ids=[topic])
-                # Topic exists, update it
-                topic_collection.update(
-                    ids=[topic],
-                    documents=[topic_summary],
-                    metadatas=[{
-                        "name": topic,
-                        "tags": tags_json,  # Serialized as JSON string
-                        "updated_at": now
-                    }]
-                )
-            except Exception:
-                # Topic doesn't exist, add it
-                topic_collection.add(
-                    ids=[topic],
-                    documents=[topic_summary],
-                    metadatas=[{
-                        "name": topic,
-                        "tags": tags_json,  # Serialized as JSON string
-                        "created_at": now
-                    }]
-                )
-
-            return True
-
-        except Exception as e:
-            print(f"Error updating topic in ChromaDB: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
-
     def search_memories(self, query: str,
                         max_results: int = 5,
                         topic: Optional[str] = None) -> List[str]:
@@ -270,6 +215,25 @@ class ChromaManager:
             traceback.print_exc()
             return False
 
+    def delete_memory(self, memory_id: str) -> bool:
+        """Delete a memory item from ChromaDB.
+
+        Args:
+            memory_id: The ID of the memory to delete
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            collection = self.client.get_collection(name=MEMORY_COLLECTION)
+            collection.delete(ids=[memory_id])
+            return True
+        except Exception as e:
+            print(f"Error deleting memory from ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
     def get_status(self) -> Dict[str, Any]:
         """Get ChromaDB status information.
         
@@ -363,54 +327,6 @@ class ChromaManager:
             traceback.print_exc()
             return False
 
-    def delete_memory(self, memory_id: str) -> bool:
-        """Delete a memory item from ChromaDB.
-
-        Args:
-            memory_id: The ID of the memory to delete
-
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            collection = self.client.get_collection(name=MEMORY_COLLECTION)
-            collection.delete(ids=[memory_id])
-            return True
-        except Exception as e:
-            print(f"Error deleting memory from ChromaDB: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
-
-    def get_topic(self, topic: str) -> Dict[str, Any] or None:
-        """Get a topic by name.
-
-        Args:
-            topic: The topic name
-
-        Returns:
-            Dict[str, Any]: The topic data, or None if not found
-        """
-        try:
-            topic_collection = self.client.get_collection(name=TOPICS_COLLECTION)
-            results = topic_collection.get(
-                ids=[topic],
-                include=["metadatas"]
-            )
-
-            if results and len(results["ids"]) > 0:
-                # Topic found, extract metadata
-                metadata = results["metadatas"][0]
-                return metadata
-            else:
-                # Topic not found
-                return None
-        except Exception as e:
-            print(f"Error getting topic from ChromaDB: {e}")
-            import traceback
-            traceback.print_exc()
-            return None
-
     def get_summary_by_id(self, summary_id: str) -> Dict[str, Any] or None:
         """Get a summary by its ID.
 
@@ -440,6 +356,91 @@ class ChromaManager:
                 return None
         except Exception as e:
             print(f"Error getting summary from ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def update_topic(self, topic: str,
+                     tags: Optional[List[str]] = None) -> bool:
+        """Update or create a topic in ChromaDB.
+
+        Args:
+            topic: The topic name
+            tags: Associated tags
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            now = timestamp()
+            topic_collection = self.client.get_collection(name=TOPICS_COLLECTION)
+
+            # Convert tags to a string format for storage
+            tags_str = ', '.join(tags) if tags else topic
+            topic_summary = f"Topic {topic} containing information about {tags_str}"
+            print(topic_summary)
+
+            # Convert tags list to JSON string if present
+            tags_json = json.dumps(tags) if tags else None
+
+            # Check if topic exists
+            current_topic = topic_collection.get(ids=[topic])
+
+            if not current_topic or len(current_topic["ids"]) == 0:
+                # Topic doesn't exist, add it
+                topic_collection.add(
+                    ids=[topic],
+                    documents=[topic_summary],
+                    metadatas=[{
+                        "name": topic,
+                        "tags": tags_json,  # Serialized as JSON string
+                        "created_at": now
+                    }]
+                )
+            else:
+                # Topic exists, update it
+                topic_collection.update(
+                    ids=[topic],
+                    documents=[topic_summary],
+                    metadatas=[{
+                        "name": topic,
+                        "tags": tags_json,  # Serialized as JSON string
+                        "updated_at": now
+                    }]
+                )
+            return True
+
+        except Exception as e:
+            print(f"Error updating topic in ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
+    def get_topic(self, topic: str) -> Dict[str, Any] or None:
+        """Get a topic by name.
+
+        Args:
+            topic: The topic name
+
+        Returns:
+            Dict[str, Any]: The topic data, or None if not found
+        """
+        try:
+            topic_collection = self.client.get_collection(name=TOPICS_COLLECTION)
+            results = topic_collection.get(
+                ids=[topic],
+                include=["metadatas"]
+            )
+
+            if results and len(results["ids"]) > 0:
+                # Topic found, extract metadata
+                metadata = results["metadatas"][0]
+                return metadata
+            else:
+                # Topic not found
+                return None
+        except Exception as e:
+            print(f"Error getting topic from ChromaDB: {e}")
             import traceback
             traceback.print_exc()
             return None

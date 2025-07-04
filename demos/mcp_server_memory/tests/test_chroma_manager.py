@@ -1,6 +1,8 @@
 import os
 import sys
 import uuid
+import json
+import shutil
 
 # Get the absolute path to the project root
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -12,12 +14,13 @@ from db.chroma_manager import ChromaManager
 from config import CHROMA_PATH, MEMORY_COLLECTION, TOPICS_COLLECTION, SUMMARY_COLLECTION
 
 # Initialize ChromaManager
+shutil.rmtree(CHROMA_PATH, ignore_errors=True)
 chroma_man = ChromaManager()
 
 
 def main():
     # Reset the database for testing
-    chroma_man.initialize(reset=True)
+    chroma_man.initialize(reset=False)
 
     # Test initialize
     print("Testing initialize...")
@@ -80,7 +83,29 @@ def test_update_memory():
     print()
 
 
+def test_update_topic():
+    print("Testing update_topic...")
+    topic = "updated_topic"
+    tags = ["test", "topic"]
+
+    if chroma_man.update_topic(topic, tags):
+        print("update_topic: PASSED")
+    else:
+        print("update_topic: FAILED")
+        return
+
+    # Verify that the topic was updated correctly
+    retrieved_topic = chroma_man.get_topic(topic)
+    print(retrieved_topic)
+    if retrieved_topic and json.loads(retrieved_topic["tags"]) == tags:
+        print("update_topic verification: PASSED")
+    else:
+        print("update_topic verification: FAILED")
+    print()
+
+
 if __name__ == "__main__":
     main()
     test_store_memory()
     test_update_memory()
+    test_update_topic()
