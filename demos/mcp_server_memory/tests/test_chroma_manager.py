@@ -135,6 +135,62 @@ def test_store_summary_embedding():
     print()
 
 
+def test_summary_embeddings():
+    print("Testing search_summary_embeddings and delete_summary_embeddings...")
+    summary_id = str(uuid.uuid4())
+    summary_text = "This is a test summary for embeddings."
+    metadata = {"test": "embeddings"}
+
+    if not chroma_man.store_summary_embedding(summary_id, summary_text, metadata):
+        print("store_summary_embedding: FAILED")
+        return
+
+    # Search for the summary embedding
+    results = chroma_man.search_summary_embeddings(summary_text)
+    if results and summary_id in results:
+        print("search_summary_embeddings: PASSED")
+    else:
+        print("search_summary_embeddings: FAILED")
+        return
+
+    # Delete the summary embedding
+    if not chroma_man.delete_summary_embeddings(summary_id):
+        print("delete_summary_embeddings: FAILED")
+        return
+
+    # Search for the summary embedding again to verify deletion
+    results = chroma_man.search_summary_embeddings(summary_text)
+    if not results or summary_id not in results:
+        print("delete_summary_embeddings verification: PASSED")
+    else:
+        print("delete_summary_embeddings verification: FAILED")
+    print()
+
+
+def test_delete_memory():
+    print("Testing delete_memory...")
+    memory_id = str(uuid.uuid4())
+    content = "This is a test memory for deletion."
+    topic = "test_topic"
+    tags = ["test", "deletion"]
+
+    if not chroma_man.store_memory(memory_id, content, topic, tags):
+        print("store_memory: FAILED")
+        return
+
+    if not chroma_man.delete_memory(memory_id):
+        print("delete_memory: FAILED")
+        return
+
+    # Verify that the memory was deleted
+    results = chroma_man.search_memories(content, topic=topic)
+    if not results or memory_id not in results:
+        print("delete_memory verification: PASSED")
+    else:
+        print("delete_memory verification: FAILED")
+    print()
+
+
 if __name__ == "__main__":
     main()
     test_store_memory()
@@ -142,3 +198,5 @@ if __name__ == "__main__":
     test_update_topic()
     test_get_status()
     test_store_summary_embedding()
+    test_summary_embeddings()
+    test_delete_memory()
