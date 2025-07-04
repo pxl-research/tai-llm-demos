@@ -3,7 +3,6 @@ SQLite database manager for the MCP Memory Server.
 """
 
 import os
-import sqlite3
 import sys
 from typing import List, Dict, Any, Optional
 
@@ -28,6 +27,7 @@ class SQLiteManager:
 
     def _ensure_dir_exists(self):
         """Ensure the database directory exists."""
+        print("Database path: ", SQLITE_PATH)
         try:
             os.makedirs(os.path.dirname(SQLITE_PATH), exist_ok=True)
         except Exception as e:
@@ -68,42 +68,42 @@ class SQLiteManager:
 
                 # Create tables if they don't exist
                 cursor.execute("""
-                           CREATE TABLE IF NOT EXISTS topics
-                           (
-                               name        TEXT PRIMARY KEY,
-                               description TEXT,
-                               item_count  INTEGER DEFAULT 0,
-                               created_at  TEXT NOT NULL,
-                               updated_at  TEXT NOT NULL
-                           )
-                           """)
+                               CREATE TABLE IF NOT EXISTS topics
+                               (
+                                   name        TEXT PRIMARY KEY,
+                                   description TEXT,
+                                   item_count  INTEGER DEFAULT 0,
+                                   created_at  TEXT NOT NULL,
+                                   updated_at  TEXT NOT NULL
+                               )
+                               """)
 
                 cursor.execute("""
-                           CREATE TABLE IF NOT EXISTS memory_items
-                           (
-                               id         TEXT PRIMARY KEY,
-                               content    TEXT NOT NULL,
-                               topic_id   TEXT NOT NULL,
-                               tags       TEXT,
-                               created_at TEXT NOT NULL,
-                               updated_at TEXT NOT NULL,
-                               version    INTEGER DEFAULT 1,
-                               FOREIGN KEY (topic_id) REFERENCES topics (id) ON DELETE CASCADE
-                           )
-                           """)
+                               CREATE TABLE IF NOT EXISTS memory_items
+                               (
+                                   id         TEXT PRIMARY KEY,
+                                   content    TEXT NOT NULL,
+                                   topic_name TEXT NOT NULL,
+                                   tags       TEXT,
+                                   created_at TEXT NOT NULL,
+                                   updated_at TEXT NOT NULL,
+                                   version    INTEGER DEFAULT 1,
+                                   FOREIGN KEY (topic_name) REFERENCES topics (name) ON DELETE CASCADE
+                               )
+                               """)
 
                 cursor.execute("""
-                           CREATE TABLE IF NOT EXISTS summaries
-                           (
-                               id           TEXT PRIMARY KEY,
-                               memory_id    TEXT NOT NULL,
-                               summary_type TEXT NOT NULL,
-                               summary_text TEXT NOT NULL,
-                               created_at   TEXT NOT NULL,
-                               updated_at   TEXT NOT NULL,
-                               FOREIGN KEY (memory_id) REFERENCES memory_items (id) ON DELETE CASCADE
-                           )
-                           """)
+                               CREATE TABLE IF NOT EXISTS summaries
+                               (
+                                   id           TEXT PRIMARY KEY,
+                                   memory_id    TEXT NOT NULL,
+                                   summary_type TEXT NOT NULL,
+                                   summary_text TEXT NOT NULL,
+                                   created_at   TEXT NOT NULL,
+                                   updated_at   TEXT NOT NULL,
+                                   FOREIGN KEY (memory_id) REFERENCES memory_items (id) ON DELETE CASCADE
+                               )
+                               """)
 
                 conn.commit()
                 return True
@@ -130,13 +130,13 @@ class SQLiteManager:
                 cursor = conn.cursor()
 
                 # Check if topic exists, create if not
-                self.add_to_topic(topic)
+                self._add_to_topic(topic, conn)
 
                 # Store the memory item
                 cursor.execute(
                     """
                     INSERT INTO memory_items
-                        (id, content, topic_id, tags, created_at, updated_at)
+                        (id, content, topic_name, tags, created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?)
                     """,
                     (memory_id, content, topic, ",".join(tags), now, now)
@@ -149,32 +149,60 @@ class SQLiteManager:
             print(f"Error storing memory in SQLite: {e}")
             return False
 
-    def add_to_topic(self, topic: str) -> bool:
+    def _add_to_topic(self, topic: str, conn: any) -> bool:
         try:
             now = timestamp()
-            with SQLiteConnection(SQLITE_PATH) as conn:
-                cursor = conn.cursor()
+            cursor = conn.cursor()
 
-                # Check if topic exists, create if not
-                cursor.execute("SELECT * FROM topics WHERE name = ?", (topic,))
-                topic_exists = cursor.fetchone()
+            # Check if topic exists, create if not
+            cursor.execute("SELECT * FROM topics WHERE name = ?", (topic,))
+            topic_exists = cursor.fetchone()
 
-                if not topic_exists:
-                    cursor.execute(
-                        "INSERT INTO topics (name, item_count, created_at, updated_at ) VALUES (?, ?, ?, ?)",
-                        (topic, 1, now, now)
-                    )
-                else:
+            if not topic_exists:
+                cursor.execute(
+                    "INSERT INTO topics (name, item_count, created_at, updated_at ) VALUES (?, ?, ?, ?)",
+                    (topic, 1, now, now)
+                )
+            else:
+                cursor.execute(
+                    """UPDATE topics
+                       SET item_count = item_count + 1,
+                           updated_at = ?
+                       WHERE name = ?""",
+                    (now, topic)
+                )
+
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error storing memory in SQLite: {e}")
+            return False
+
+    def _remove_from_topic(self, topic: str, conn: any) -> bool:
+        try:
+            now = timestamp()
+            cursor = conn.cursor()
+
+            # Check if topic exists, create if not
+            cursor.execute("SELECT * FROM topics WHERE name = ?", (topic,))
+            current_topic = cursor.fetchone()
+
+            if current_topic:
+                # Only decrement if count > 1
+                if current_topic["item_count"] > 1:
                     cursor.execute(
                         """UPDATE topics
                            SET item_count = item_count + 1,
-                           updated_at = ?
+                               updated_at = ?
                            WHERE name = ?""",
                         (now, topic)
                     )
+                else:
+                    # If count is 1, delete the topic
+                    cursor.execute("DELETE FROM topics WHERE name = ?", (topic,))
 
-                conn.commit()
-                return True
+            conn.commit()
+            return True
         except Exception as e:
             print(f"Error storing memory in SQLite: {e}")
             return False
@@ -200,7 +228,7 @@ class SQLiteManager:
                 return {
                     "id": item["id"],
                     "content": item["content"],
-                    "topic": item["topic"],
+                    "topic_name": item["topic_name"],
                     "tags": item["tags"].split(",") if item["tags"] else [],
                     "created_at": item["created_at"],
                     "updated_at": item["updated_at"],
@@ -240,30 +268,23 @@ class SQLiteManager:
 
                 # Prepare updated values
                 new_content = content if content is not None else current_item["content"]
-                new_topic = topic if topic is not None else current_item["topic"]
+                new_topic = topic if topic is not None else current_item["topic_name"]
                 new_tags = ",".join(tags) if tags is not None else current_item["tags"]
 
                 # Update topic counts if topic is changing
-                if topic is not None and topic != current_item["topic"]:
+                if topic is not None and topic != current_item["topic_name"]:
                     # Decrement old topic count
-                    cursor.execute(
-                        """UPDATE topics
-                           SET item_count = item_count - 1,
-                           updated_at = ?
-                           WHERE name = ?""",
-                        (now, topic)
-                    )
-                    # TODO: Check if old topic is empty and delete it if so
+                    self._remove_from_topic(current_item["topic_name"], conn)
 
-                    # Check if topic exists, create if not
-                    self.add_to_topic(topic)
+                    # Check if new topic exists, create if not
+                    self._add_to_topic(topic, conn)
 
                 # Update SQLite record
                 cursor.execute(
                     """
                     UPDATE memory_items
                     SET content    = ?,
-                        topic_id      = ?,
+                        topic_name = ?,
                         tags       = ?,
                         updated_at = ?,
                         version    = version + 1
@@ -306,7 +327,7 @@ class SQLiteManager:
             print(f"Error listing topics from SQLite: {e}")
             return []
 
-    def get_status(self) -> Dict[str, Any]]:
+    def get_status(self) -> Dict[str, Any]:
         """Get database status and statistics.
         
         Returns:
@@ -358,63 +379,25 @@ class SQLiteManager:
                 cursor = conn.cursor()
 
                 # Get the topic of the memory item before deleting
-                cursor.execute("SELECT topic_id FROM memory_items WHERE id = ?", (memory_id,))
-                item = cursor.fetchone()
+                cursor.execute("SELECT topic_name FROM memory_items WHERE id = ?", (memory_id,))
+                topic_item = cursor.fetchone()
 
-                if not item:
+                if not topic_item:
                     return False  # Memory item not found
 
-                topic = item["topic_id"]
+                topic = topic_item["topic_name"]
 
                 # Delete the memory item
                 cursor.execute("DELETE FROM memory_items WHERE id = ?", (memory_id,))
 
                 # Decrement the item_count for the associated topic
-                now = timestamp()
-                cursor.execute(
-                    """UPDATE topics
-                       SET item_count = item_count - 1,
-                       updated_at = ?
-                       WHERE name = ?""",
-                    (now, topic)
-                )
+                self._remove_from_topic(topic, conn)
 
                 conn.commit()
                 return True
 
         except Exception as e:
             print(f"Error deleting memory from SQLite: {e}")
-            return False
-
-    def delete_topic_if_empty(self, topic_name: str) -> bool:
-        """Delete a topic if its item_count is 0.
-
-        Args:
-            topic_name: The name of the topic to delete.
-
-        Returns:
-            bool: True if the topic was deleted, False otherwise.
-        """
-        try:
-            with SQLiteConnection(SQLITE_PATH) as conn:
-                cursor = conn.cursor()
-
-                # Check if topic exists and its item_count is 0
-                cursor.execute("SELECT item_count FROM topics WHERE name = ?", (topic_name,))
-                topic_info = cursor.fetchone()
-
-                if not topic_info:
-                    return False  # Topic not found
-
-                if topic_info["item_count"] < 1:
-                    cursor.execute("DELETE FROM topics WHERE name = ?", (topic_name,))
-                    conn.commit()
-                    return True
-                else:
-                    return False  # Topic is not empty
-
-        except Exception as e:
-            print(f"Error deleting topic from SQLite: {e}")
             return False
 
     def store_summary(self, summary_id: str, memory_id: str, summary_type: str, summary_text: str) -> bool:
@@ -460,7 +443,8 @@ class SQLiteManager:
             with SQLiteConnection(SQLITE_PATH) as conn:
                 cursor = conn.cursor()
                 summaries = cursor.execute(
-                    "SELECT summary_type, count(id) AS id_count FROM summaries WHERE memory_id = ? GROUP BY summary_type ORDER BY id_count DESC", (memory_id,))
+                    "SELECT summary_type, count(id) AS id_count FROM summaries WHERE memory_id = ? GROUP BY summary_type ORDER BY id_count DESC",
+                    (memory_id,))
 
                 result = []
                 for item in cursor.fetchall():
@@ -562,7 +546,7 @@ class SQLiteManager:
                     """
                     UPDATE summaries
                     SET summary_text = ?,
-                    updated_at   = ?
+                        updated_at   = ?
                     WHERE id = ?
                     """,
                     (new_summary_text, now, summary_id)
