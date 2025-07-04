@@ -16,6 +16,8 @@ This repository contains chatbot and related examples using Azure OpenAI and Ope
 
 - `demos/voice_notes` provides a tool to transcribe and summarize voice notes using OpenRouter.
 
+- `demos/mcp_server_memory` is a Model Context Protocol (MCP) server that provides persistent memory capabilities for LLMs through a hybrid database architecture (ChromaDB and SQLite).
+
 - `applications/chat_with_rag` is a chat application using the Azure OpenAI "Assistants API" with RAG and a custom, bcrypt-based authentication method.
 
 - `applications/faq_tool` is a chatbot that answers questions based on uploaded documents (PDF, DOCX, PPTX, XLSX, XLS). It uses OpenRouter for the LLM and RAG for document retrieval.
