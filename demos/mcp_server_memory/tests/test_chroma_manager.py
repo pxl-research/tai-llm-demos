@@ -104,8 +104,41 @@ def test_update_topic():
     print()
 
 
+def test_get_status():
+    print("Testing get_status...")
+    status = chroma_man.get_status()
+    if isinstance(status, dict):
+        print("get_status: PASSED")
+    else:
+        print("get_status: FAILED")
+    print()
+
+
+def test_store_summary_embedding():
+    print("Testing store_summary_embedding...")
+    summary_id = str(uuid.uuid4())
+    summary_text = "This is a test summary."
+    metadata = {"test": "metadata"}
+
+    if chroma_man.store_summary_embedding(summary_id, summary_text, metadata):
+        print("store_summary_embedding: PASSED")
+    else:
+        print("store_summary_embedding: FAILED")
+        return
+
+    # Verify that the summary was stored correctly
+    retrieved_summary = chroma_man.get_summary_by_id(summary_id)
+    if retrieved_summary and retrieved_summary["summary_text"] == summary_text and retrieved_summary["test"] == "metadata":
+        print("store_summary_embedding verification: PASSED")
+    else:
+        print("store_summary_embedding verification: FAILED")
+    print()
+
+
 if __name__ == "__main__":
     main()
     test_store_memory()
     test_update_memory()
     test_update_topic()
+    test_get_status()
+    test_store_summary_embedding()
