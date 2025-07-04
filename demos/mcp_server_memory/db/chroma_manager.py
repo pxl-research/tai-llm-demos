@@ -366,3 +366,65 @@ class ChromaManager:
             import traceback
             traceback.print_exc()
             return False
+
+    def get_topic(self, topic: str) -> Dict[str, Any] or None:
+        """Get a topic by name.
+
+        Args:
+            topic: The topic name
+
+        Returns:
+            Dict[str, Any]: The topic data, or None if not found
+        """
+        try:
+            topic_collection = self.client.get_collection(name=TOPICS_COLLECTION)
+            results = topic_collection.get(
+                ids=[topic],
+                include=["metadatas"]
+            )
+
+            if results and len(results["ids"]) > 0:
+                # Topic found, extract metadata
+                metadata = results["metadatas"][0]
+                return metadata
+            else:
+                # Topic not found
+                return None
+        except Exception as e:
+            print(f"Error getting topic from ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def get_summary_by_id(self, summary_id: str) -> Dict[str, Any] or None:
+        """Get a summary by its ID.
+
+        Args:
+            summary_id: The ID of the summary to retrieve
+
+        Returns:
+            Dict[str, Any]: The summary data, or None if not found
+        """
+        try:
+            collection = self.client.get_collection(name=SUMMARY_COLLECTION)
+            results = collection.get(
+                ids=[summary_id],
+                include=["metadatas", "documents"]
+            )
+
+            if results and len(results["ids"]) > 0:
+                # Summary found, extract metadata and document
+                metadata = results["metadatas"][0]
+                document = results["documents"][0]
+                return {
+                    "summary_text": document,
+                    **metadata
+                }
+            else:
+                # Summary not found
+                return None
+        except Exception as e:
+            print(f"Error getting summary from ChromaDB: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
