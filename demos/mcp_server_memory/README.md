@@ -35,14 +35,16 @@ pip install -r requirements.txt
 uv pip install -r requirements.txt
 ```
 
-3. Configure environment variables (optional):
+3. Configure environment variables:
    Create a `.env` file in the same directory with the following settings:
 
 ```
 DB_PATH=/path/to/memory/database
+OPENROUTER_API_KEY=your_openrouter_api_key
 ```
 
-If no path is specified, the databases will be created in `./memory_db` by default.
+If no DB_PATH is specified, the databases will be created in `./memory_db` by default.
+The OPENROUTER_API_KEY is required for the summarization functionality.
 
 ## Getting Started
 
@@ -120,129 +122,21 @@ delete_response = client.invoke("memory_delete", {
 print(f"Delete Status: {delete_response['message']}")
 ```
 
-## API Reference
+## Available Memory Tools
 
-The server provides the following MCP tools:
+The MCP Memory Server exposes the following tools:
 
-### `memory_initialize`
+- `memory_initialize`: Initialize or reset the memory databases
+- `memory_store`: Store new information with topics and tags
+- `memory_retrieve`: Retrieve information using semantic search
+- `memory_update`: Update existing memory content, topics, or tags
+- `memory_delete`: Delete a specific memory item
+- `memory_list_topics`: List all available topics with counts
+- `memory_status`: Get memory system statistics
+- `memory_delete_empty_topic`: Remove topics with no associated memories
+- `memory_summarize`: Generate various types of summaries
 
-Initializes or resets the memory system databases.
-
-**Parameters:**
-
-- `reset` (bool, optional): Whether to reset existing memory. Default: False
-
-**Returns:**
-
-- Status and initialization information
-
-### `memory_store`
-
-Stores new information in the persistent memory system.
-
-**Parameters:**
-
-- `content` (str): The text content to store in memory
-- `topic` (str): Primary topic/category for this content
-- `tags` (List[str], optional): Optional tags for better retrieval. Default: []
-
-**Returns:**
-
-- Status and ID of the stored content
-
-### `memory_retrieve`
-
-Retrieves information from memory using semantic search.
-
-**Parameters:**
-
-- `query` (str): The search query to find relevant information.
-- `max_results` (int, optional): Maximum number of results to return. Default: 5.
-- `topic` (str, optional): Optional topic to restrict search to. Default: None.
-- `return_type` (str, optional): The type of content to return: 'full_text', 'summary', or 'both'. Default: 'full_text'.
-
-**Returns:**
-
-- List of matching memory items with content and metadata (including summary if requested).
-
-### `memory_update`
-
-Updates an existing memory item.
-
-**Parameters:**
-
-- `memory_id` (str): ID of the memory item to update
-- `content` (str, optional): New content (if updating content). Default: None
-- `topic` (str, optional): New topic (if changing). Default: None
-- `tags` (List[str], optional): New tags (if updating). Default: None
-
-**Returns:**
-
-- Status and updated memory details
-
-### `memory_list_topics`
-
-Lists all available topics/knowledge domains in the memory system.
-
-**Parameters:**
-
-- None
-
-**Returns:**
-
-- List of available topics with counts and descriptions
-
-### `memory_status`
-
-Gets memory system status and statistics.
-
-**Parameters:**
-
-- None
-
-**Returns:**
-
-- Statistics about memory usage, counts, etc.
-
-### `memory_delete`
-
-Deletes a memory item from the system.
-
-**Parameters:**
-
-- `memory_id` (str): ID of the memory item to delete.
-
-**Returns:**
-
-- Status of the deletion operation.
-
-### `memory_delete_empty_topic`
-
-Deletes a topic from the system if it has no associated memory items.
-
-**Parameters:**
-
-- `topic_name` (str): The name of the topic to delete.
-
-**Returns:**
-
-- Status of the deletion operation.
-
-### `memory_summarize`
-
-Generates a summary of memory items.
-
-**Parameters:**
-
-- `memory_id` (str, optional): ID of a specific memory item to summarize.
-- `query` (str, optional): A query to find relevant memories to summarize.
-- `topic` (str, optional): A topic to find relevant memories to summarize.
-- `summary_type` (str, optional): The type of summary to generate ('abstractive', 'extractive', 'query_focused'). Default: 'abstractive'.
-- `length` (str, optional): The desired length of the summary ('short', 'medium', 'detailed'). Default: 'medium'.
-
-**Returns:**
-
-- The generated summary or an error message.
+For full technical details, see the [background_info.md](background_info.md) file.
 
 ## Architecture Overview
 
