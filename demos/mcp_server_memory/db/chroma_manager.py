@@ -145,7 +145,7 @@ class ChromaManager:
                     documents=[topic_summary],
                     metadatas=[{
                         "name": topic,
-                        "tags": tags_json,  # Store tags as JSON string
+                        "tags": tags_json,  # Serialized as JSON string
                         "updated_at": now
                     }]
                 )
@@ -156,7 +156,7 @@ class ChromaManager:
                     documents=[topic_summary],
                     metadatas=[{
                         "name": topic,
-                        "tags": tags_json,  # Store tags as JSON string
+                        "tags": tags_json,  # Serialized as JSON string
                         "created_at": now
                     }]
                 )
@@ -212,10 +212,9 @@ class ChromaManager:
             return []
 
     def update_memory(self, memory_id: str,
-                      content: str,
-                      topic: str,
-                      tags: List[str],
-                      created_at: str) -> bool:
+                      content: Optional[str] = None,
+                      topic: Optional[str] = None,
+                      tags: Optional[List[str]] = None) -> bool:
         """Update a memory item in ChromaDB.
         
         Args:
@@ -232,17 +231,33 @@ class ChromaManager:
             now = timestamp()
             collection = self.client.get_collection(name=MEMORY_COLLECTION)
 
-            # Convert tags list to JSON string
-            tags_json = json.dumps(tags)
+            # Get current memory item
+            results = collection.get(
+                ids=[memory_id],
+                include=["metadatas", "documents"]
+            )
+
+            if not results or len(results["ids"]) == 0:
+                print(f"Memory item with id {memory_id} not found")
+                return False
+
+            current_memory = results["metadatas"][0]
+            current_content = results["documents"][0]
+
+            # Prepare updated values
+            new_content = content if content is not None else current_content
+            new_topic = topic if topic is not None else current_memory["topic"]
+            new_tags = tags if tags is not None else json.loads(current_memory["tags"])
+
+            tags_json = json.dumps(new_tags)  # Serialized as JSON string
 
             collection.update(
                 ids=[memory_id],
-                documents=[content],
+                documents=[new_content],
                 metadatas=[{
                     "id": memory_id,
-                    "topic": topic,
-                    "tags": tags_json,  # Serialized as JSON string
-                    "created_at": created_at,
+                    "topic": new_topic,
+                    "tags": tags_json,
                     "updated_at": now
                 }]
             )
