@@ -42,6 +42,8 @@ def on_load_ui():
                     .map(colorize_quantiles, df=data_models, col='prompt_price', subset=['prompt_price'])
                     .map(colorize_contexts, subset=['context_length'])
                     .map(colorize_providers, subset=['provider'])
+                    .map(colorize_scores, df=data_models, col='lm_arena_score', subset=['lm_arena_score'])
+                    # Add colorization for lm_arena_score
                     )
 
     return data_models, style_models
@@ -83,6 +85,25 @@ def colorize_providers(full_model_name):
             available_colors = copy.deepcopy(different_colors)
 
     return 'color:' + providers[provider_name] + ';'
+
+
+def colorize_scores(value, df, col):
+    """Colorizes scores based on quantiles."""
+    # Convert value to float if it's a string "N/A"
+    if isinstance(value, str) and value == "N/A":
+        numeric_value = float('-inf')
+    else:
+        numeric_value = float(value)  # Ensure it's a float for comparison
+
+    if numeric_value == -1 or numeric_value == float('-inf'):  # Models with no score or -inf from fuzzy matching
+        return 'color:grey;'
+    if numeric_value >= df[col].quantile(0.9):
+        return 'color:green;'
+    if numeric_value < df[col].quantile(0.3):
+        return 'color:red;'
+    if numeric_value < df[col].quantile(0.6):
+        return 'color:orange;'
+    return ''
 
 
 # blocks UI method
@@ -185,7 +206,10 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                 dfr_models = gr.DataFrame(df_models.value,
                                           type="pandas",
                                           show_search='search',
-                                          interactive=False)
+                                          interactive=False,
+                                          headers=['Full Model Name', 'LM Arena Score', 'Prompt Price',
+                                                   'Completion Price', 'Context Length', 'Max Completion Tokens',
+                                                   'Provider'])
 
     # event handlers
     tb_user.submit(append_user,

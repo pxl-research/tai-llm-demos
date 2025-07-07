@@ -168,6 +168,8 @@ feedback_message = (
     f'please drop us a line at <{os.getenv('FEEDBACK_EMAIL')}>! '
     f'Don\'t forget to include a screenshot of a copy of your chatlog.*')
 
+concurrency_limit = 10
+
 with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm_client_ui):
     # state variables
     messages = gr.State([system_instruction])
@@ -199,19 +201,26 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
     tb_user.submit(append_user,
                    [tb_user, cb_live, messages],
                    [tb_user, cb_live, messages],
-                   queue=False).then(append_bot,
-                                     [cb_live, messages, log_file_name],
-                                     [cb_live, messages])
+                   concurrency_limit=concurrency_limit).then(append_bot,
+                                                             [cb_live, messages, log_file_name],
+                                                             [cb_live, messages])
 
     btn_send.click(append_user,
                    [tb_user, cb_live, messages],
                    [tb_user, cb_live, messages],
-                   queue=False).then(append_bot,
-                                     [cb_live, messages, log_file_name],
-                                     [cb_live, messages])
+                   concurrency_limit=concurrency_limit).then(append_bot,
+                                                             [cb_live, messages, log_file_name],
+                                                             [cb_live, messages])
 
-    btn_clear.click(on_clear_clicked, None, [cb_live, log_file_name, messages], queue=False)
-    cb_live.clear(on_clear_clicked, None, [cb_live, log_file_name, messages], queue=False)
-    llm_client_ui.load(on_load_ui, None, [log_file_name])
+    btn_clear.click(on_clear_clicked, None,
+                    [cb_live, log_file_name, messages],
+                    concurrency_limit=concurrency_limit)
+    cb_live.clear(on_clear_clicked, None,
+                  [cb_live, log_file_name, messages],
+                  concurrency_limit=concurrency_limit)
+    llm_client_ui.load(on_load_ui, None,
+                       [log_file_name])
 
-llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=10000)
+llm_client_ui.launch(auth=None,
+                     server_name='0.0.0.0',
+                     server_port=10000)
