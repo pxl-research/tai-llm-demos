@@ -1,5 +1,5 @@
 mcp[cli]
 python-dotenv~=1.1.1
 chromadb
-sentence-transformers
+sentence-transformers~=4.1.0
 pydantic
