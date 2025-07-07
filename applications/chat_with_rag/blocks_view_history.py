@@ -56,10 +56,10 @@ def file_selected(chosen_file):
 
     chat_history = []
     for message in messages["data"]:
-        if message["role"] == "user" and message["content"][0]["type"] == "text":
-            chat_history.append((message["content"][0]["text"]["value"], None))
-        elif message["role"] == "assistant" and message["content"][0]["type"] == "text":
-            chat_history.append((None, message["content"][0]["text"]["value"]))
+        if message.get("role") == "user":
+            chat_history.append({"role": "user", "content": message["content"][0]["text"]["value"]})
+        elif message.get("role") == "assistant":
+            chat_history.append({"role": "assistant", "content": message["content"][0]["text"]["value"]})
 
     return chat_history
 
