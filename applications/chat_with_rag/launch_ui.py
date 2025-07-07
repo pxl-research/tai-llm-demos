@@ -135,8 +135,8 @@ custom_css = """
     }
 """
 
-asset_folder = '../../assets/'
-icon_folder = f'{asset_folder}icons/'
+assets_folder = 'assets/'
+icons_folder = f'{assets_folder}icons/'
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_client_ui):
@@ -145,11 +145,11 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
     st_thread = gr.State()
     st_selected_index = gr.State()
 
-    disposal_ico = icon_folder + 'disposal.png'
+    disposal_ico = icons_folder + 'disposal.png'
 
     # header
     with gr.Row():
-        gr.Image(value=f'{asset_folder}logo.png', width=50, height=50, show_label=False,
+        gr.Image(value=f'{assets_folder}logo.png', width=50, height=50, show_label=False,
                  show_download_button=False, show_share_button=False, show_fullscreen_button=False,
                  interactive=False, elem_id='logo_img')
         gr.Markdown('# PiXie Lite')
@@ -160,7 +160,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
     with gr.Group(elem_classes='max_height') as gr_live:
         with gr.Row():
             tb_user_prompt = gr.Textbox(show_label=False, placeholder='Enter prompt here...', scale=10)
-            btn_send_prompt = gr.Button('', scale=0, min_width=64, icon=icon_folder + 'send.png')
+            btn_send_prompt = gr.Button('', scale=0, min_width=64, icon=icons_folder + 'send.png')
             btn_clear_chat = gr.Button('', scale=0, min_width=64, icon=disposal_ico)
     with gr.Row() as row_live:
         lbl_debug = gr.HTML('')
@@ -185,7 +185,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
                 info='Select a log file to view the details',
                 scale=10,
             )
-            btn_reload_logs = gr.Button(value='', scale=0, min_width=64, icon=icon_folder + 'refresh.png')
+            btn_reload_logs = gr.Button(value='', scale=0, min_width=64, icon=icons_folder + 'refresh.png')
             btn_remove_log = gr.Button(value='', scale=0, min_width=64, icon=disposal_ico,
                                        elem_classes='danger')
 
@@ -221,9 +221,9 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
 
     # toggle different UI modes
     with gr.Row():
-        btn_live = gr.Button('Chat', icon=f'{icon_folder}chat.png', interactive=False, elem_classes='blue')
-        btn_history = gr.Button('History', icon=f'{icon_folder}history.png', elem_classes='light_gray')
-        btn_upload = gr.Button('Upload', icon=f'{icon_folder}upload.png', elem_classes='light_brown')
+        btn_live = gr.Button('Chat', icon=f'{icons_folder}chat.png', interactive=False, elem_classes='blue')
+        btn_history = gr.Button('History', icon=f'{icons_folder}history.png', elem_classes='light_gray')
+        btn_upload = gr.Button('Upload', icon=f'{icons_folder}upload.png', elem_classes='light_brown')
 
         # event handlers
         btn_live.click(show_live, [],
@@ -251,4 +251,4 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
 llm_client_ui.queue().launch(auth=auth_method,
                              server_name='0.0.0.0',
                              server_port=7025,
-                             allowed_paths=[asset_folder, icon_folder])
+                             allowed_paths=[assets_folder, icons_folder])
