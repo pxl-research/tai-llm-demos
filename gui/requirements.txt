@@ -3,5 +3,5 @@ python-dotenv~=1.1.1
 openai~=1.93.0
 Markdown~=3.8
 wxPython~=4.2.3
-Pygments
-pyinstaller
+Pygments~=2.19.2
+pyinstaller~=6.14.2
