@@ -135,7 +135,8 @@ custom_css = """
     }
 """
 
-icon_folder = '../../assets/icons/'
+asset_folder = '../../assets/'
+icon_folder = f'{asset_folder}icons/'
 
 # https://www.gradio.app/guides/creating-a-custom-chatbot-with-blocks
 with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_client_ui):
@@ -148,7 +149,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
 
     # header
     with gr.Row():
-        gr.Image(value='../../assets/logo.png', width=50, height=50, show_label=False,
+        gr.Image(value=f'{asset_folder}logo.png', width=50, height=50, show_label=False,
                  show_download_button=False, show_share_button=False, show_fullscreen_button=False,
                  interactive=False, elem_id='logo_img')
         gr.Markdown('# PiXie Lite')
@@ -220,9 +221,9 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
 
     # toggle different UI modes
     with gr.Row():
-        btn_live = gr.Button('Chat', icon=icon_folder + 'chat.png', interactive=False, elem_classes='blue')
-        btn_history = gr.Button('History', icon=icon_folder + 'history.png', elem_classes='light_gray')
-        btn_upload = gr.Button('Upload', icon=icon_folder + 'upload.png', elem_classes='light_brown')
+        btn_live = gr.Button('Chat', icon=f'{icon_folder}chat.png', interactive=False, elem_classes='blue')
+        btn_history = gr.Button('History', icon=f'{icon_folder}history.png', elem_classes='light_gray')
+        btn_upload = gr.Button('Upload', icon=f'{icon_folder}upload.png', elem_classes='light_brown')
 
         # event handlers
         btn_live.click(show_live, [],
@@ -250,4 +251,4 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
 llm_client_ui.queue().launch(auth=auth_method,
                              server_name='0.0.0.0',
                              server_port=7025,
-                             allowed_paths=['../../assets/'])
+                             allowed_paths=[asset_folder, icon_folder])
