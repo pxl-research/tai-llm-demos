@@ -15,10 +15,17 @@ cdb_store = ChromaDocumentStore(path=cdb_path)  # on disk
 
 
 def list_documents():
-    return cdb_store.list_documents()
+    try:
+        return cdb_store.list_documents()
+    except Exception as e:
+        print(e)
+        return []
 
 
 def lookup_in_documentation(query):
-    print(f"Searching in company docs: '{query}'")
-    results = cdb_store.query_store(query)
-    return results[:5]
+    try:
+        results = cdb_store.query_store(query)
+        return results[:5]
+    except Exception as e:
+        print(e)
+        return []

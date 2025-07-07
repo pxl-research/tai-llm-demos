@@ -20,17 +20,22 @@ def set_folder(user_folder):
 
 def load_files(log_folder):
     log_folder = os.path.normpath(os.path.abspath(log_folder))
-    files = os.listdir(log_folder)
+    try:
+        files = os.listdir(log_folder)
+    except OSError:
+        return gr.Dropdown(choices=[])
     files.sort(key=lambda f: os.path.getmtime(os.path.join(log_folder, f)), reverse=True)
     entries = []
     for file in files:
         file_path = os.path.normpath(os.path.join(log_folder, file))
-        log_file = open(file_path, "r")
-        log_content = log_file.read()
+        try:
+            with open(file_path, "r") as log_file:
+                log_content = log_file.read()
+        except (OSError, IOError):
+            continue
         file_contents[file] = log_content
         title = get_title(log_content, file)
         entries.append((title, file))
-
     return gr.Dropdown(choices=entries)
 
 
@@ -51,16 +56,19 @@ def get_title(log_content, default_title=""):
 
 
 def file_selected(chosen_file):
-    log_content = file_contents[chosen_file]
-    messages = json.loads(log_content)
-
+    log_content = file_contents.get(chosen_file)
+    if log_content is None:
+        return []
+    try:
+        messages = json.loads(log_content)
+    except (json.JSONDecodeError, TypeError):
+        return []
     chat_history = []
-    for message in messages["data"]:
+    for message in messages.get("data", []):
         if message.get("role") == "user":
             chat_history.append({"role": "user", "content": message["content"][0]["text"]["value"]})
         elif message.get("role") == "assistant":
             chat_history.append({"role": "assistant", "content": message["content"][0]["text"]["value"]})
-
     return chat_history
 
 
