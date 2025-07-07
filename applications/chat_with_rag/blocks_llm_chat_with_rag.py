@@ -62,7 +62,8 @@ def store_thread(thread, log_folder):
 
 
 def append_user(message, chat_history):
-    chat_history.append((message, None))
+    msg_obj = {"role": "user", "content": message}
+    chat_history.append(msg_obj)
     return chat_history
 
 
@@ -132,12 +133,11 @@ def append_ai(thread, message, chat_history, log_folder):
         limit=1
     )
 
-    bot_message = ""
     for msg_data in messages.data:
-        if msg_data.role == "assistant" and msg_data.content[0].type == "text":
+        if msg_data.role == "assistant" and msg_data.content and len(msg_data.content) > 0 and msg_data.content[
+            0].type == "text":
             bot_message = msg_data.content[0].text.value
-            break
-    chat_history.append((None, bot_message))
+            chat_history.append({"role": msg_data.role, "content": bot_message})
 
     # cost estimate
     (token_count, cost_in_cents) = estimate_costs(chat_history)
@@ -150,11 +150,11 @@ def append_ai(thread, message, chat_history, log_folder):
 def estimate_costs(chat_history):
     prompt_log = ""
     response_log = ""
-    for user_msg, bot_msg in chat_history:
-        if user_msg:
-            prompt_log = prompt_log + user_msg
-        if bot_msg:
-            response_log = response_log + bot_msg
+    for msg in chat_history:
+        if msg.get("role") == "user":
+            prompt_log += msg["content"]
+        elif msg.get("role") == "assistant":
+            response_log += msg["content"]
 
     tokeniser = tiktoken.encoding_for_model("gpt-4")
     token_count_prompts = len(tokeniser.encode(prompt_log))

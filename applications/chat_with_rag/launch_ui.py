@@ -28,12 +28,12 @@ from demos.components.fn_auth import auth_method
 
 def show_live():
     return {
-        cb_live_chat: gr.Chatbot(visible=True),
+        cb_live_chat: gr.Chatbot(visible=True, type='messages'),
         gr_live: gr.Group(visible=True),
         row_live: gr.Row(visible=True),
         btn_live: gr.Button(interactive=False),
 
-        cb_chat_history: gr.Chatbot(visible=False),
+        cb_chat_history: gr.Chatbot(visible=False, type='messages'),
         gr_history: gr.Group(visible=False),
         btn_history: gr.Button(interactive=True),
 
@@ -47,12 +47,12 @@ def show_live():
 
 def show_history():
     return {
-        cb_live_chat: gr.Chatbot(visible=False),
+        cb_live_chat: gr.Chatbot(visible=False, type='messages'),
         gr_live: gr.Group(visible=False),
         row_live: gr.Row(visible=False),
         btn_live: gr.Button(interactive=True),
 
-        cb_chat_history: gr.Chatbot(visible=True),
+        cb_chat_history: gr.Chatbot(visible=True, type='messages'),
         gr_history: gr.Group(visible=True),
         btn_history: gr.Button(interactive=False),
 
@@ -66,12 +66,12 @@ def show_history():
 
 def show_upload():
     return {
-        cb_live_chat: gr.Chatbot(visible=False),
+        cb_live_chat: gr.Chatbot(visible=False, type='messages'),
         gr_live: gr.Group(visible=False),
         row_live: gr.Row(visible=False),
         btn_live: gr.Button(interactive=True),
 
-        cb_chat_history: gr.Chatbot(visible=False),
+        cb_chat_history: gr.Chatbot(visible=False, type='messages'),
         gr_history: gr.Group(visible=False),
         btn_history: gr.Button(interactive=True),
 
@@ -91,7 +91,7 @@ def on_login(request: gr.Request):
 
 
 def show_chat():
-    return {cb_live_chat: gr.Chatbot(visible=True)}
+    return {cb_live_chat: gr.Chatbot(visible=True, type='messages')}
 
 
 def on_remove_rag(file_list, select_data):
@@ -155,7 +155,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
         gr.Markdown('# PiXie Lite')
 
     # live chat UI
-    cb_live_chat = gr.Chatbot(label='Chat', type='tuples', scale=1, visible=False, show_copy_button=True)
+    cb_live_chat = gr.Chatbot(label='Chat', type='messages', scale=1, visible=False, show_copy_button=True)
 
     with gr.Group(elem_classes='max_height') as gr_live:
         with gr.Row():
@@ -175,7 +175,7 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite', css=custom_css) as llm_cli
         btn_clear_chat.click(clear_chat, [], [tb_user_prompt, cb_live_chat, st_thread])
 
     # log viewer UI
-    cb_chat_history = gr.Chatbot(label='History', type='tuples', scale=1, visible=False)
+    cb_chat_history = gr.Chatbot(label='History', type='messages', scale=1, visible=False)
 
     with gr.Group(visible=False) as gr_history:
         with gr.Row():
