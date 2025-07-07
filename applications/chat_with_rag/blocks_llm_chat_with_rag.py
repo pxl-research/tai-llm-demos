@@ -42,11 +42,13 @@ assistant = client.beta.assistants.create(
 
 
 def clear_chat():
+    """Reset the chat by creating a new thread and clearing chat state."""
     thread = client.beta.threads.create()
     return ["", "", thread]
 
 
 def store_thread(thread, log_folder):
+    """Persist the thread's messages to a log file in the specified folder."""
     messages = client.beta.threads.messages.list(
         thread_id=thread.id,
         order="asc"
@@ -56,14 +58,19 @@ def store_thread(thread, log_folder):
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
-    log_file = open(f"{log_folder}{thread.id}.json", "w")
-    log_file.write(log_string)
-    log_file.close()
+    log_path = os.path.join(log_folder, f"{thread.id}.json")
+    try:
+        with open(log_path, "w") as log_file:
+            log_file.write(log_string)
+    except OSError as e:
+        print(e)
+        pass
 
 
 def append_user(message, chat_history):
-    msg_obj = {"role": "user", "content": message}
-    chat_history.append(msg_obj)
+    """Append a user message to the chat history."""
+    user_message = {"role": "user", "content": message}
+    chat_history.append(user_message)
     return chat_history
 
 
