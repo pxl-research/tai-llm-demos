@@ -1,2 +1,2 @@
 mcp[cli]
-python-dotenv
+python-dotenv~=1.1.1
