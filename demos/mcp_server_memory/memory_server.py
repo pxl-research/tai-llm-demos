@@ -5,13 +5,12 @@ This server provides a set of tools for storing, retrieving, and managing
 persistent memory for LLMs through the Model Context Protocol (MCP).
 """
 
+import os
+import sys
 from typing import List, Optional, Annotated, Literal
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
-import os
-import sys
-
 
 # Get the absolute path to the project root
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -224,27 +223,6 @@ def memory_delete(
 
 
 @mcp.tool()
-def memory_delete_empty_topic(
-        topic_name: Annotated[
-            str,
-            Field(
-                description="The name of the topic to delete if it's empty",
-                examples=["Artificial Intelligence"]
-            )
-        ]
-) -> dict:
-    """Delete a topic from the system if it has no associated memory items.
-
-    Args:
-        topic_name: The name of the topic to delete.
-
-    Returns:
-        dict: Status of the deletion operation.
-    """
-    return auxiliary_memory_service.delete_empty_topic(topic_name=topic_name)
-
-
-@mcp.tool()
 def memory_summarize(
         memory_id: Annotated[
             Optional[str],
@@ -290,8 +268,8 @@ def memory_summarize(
         memory_id: ID of a specific memory item to summarize.
         query: A query to find relevant memories to summarize.
         topic: A topic to find relevant memories to summarize.
-        summary_type: The type of summary to generate.
-        length: The desired length of the summary.
+        summary_type: The type of summary to generate ["abstractive", "extractive", "query_focused"].
+        length: The desired length of the summary ["short", "medium", "detailed"].
 
     Returns:
         dict: The generated summary or an error message.
