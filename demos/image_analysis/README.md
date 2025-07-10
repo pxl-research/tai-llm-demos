@@ -50,10 +50,10 @@ Before running this demo, ensure you have the following:
     Create a new file named `.env` in the `demos/image_analysis` directory (if it doesn't already exist). Add your OpenRouter API key to this file in the following format:
 
     ```
-    OPENROUTER_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    OPENROUTER_API_KEY=sk-or-v1-your_api_key_here
     ```
 
-    Replace `sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` with your actual OpenRouter API key.
+    Replace `sk-or-v1-your_api_key_here` with your actual OpenRouter API key.
 
 2.  **Place the CSV File:**
     Ensure the `lmarena_vision_250616.csv` file is located directly within the `demos/image_analysis` directory.
