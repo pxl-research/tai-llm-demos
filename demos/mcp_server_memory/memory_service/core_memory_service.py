@@ -89,14 +89,18 @@ def store_memory(
         topic_success = chroma_manager.update_topic(topic, tags)
 
         # Generate and store summary
-        summary_id = create_memory_id()
         generated_summary = summarizer.generate_summary(content, summary_type="abstractive", length="medium")
 
         summary_stored = False
+        summary_embedding_stored = False
+        summary_id = create_memory_id()
+
         if generated_summary:
-            summary_stored = sqlite_manager.store_summary(summary_id, memory_id, "abstractive_medium",
+            summary_stored = sqlite_manager.store_summary(summary_id,
+                                                          memory_id,
+                                                          "abstractive_medium",
                                                           generated_summary)
-            chroma_manager.store_summary_embedding(
+            summary_embedding_stored = chroma_manager.store_summary_embedding(
                 summary_id,
                 generated_summary,
                 {"memory_id": memory_id, "summary_type": "abstractive_medium", "topic": topic}
@@ -114,8 +118,12 @@ def store_memory(
                     "topic": topic,
                     "tags": tags,
                     "timestamp": now,
-                    "summary_generated": bool(generated_summary),
-                    "summary_stored": summary_stored
+                    "summary": {
+                        "summary_generated": bool(generated_summary),
+                        "summary_stored": summary_stored,
+                        "summary_embedding_stored": summary_embedding_stored,
+                        "summary_id": summary_id
+                    }
                 }
             )
         else:
@@ -126,8 +134,12 @@ def store_memory(
                     "sqlite_success": sqlite_success,
                     "chroma_success": chroma_success,
                     "topic_success": topic_success,
-                    "summary_generated": bool(generated_summary),
-                    "summary_stored": summary_stored
+                    "summary": {
+                        "summary_generated": bool(generated_summary),
+                        "summary_stored": summary_stored,
+                        "summary_embedding_stored": summary_embedding_stored,
+                        "summary_id": summary_id
+                    }
                 }
             )
 
@@ -158,7 +170,6 @@ def retrieve_memory(
     try:
         # Prioritize semantic search on summaries for efficiency
         summary_ids = chroma_manager.search_summary_embeddings(query, max_results, topic)
-
         memory_items = []
         for summary_id in summary_ids:
             summary_item = sqlite_manager.get_summary_by_id(summary_id)
@@ -169,7 +180,7 @@ def retrieve_memory(
                 if full_memory_item:
                     result_data = {
                         "id": memory_id,
-                        "topic": full_memory_item["topic"],
+                        "topic": full_memory_item["topic_name"],
                         "tags": full_memory_item["tags"],
                         "created_at": full_memory_item["created_at"],
                         "updated_at": full_memory_item["updated_at"]
@@ -184,6 +195,8 @@ def retrieve_memory(
                         result_data["summary"] = summary_item["summary_text"]
 
                     memory_items.append(result_data)
+            else:
+                print(f"Warning: Summary ID {summary_id} not found in SQLite.")
 
         return memory_items if memory_items else [
             format_response(success=True, message="No matching memories found")
