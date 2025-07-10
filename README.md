@@ -4,31 +4,29 @@
 
 This repository contains chatbot and related examples using Azure OpenAI and OpenRouter as the LLM providers.
 
-- `demos/basic_chat` contains basic chat apps using the Azure OpenAI Chat API (with token/cost estimation) and OpenRouter.
+### Demos
 
-- `demos/rag` demonstrates the document retrieval part of a RAG system, using ChromaDB for vector storage and markitdown for document parsing.
+- [Basic Chat](demos/basic_chat/README.md): Basic chatbot examples using Azure OpenAI and OpenRouter, with token and cost estimation.
+- [Image Analysis](demos/image_analysis/README.md): A Streamlit app for multimodal image and text analysis using OpenRouter.
+- [MCP Server for File I/O](demos/mcp_server_file_io/README.md): An MCP server for interacting with the file system.
+- [MCP Server for Persistent Memory](demos/mcp_server_memory/README.md): An MCP server providing persistent memory capabilities for LLMs.
+- [Model Choice](demos/model_choice/README.md): A chatbot demo allowing users to choose which LLM to interact with.
+- [RAG Demo](demos/rag/README.md): Demonstrates document retrieval using ChromaDB and markitdown.
+- [Slack Chatbot](demos/slack_bot/README.md): Slack bot examples with tool-calling capabilities.
+- [Tool Calling](demos/tool_calling/README.md): A chatbot using OpenRouter with tool-calling functionality.
+- [Voice Notes](demos/voice_notes/README.md): A Gradio tool for transcribing and summarizing audio files.
+- [GUI Application](gui/README.md): A standalone GUI-based LLM chat application built with wxPython.
 
-- `demos/tool_calling` showcases tool calling with OpenRouter, including tools for document retrieval, web search, and file I/O.
+### Applications
 
-- `demos/model_choice` allows chatting with different models via the OpenRouter API.
-
-- `demos/slack_bot` provides demo code for a Slack bot with LLM integration using Azure OpenAI and OpenRouter.
-
-- `demos/voice_notes` provides a tool to transcribe and summarize voice notes using OpenRouter.
-
-- `demos/mcp_server_memory` is a Model Context Protocol (MCP) server that provides persistent memory capabilities for LLMs through a hybrid database architecture (ChromaDB and SQLite).
-
-- `applications/chat_with_rag` is a chat application using the Azure OpenAI "Assistants API" with RAG and a custom, bcrypt-based authentication method.
-
-- `applications/faq_tool` is a chatbot that answers questions based on uploaded documents (PDF, DOCX, PPTX, XLSX, XLS). It uses OpenRouter for the LLM and RAG for document retrieval.
-
-- `gui` is a proof-of-concept local GUI-based LLM chat app using wxPython (WARNING: this is a work in progress).
+- [Chat with RAG](applications/chat_with_rag/README.md): A chat application using Azure OpenAI "Assistants API" with RAG and a custom authentication method.
+- [FAQ Tool](applications/faq_tool/README.md): A chatbot that answers questions based on uploaded documents (PDF, DOCX, PPTX, XLSX, XLS).
 
 ## Configuration
 
 To install the necessary libraries, use `pip install -r requirements.txt`
 
-Note: to minimize the number of libraries installed, each demo folder has its own `requirements.txt` file with specific dependencies.
+Note: To minimize the number of libraries installed, each demo folder has its own `requirements.txt` file with specific dependencies.
 
 Please create an `.env` file with the same structure as the provided `.env.example` files (found in each demo folder), and enter your personal API keys and endpoints therein.
 
