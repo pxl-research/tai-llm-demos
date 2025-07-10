@@ -7,7 +7,7 @@ project_root = os.path.abspath(os.path.join(current_dir, '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from memory_service.core_memory_service import initialize_memory, store_memory, retrieve_memory, update_memory
+from memory_service.core_memory_service import initialize_memory, store_memory, retrieve_memory, update_memory, delete_memory
 
 
 # Test environment setup
@@ -106,6 +106,29 @@ def test_update_memory(store_result):
         print(f"Error: {update_result['message']}")
 
 
+def test_delete_memory(store_result):
+    print("Testing delete_memory...")
+
+    memory_id = store_result['memory_id']
+
+    # Delete the stored memory
+    delete_result = delete_memory(memory_id=memory_id)
+    if delete_result['status'] == 'success':
+        print("delete_memory: PASSED")
+    else:
+        print("delete_memory: FAILED")
+        print(f"Error: {delete_result['message']}")
+
+    # Attempt to delete a non-existent memory
+    invalid_memory_id = "non_existent_id"
+    delete_result = delete_memory(memory_id=invalid_memory_id)
+    if delete_result['status'] == 'success':
+        print("delete_memory (non-existent): FAILED")
+    else:
+        print("delete_memory (non-existent): PASSED")
+        print(f"Error: {delete_result['message']}")
+
+
 if __name__ == "__main__":
     test_initialization()
     print()
@@ -125,10 +148,15 @@ if __name__ == "__main__":
     print()
 
     if store_result_2['status'] == 'success':
-        test_retrieve_memory(store_result_1)
+        test_retrieve_memory(store_result_2)
         print()
 
     # test updating the first memory
     if store_result_1['status'] == 'success':
         test_update_memory(store_result_1)
+        print()
+
+    # test deleting memory
+    if store_result_2['status'] == 'success':
+        test_delete_memory(store_result_2)
         print()
