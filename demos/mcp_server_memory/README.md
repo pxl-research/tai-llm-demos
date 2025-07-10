@@ -40,7 +40,7 @@ uv pip install -r requirements.txt
 
 ```
 DB_PATH=/path/to/memory/database
-OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_API_KEY=sk-or-v1-your_api_key_here
 ```
 
 If no DB_PATH is specified, the databases will be created in `./memory_db` by default.
