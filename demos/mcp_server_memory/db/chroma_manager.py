@@ -298,6 +298,7 @@ class ChromaManager:
                 n_results=max_results,
                 where=where_filter
             )
+
             summary_ids = []
             if results and len(results["ids"]) > 0 and len(results["ids"][0]) > 0:
                 summary_ids = results["ids"][0]
@@ -378,7 +379,6 @@ class ChromaManager:
             # Convert tags to a string format for storage
             tags_str = ', '.join(tags) if tags else topic
             topic_summary = f"Topic {topic} containing information about {tags_str}"
-            print(topic_summary)
 
             # Convert tags list to JSON string if present
             tags_json = json.dumps(tags) if tags else None
