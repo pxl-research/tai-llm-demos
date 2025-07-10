@@ -8,6 +8,7 @@ import sys
 from typing import List, Dict, Any, Optional
 
 import chromadb
+from chromadb import Settings
 
 # Get the absolute path to the project root
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -30,7 +31,6 @@ class ChromaManager:
 
     def _ensure_dir_exists(self):
         """Ensure the database directory exists."""
-        print("Database path: ", CHROMA_PATH)
         try:
             os.makedirs(os.path.dirname(CHROMA_PATH), exist_ok=True)
         except Exception as e:
@@ -42,7 +42,9 @@ class ChromaManager:
         Returns:
             chromadb.PersistentClient: A ChromaDB client
         """
-        return chromadb.PersistentClient(path=CHROMA_PATH)
+        settings = Settings()
+        settings.allow_reset = True
+        return chromadb.PersistentClient(path=CHROMA_PATH, settings=settings)
 
     def initialize(self, reset: bool = False) -> bool:
         """Initialize the ChromaDB database.
@@ -53,14 +55,17 @@ class ChromaManager:
         Returns:
             bool: True if successful, False otherwise
         """
+        print(f'ChromaManager: Initializing Chroma database at {CHROMA_PATH}')
+
         try:
             if reset:
                 try:
                     self.client.reset()
-                    # Re-initialize the client after reset
-                    self.client = self._get_client()
                 except Exception as e:
                     print(f"Exception during ChromaDB reset: {e}")
+                finally:
+                    # Re-initialize the client after reset
+                    self.client = self._get_client()
 
             # Create collections
             self.client.get_or_create_collection(name=MEMORY_COLLECTION)
@@ -378,7 +383,6 @@ class ChromaManager:
             # Convert tags to a string format for storage
             tags_str = ', '.join(tags) if tags else topic
             topic_summary = f"Topic {topic} containing information about {tags_str}"
-            print(topic_summary)
 
             # Convert tags list to JSON string if present
             tags_json = json.dumps(tags) if tags else None

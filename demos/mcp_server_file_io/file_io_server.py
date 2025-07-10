@@ -1,12 +1,11 @@
 import datetime
 import os
-import shutil
 import stat
+from typing import Annotated  # Add this import
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
-from typing import Annotated # Add this import
-from pydantic import Field # Add this import
+from pydantic import Field  # Add this import
 
 load_dotenv()
 
@@ -33,13 +32,13 @@ def is_within_folder(path: str, folder_path: str) -> bool:
 
 @mcp.tool()
 def list_files(
-    folder_path: Annotated[
-        str,
-        Field(
-            description="The absolute path to the folder to list. This path must be within the server's configured ALLOWED_FOLDER.",
-            examples=["/path/to/your/allowed/folder/documents", "/data/backups"]
-        )
-    ]
+        folder_path: Annotated[
+            str,
+            Field(
+                description="The absolute path to the folder to list. This path must be within the server's configured ALLOWED_FOLDER.",
+                examples=["/path/to/your/allowed/folder/documents", "/data/backups"]
+            )
+        ]
 ):
     """Lists the files and directories within a specified folder.
 
@@ -61,13 +60,13 @@ def list_files(
 
 @mcp.tool()
 def read_file_contents(
-    file_path: Annotated[
-        str,
-        Field(
-            description="The absolute path to the file to read. This path must be within the server's configured ALLOWED_FOLDER.",
-            examples=["/path/to/your/allowed/folder/document.txt", "/data/logs/server.log"]
-        )
-    ]
+        file_path: Annotated[
+            str,
+            Field(
+                description="The absolute path to the file to read. This path must be within the server's configured ALLOWED_FOLDER.",
+                examples=["/path/to/your/allowed/folder/document.txt", "/data/logs/server.log"]
+            )
+        ]
 ):
     """Reads the entire contents of a file.
 
@@ -87,20 +86,20 @@ def read_file_contents(
 
 @mcp.tool()
 def write_file_contents(
-    file_path: Annotated[
-        str,
-        Field(
-            description="The absolute path to the file to write. Must be within the ALLOWED_FOLDER. If the file does not exist, it will be created. If it exists, its contents will be replaced.",
-            examples=["/path/to/your/allowed/folder/new_file.txt"]
-        )
-    ],
-    content: Annotated[
-        str,
-        Field(
-            description="The content to write to the file. Defaults to an empty string.",
-            examples=["Hello, world!", "This is some text."]
-        )
-    ] = ''
+        file_path: Annotated[
+            str,
+            Field(
+                description="The absolute path to the file to write. Must be within the ALLOWED_FOLDER. If the file does not exist, it will be created. If it exists, its contents will be replaced.",
+                examples=["/path/to/your/allowed/folder/new_file.txt"]
+            )
+        ],
+        content: Annotated[
+            str,
+            Field(
+                description="The content to write to the file. Defaults to an empty string.",
+                examples=["Hello, world!", "This is some text."]
+            )
+        ] = ''
 ):
     """Writes content to a file, overwriting any existing content.
 
@@ -122,20 +121,20 @@ def write_file_contents(
 
 @mcp.tool()
 def append_file_contents(
-    file_path: Annotated[
-        str,
-        Field(
-            description="The absolute path to the file to append to. Must be within the ALLOWED_FOLDER. If the file does not exist, it will be created.",
-            examples=["/path/to/your/allowed/folder/log.txt"]
-        )
-    ],
-    content: Annotated[
-        str,
-        Field(
-            description="The content to append to the file. Defaults to an empty string.",
-            examples=["New log entry.", "Another line of text."]
-        )
-    ] = ''
+        file_path: Annotated[
+            str,
+            Field(
+                description="The absolute path to the file to append to. Must be within the ALLOWED_FOLDER. If the file does not exist, it will be created.",
+                examples=["/path/to/your/allowed/folder/log.txt"]
+            )
+        ],
+        content: Annotated[
+            str,
+            Field(
+                description="The content to append to the file. Defaults to an empty string.",
+                examples=["New log entry.", "Another line of text."]
+            )
+        ] = ''
 ):
     """Appends content to the end of a file, adding a newline character after the appended content.
 
@@ -158,13 +157,13 @@ def append_file_contents(
 
 @mcp.tool()
 def create_folders(
-    folder_path: Annotated[
-        str,
-        Field(
-            description="The absolute path to the folder to create. Must be within the ALLOWED_FOLDER.",
-            examples=["/path/to/your/allowed/folder/new_directory", "/data/backups/2025-01-01"]
-        )
-    ]
+        folder_path: Annotated[
+            str,
+            Field(
+                description="The absolute path to the folder to create. Must be within the ALLOWED_FOLDER.",
+                examples=["/path/to/your/allowed/folder/new_directory", "/data/backups/2025-01-01"]
+            )
+        ]
 ):
     """Creates a folder (or directory) at the specified path, including any necessary parent folders.
 
@@ -186,13 +185,13 @@ def create_folders(
 
 @mcp.tool()
 def get_fs_properties(
-    path: Annotated[
-        str,
-        Field(
-            description="The absolute path to the file or folder for which to retrieve properties.",
-            examples=["/path/to/your/allowed/folder/document.txt", "/data/backups"]
-        )
-    ]
+        path: Annotated[
+            str,
+            Field(
+                description="The absolute path to the file or folder for which to retrieve properties.",
+                examples=["/path/to/your/allowed/folder/document.txt", "/data/backups"]
+            )
+        ]
 ):
     """Gets file system properties of a file or folder, such as its type, size, modification date, and permissions.
 
@@ -246,13 +245,13 @@ def get_fs_properties(
 
 @mcp.tool()
 def delete_file(
-    file_path: Annotated[
-        str,
-        Field(
-            description="The absolute path to the file to delete. Must be within the ALLOWED_FOLDER.",
-            examples=["/path/to/your/allowed/folder/old_file.txt"]
-        )
-    ]
+        file_path: Annotated[
+            str,
+            Field(
+                description="The absolute path to the file to delete. Must be within the ALLOWED_FOLDER.",
+                examples=["/path/to/your/allowed/folder/old_file.txt"]
+            )
+        ]
 ):
     """Deletes the file at the specified path.
 
@@ -277,27 +276,27 @@ def delete_file(
 
 @mcp.tool()
 def replace_in_file(
-    file_path: Annotated[
-        str,
-        Field(
-            description="The absolute path to the file to modify. Must be within the ALLOWED_FOLDER.",
-            examples=["/path/to/your/allowed/folder/config.ini"]
-        )
-    ],
-    search_string: Annotated[
-        str,
-        Field(
-            description="The string to search for.",
-            examples=["old_value", "DEBUG=True"]
-        )
-    ],
-    replace_string: Annotated[
-        str,
-        Field(
-            description="The string to replace the search string with.",
-            examples=["new_value", "DEBUG=False"]
-        )
-    ]
+        file_path: Annotated[
+            str,
+            Field(
+                description="The absolute path to the file to modify. Must be within the ALLOWED_FOLDER.",
+                examples=["/path/to/your/allowed/folder/config.ini"]
+            )
+        ],
+        search_string: Annotated[
+            str,
+            Field(
+                description="The string to search for.",
+                examples=["old_value", "DEBUG=True"]
+            )
+        ],
+        replace_string: Annotated[
+            str,
+            Field(
+                description="The string to replace the search string with.",
+                examples=["new_value", "DEBUG=False"]
+            )
+        ]
 ):
     """Replaces the first occurrence of a string in a file with another string.
 
@@ -320,6 +319,7 @@ def replace_in_file(
             return False
     print(f'Replacing in {file_path} is not allowed.')
     return False
+
 
 if __name__ == "__main__":
     print('Initialize and run the server...')
