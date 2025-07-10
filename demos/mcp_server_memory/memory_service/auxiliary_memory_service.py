@@ -74,52 +74,6 @@ def get_status() -> dict:
         )
 
 
-def delete_empty_topic(
-        topic_name: str
-) -> dict:
-    """Delete a topic from the system if it has no associated memory items.
-
-    Args:
-        topic_name: The name of the topic to delete.
-
-    Returns:
-        dict: Status of the deletion operation.
-    """
-    try:
-        success = sqlite_manager.delete_topic_if_empty(topic_name)
-        if success:
-            return format_response(
-                success=True,
-                message=f"Topic '{topic_name}' deleted successfully because it was empty."
-            )
-        else:
-            # Check if topic exists but is not empty
-            topic_info = sqlite_manager.list_topics()
-            topic_exists = False
-            item_count = 0
-            for topic in topic_info:
-                if topic["name"] == topic_name:
-                    topic_exists = True
-                    item_count = topic["item_count"]
-                    break
-
-            if topic_exists and item_count > 0:
-                return format_response(
-                    success=False,
-                    message=f"Topic '{topic_name}' could not be deleted because it is not empty. It contains {item_count} items."
-                )
-            else:
-                return format_response(
-                    success=False,
-                    message=f"Topic '{topic_name}' not found."
-                )
-    except Exception as e:
-        return format_response(
-            success=False,
-            message=f"Error deleting topic: {str(e)}"
-        )
-
-
 def summarize_memory(
         memory_id: Optional[str] = None,
         query: Optional[str] = None,
