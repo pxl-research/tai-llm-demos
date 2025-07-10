@@ -283,6 +283,7 @@ def update_memory(
                     )
                 else:
                     # If no existing summary, create one (e.g., if content was added before summarization feature)
+                    print(f"Creating new summary for memory_id {memory_id} after content update.")
                     summary_id = create_memory_id()
                     summary_updated = sqlite_manager.store_summary(summary_id, memory_id, "abstractive_medium",
                                                                    generated_summary)

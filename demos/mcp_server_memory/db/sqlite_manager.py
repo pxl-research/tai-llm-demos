@@ -57,6 +57,7 @@ class SQLiteManager:
             bool: True if successful, False otherwise
         """
         try:
+            print(f'SQLiteManager: Initializing SQLite database at {SQLITE_PATH}')
             with SQLiteConnection(SQLITE_PATH) as conn:
                 cursor = conn.cursor()
 

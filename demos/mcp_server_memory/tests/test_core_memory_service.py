@@ -1,7 +1,6 @@
 import os
 import sys
-
-from faker import Faker
+from time import sleep
 
 # Get the absolute path to the project root
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -74,10 +73,23 @@ if __name__ == "__main__":
     test_initialization()
     print()
 
-    faker_inst = Faker()
-    memory = "Mind uploading is a speculative process of whole brain emulation in which a brain scan is used to completely emulate the mental state of the individual in a digital computer. The computer would then run a simulation of the brain's information processing, such that it would respond in essentially the same way as the original brain and experience having a sentient conscious mind."
-    store_result = test_store_memory(memory_str=memory)
+    memory_1 = "Mind uploading is a speculative process of whole brain emulation in which a brain scan is used to completely emulate the mental state of the individual in a digital computer. The computer would then run a simulation of the brain's information processing, such that it would respond in essentially the same way as the original brain and experience having a sentient conscious mind."
+    # faker_inst = Faker()
+    # memory_1 = faker_inst.text(200)
+    print(f"Generated Memory 1: {memory_1}")
+    store_result = test_store_memory(memory_str=memory_1)
     print()
 
     if store_result['status'] == 'success':
         test_retrieve_memory(store_result)
+        print()
+
+    memory_2 = "Spyridon Marinatos (Greek: Σπυρίδων Μαρινάτος; 17 November [O.S. 4 November] 1901[a] – 1 October 1974) was a Greek archaeologist who specialised in the Minoan and Mycenaean civilizations of the Aegean Bronze Age. He is best known for the excavation of the Minoan site of Akrotiri on Thera,[b] which he conducted between 1967 and 1974. He received several honours in Greece and abroad, and was considered one of the most important Greek archaeologists of his day."
+    # memory_2 = faker_inst.text(200)
+    # print(f"Generated Memory 2: {memory_2}")
+    store_result = test_store_memory(memory_str=memory_2)
+    print()
+
+    if store_result['status'] == 'success':
+        test_retrieve_memory(store_result)
+        print()
