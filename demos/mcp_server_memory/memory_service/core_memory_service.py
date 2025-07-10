@@ -257,9 +257,8 @@ def update_memory(
         chroma_success = chroma_manager.update_memory(
             memory_id=memory_id,
             content=updated_item["content"],
-            topic=updated_item["topic"],
+            topic=updated_item["topic_name"],
             tags=updated_item["tags"],
-            created_at=updated_item["created_at"]
         )
 
         # Update topic in ChromaDB if topic changed
@@ -279,7 +278,7 @@ def update_memory(
                     chroma_manager.store_summary_embedding(  # Re-store to update embedding
                         existing_summary["id"],
                         generated_summary,
-                        {"memory_id": memory_id, "summary_type": "abstractive_medium", "topic": updated_item["topic"]}
+                        {"memory_id": memory_id, "summary_type": "abstractive_medium", "topic": updated_item["topic_name"]}
                     )
                 else:
                     # If no existing summary, create one (e.g., if content was added before summarization feature)
@@ -290,7 +289,7 @@ def update_memory(
                     chroma_manager.store_summary_embedding(
                         summary_id,
                         generated_summary,
-                        {"memory_id": memory_id, "summary_type": "abstractive_medium", "topic": updated_item["topic"]}
+                        {"memory_id": memory_id, "summary_type": "abstractive_medium", "topic": updated_item["topic_name"]}
                     )
             else:
                 print(f"Warning: Failed to regenerate summary for memory_id {memory_id} during update.")

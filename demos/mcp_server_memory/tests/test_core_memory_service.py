@@ -1,6 +1,5 @@
 import os
 import sys
-from time import sleep
 
 # Get the absolute path to the project root
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -8,7 +7,7 @@ project_root = os.path.abspath(os.path.join(current_dir, '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from memory_service.core_memory_service import initialize_memory, store_memory, retrieve_memory
+from memory_service.core_memory_service import initialize_memory, store_memory, retrieve_memory, update_memory
 
 
 # Test environment setup
@@ -69,27 +68,67 @@ def test_retrieve_memory(store_result):
     print(f"Error: {retrieve_result['message']}")
 
 
+def test_update_memory(store_result):
+    print("Testing update_memory...")
+
+    memory_id = store_result['memory_id']
+
+    # Update the content of the memory
+    new_content = "Substantial mainstream research in related areas is being conducted in neuroscience and computer science, including animal brain mapping and simulation,[4] development of faster supercomputers, virtual reality, brain–computer interfaces, connectomics, and information extraction from dynamically functioning brains.[5] According to supporters, many of the tools and ideas needed to achieve mind uploading already exist or are under active development; however, they will admit that others are, as yet, very speculative, but say they are still in the realm of engineering possibility."
+    update_result = update_memory(memory_id=memory_id, content=new_content)
+    if update_result['status'] == 'success':
+        print("update_memory (content): PASSED")
+        print(f"Updated Memory: {update_result}")
+    else:
+        print("update_memory (content): FAILED")
+        print(f"Error: {update_result['message']}")
+
+    # Update the topic and tags of the memory
+    wordlist = new_content.split(' ')
+    new_topic = wordlist[0]
+    new_tags = [new_topic, wordlist[1], wordlist[2]]
+
+    update_result = update_memory(memory_id=memory_id, topic=new_topic, tags=new_tags)
+    if update_result['status'] == 'success':
+        print("update_memory (topic and tags): PASSED")
+        print(f"Updated Memory: {update_result}")
+    else:
+        print("update_memory (topic and tags): FAILED")
+        print(f"Error: {update_result['message']}")
+
+    # Attempt to update a non-existent memory
+    invalid_memory_id = "non_existent_id"
+    update_result = update_memory(memory_id=invalid_memory_id, content="Invalid update")
+    if update_result['status'] == 'success':
+        print("update_memory (non-existent): FAILED")
+    else:
+        print("update_memory (non-existent): PASSED")
+        print(f"Error: {update_result['message']}")
+
+
 if __name__ == "__main__":
     test_initialization()
     print()
 
+    # test storing and retrieving memories
     memory_1 = "Mind uploading is a speculative process of whole brain emulation in which a brain scan is used to completely emulate the mental state of the individual in a digital computer. The computer would then run a simulation of the brain's information processing, such that it would respond in essentially the same way as the original brain and experience having a sentient conscious mind."
-    # faker_inst = Faker()
-    # memory_1 = faker_inst.text(200)
     print(f"Generated Memory 1: {memory_1}")
-    store_result = test_store_memory(memory_str=memory_1)
+    store_result_1 = test_store_memory(memory_str=memory_1)
     print()
 
-    if store_result['status'] == 'success':
-        test_retrieve_memory(store_result)
+    if store_result_1['status'] == 'success':
+        test_retrieve_memory(store_result_1)
         print()
 
     memory_2 = "Spyridon Marinatos (Greek: Σπυρίδων Μαρινάτος; 17 November [O.S. 4 November] 1901[a] – 1 October 1974) was a Greek archaeologist who specialised in the Minoan and Mycenaean civilizations of the Aegean Bronze Age. He is best known for the excavation of the Minoan site of Akrotiri on Thera,[b] which he conducted between 1967 and 1974. He received several honours in Greece and abroad, and was considered one of the most important Greek archaeologists of his day."
-    # memory_2 = faker_inst.text(200)
-    # print(f"Generated Memory 2: {memory_2}")
-    store_result = test_store_memory(memory_str=memory_2)
+    store_result_2 = test_store_memory(memory_str=memory_2)
     print()
 
-    if store_result['status'] == 'success':
-        test_retrieve_memory(store_result)
+    if store_result_2['status'] == 'success':
+        test_retrieve_memory(store_result_1)
+        print()
+
+    # test updating the first memory
+    if store_result_1['status'] == 'success':
+        test_update_memory(store_result_1)
         print()
