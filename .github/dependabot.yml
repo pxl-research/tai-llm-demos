@@ -37,23 +37,6 @@ updates:
       - "stilkin-pxl"
 
   - package-ecosystem: pip
-    directory: "/applications/chat_with_rag_sm"
-    schedule:
-      interval: daily
-      time: "04:00"
-    groups:
-      python-packages:
-        patterns:
-          - "*"
-    pull-request-branch-name:
-      separator: "-"
-    labels:
-      - "dependencies"
-      - "python"
-    reviewers:
-      - "stilkin-pxl"
-
-  - package-ecosystem: pip
     directory: "/applications/chat_with_rag"
     schedule:
       interval: daily
