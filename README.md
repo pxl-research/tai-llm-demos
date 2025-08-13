@@ -9,7 +9,6 @@ This repository contains chatbot and related examples using Azure OpenAI and Ope
 - [Basic Chat](demos/basic_chat/README.md): Basic chatbot examples using Azure OpenAI and OpenRouter, with token and cost estimation.
 - [Image Analysis](demos/image_analysis/README.md): A Streamlit app for multimodal image and text analysis using OpenRouter.
 - [MCP Server for File I/O](demos/mcp_server_file_io/README.md): An MCP server for interacting with the file system.
-- [MCP Server for Persistent Memory](demos/mcp_server_memory/README.md): An MCP server providing persistent memory capabilities for LLMs.
 - [Model Choice](demos/model_choice/README.md): A chatbot demo allowing users to choose which LLM to interact with.
 - [RAG Demo](demos/rag/README.md): Demonstrates document retrieval using ChromaDB and markitdown.
 - [Slack Chatbot](demos/slack_bot/README.md): Slack bot examples with tool-calling capabilities.
