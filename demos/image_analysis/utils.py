@@ -102,7 +102,7 @@ def sort_models_by_score(model_objects: List[Dict[str, Any]],
             best_score = 0
 
             for csv_key in score_map.keys():
-                match_score = fuzz.WRatio(model_id.lower(), csv_key)
+                match_score = fuzz.ratio(model_id.lower(), csv_key)
                 if match_score > best_score:
                     best_score = match_score
                     best_match = csv_key

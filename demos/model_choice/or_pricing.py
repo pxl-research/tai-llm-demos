@@ -7,7 +7,7 @@ import requests
 from demos.image_analysis.utils import load_model_scores, sort_models_by_score
 
 # Define the path to the CSV file
-MODEL_SCORES_CSV = os.path.join(os.path.dirname(__file__), 'lmarena_text_250620.csv')
+MODEL_SCORES_CSV = os.path.join(os.path.dirname(__file__), 'lmarena_text_200825.csv')
 
 
 def get_models(tools_only=True, names_only=True, as_dataframe=False):
@@ -43,7 +43,7 @@ def get_models(tools_only=True, names_only=True, as_dataframe=False):
     model_scores_map = load_model_scores(csv_path=MODEL_SCORES_CSV)
 
     # Sort models by score using the imported function
-    sorted_models, matched_count = sort_models_by_score(filtered_data, model_scores_map, fuzzy_match_threshold=95)
+    sorted_models, matched_count = sort_models_by_score(filtered_data, model_scores_map, fuzzy_match_threshold=96)
     print(f"Matched {matched_count} models with scores from CSV.")
 
     if names_only and not as_dataframe:
