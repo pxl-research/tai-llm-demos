@@ -3,3 +3,4 @@ python-dotenv~=1.1.1
 requests~=2.32.4
 pandas~=2.2.3
 thefuzz~=0.22.1
+openai~=1.93.0

@@ -43,7 +43,6 @@ def on_load_ui():
                     .map(colorize_contexts, subset=['context_length'])
                     .map(colorize_providers, subset=['provider'])
                     .map(colorize_scores, df=data_models, col='lm_arena_score', subset=['lm_arena_score'])
-                    # Add colorization for lm_arena_score
                     )
 
     return data_models, style_models
@@ -97,11 +96,11 @@ def colorize_scores(value, df, col):
 
     if numeric_value == -1 or numeric_value == float('-inf'):  # Models with no score or -inf from fuzzy matching
         return 'color:grey;'
-    if numeric_value >= df[col].quantile(0.9):
+    if numeric_value >= df[col].quantile(0.95):
         return 'color:green;'
-    if numeric_value < df[col].quantile(0.3):
+    if numeric_value < df[col].quantile(0.35):
         return 'color:red;'
-    if numeric_value < df[col].quantile(0.6):
+    if numeric_value < df[col].quantile(0.65):
         return 'color:orange;'
     return ''
 
