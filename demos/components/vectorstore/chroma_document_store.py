@@ -50,13 +50,17 @@ class ChromaDocumentStore:
         self.cdb_client.delete_collection(document_name)
 
     def list_documents(self):
-        return self.cdb_client.list_collections()
+        collections = self.cdb_client.list_collections()
+        collection_names = []
+        for collection in collections:
+            collection_names.append(collection.name)
+        return collection_names
 
     def query_store(self, query: str, amount: int = 5):
-        collection_names = self.cdb_client.list_collections()
+        collections = self.cdb_client.list_collections()
         all_results = []
-        for coll_name in collection_names:
-            collection = self.cdb_client.get_collection(coll_name)
+        for collection in collections:
+            collection = self.cdb_client.get_collection(collection.name)
             result = collection.query(
                 query_texts=[query],
                 n_results=amount,
