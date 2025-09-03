@@ -175,7 +175,7 @@ custom_css = """
 with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_css) as llm_client_ui):
     # state
     messages = gr.State([system_instruction])
-    selected_model = gr.State('google/gemini-2.0-flash-001')
+    selected_model = gr.State('deepseek/deepseek-chat-v3.1')
     df_models = gr.State(None)
 
     # ui
