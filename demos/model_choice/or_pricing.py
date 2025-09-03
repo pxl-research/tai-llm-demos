@@ -3,6 +3,7 @@ import os
 
 import pandas as pd
 import requests
+import pprint as pp
 
 from demos.image_analysis.utils import load_model_scores, sort_models_by_score
 
@@ -89,6 +90,7 @@ def get_models(tools_only=True, names_only=True, as_dataframe=False):
 
 def no_duplicates(list_with_duplicates):
     return list(dict.fromkeys(list_with_duplicates))
+
 
 # uncomment to see pricing in terminal
 # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
