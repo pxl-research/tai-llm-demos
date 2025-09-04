@@ -1,8 +1,8 @@
-gradio~=5.35.0
-openai~=1.93.0
+gradio~=5.44.1
+openai~=1.104.2
 python-dotenv~=1.1.1
 scipy~=1.15.3
-torch~=2.2.2
-torchaudio~=2.2.2
 transformers~=4.53.1
 accelerate~=1.4.0
+torch~=2.2.2
+torchaudio~=2.2.2
