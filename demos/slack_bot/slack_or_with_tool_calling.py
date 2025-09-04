@@ -6,24 +6,25 @@ from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI_1807
+from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI
 from demos.tool_calling.tool_descriptors import (tools_rag_descriptor,
                                                  tools_search_descriptor,
                                                  tools_get_website_contents)
 # noinspection PyUnresolvedReferences
-from demos.tool_calling.tools_search import search_on_google
-# noinspection PyUnresolvedReferences
 from demos.tool_calling.tools_rag import lookup_in_documentation
+# noinspection PyUnresolvedReferences
+from demos.tool_calling.tools_search import search_on_google
 # noinspection PyUnresolvedReferences
 from demos.tool_calling.tools_surf import (get_webpage_content, get_webpage_with_js)
 
 load_dotenv()
 
-tool_list = [tools_rag_descriptor, tools_search_descriptor]
+tool_list = tools_rag_descriptor
+tool_list.append(tools_search_descriptor)
 tool_list.extend(tools_get_website_contents)
 
 # OpenRouter
-or_client = OpenRouterClient(model_name=GPT_4O_MINI_1807,
+or_client = OpenRouterClient(model_name=GPT_4O_MINI,
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
