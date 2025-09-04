@@ -1,6 +1,6 @@
-streamlit
-requests
-python-dotenv
-pandas
-thefuzz
-python-Levenshtein
+streamlit~=1.49.1
+requests~=2.32.5
+python-dotenv~=1.1.1
+pandas~=2.3.1
+thefuzz~=0.22.1
+python-Levenshtein~=0.27.1
