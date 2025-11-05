@@ -15,8 +15,8 @@ client = OpenAI(
 
 system_instruction = {
     'role': 'system',
-    'content': 'Be concise. Be precise. '
-               'I would like you to take a deep breath before responding. '
+    'content': 'You are a helpful assistant. '
+               'Be concise, but include all relevant details. '
                'Always think step by step. '
 }
 

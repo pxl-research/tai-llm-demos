@@ -30,12 +30,14 @@ or_client = OpenRouterClient(model_name='anthropic/claude-haiku-4.5',
 
 system_instruction = {
     'role': 'system',
-    'content': 'Be concise. Be precise. Always think step by step. '
-               'Take a deep breath before responding. '
+    'content': 'You are a helpful assistant in a Slack workspace. '
+               'Always think step by step. '
+               'Be concise, but include all relevant details. Always think step by step. '
                'Try to complete your assignments in one go (i.e. do not ask for extra details). '
-               'Include the question in your answer. '
-               'You can use Markdown in your answer. '
-               'When using an external source, always include the reference. '
+               'If information is missing, make reasonable assumptions and state them. '
+               'Restate the user’s question before answering. '
+               'Format your answer using Markdown for clarity. '
+               'When using an external source, always include the reference.'
 }
 
 # initializes Slack app
