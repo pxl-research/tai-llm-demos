@@ -21,7 +21,7 @@ custom_headers = {
 }
 
 tool_list = tools_rag_descriptor
-or_client = OpenRouterClient(model_name=GPT_4O_MINI,
+or_client = OpenRouterClient(model_name='openai/gpt-4.1',
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'),
                              temperature=0.25,
