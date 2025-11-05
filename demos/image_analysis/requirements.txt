@@ -1,6 +1,7 @@
 streamlit~=1.51.0
+openai~=2.7.1
 requests~=2.32.5
 python-dotenv~=1.2.1
 pandas~=2.3.3
 thefuzz~=0.22.1
-python-Levenshtein~=0.27.1
+python-Levenshtein~=0.27.3

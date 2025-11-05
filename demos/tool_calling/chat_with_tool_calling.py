@@ -4,7 +4,7 @@ import os
 import gradio as gr
 from dotenv import load_dotenv
 
-from demos.components.open_router_client import OpenRouterClient, GPT_41_MINI
+from demos.components.open_router_client import OpenRouterClient
 from demos.tool_calling.descriptors_fileio import tools_fileio_descriptor
 from demos.tool_calling.tool_descriptors import (tools_weather_descriptor,
                                                  tools_rag_descriptor,
@@ -33,13 +33,13 @@ from tools_weather import (get_current_temperature, get_current_rainfall)
 load_dotenv()
 
 tool_list = []
-# tool_list.append(tools_weather_descriptor) # demo example
-# tool_list.extend(tools_rag_descriptor)
-# tool_list.extend(tools_fileio_descriptor)
+tool_list.append(tools_weather_descriptor)  # demo example
+tool_list.extend(tools_rag_descriptor)
+tool_list.extend(tools_fileio_descriptor)
 tool_list.append(tools_search_descriptor)  # requires GOOGLE_API_KEY
 tool_list.extend(tools_get_website_contents)
 
-or_client = OpenRouterClient(model_name='openai/gpt-5',
+or_client = OpenRouterClient(model_name='anthropic/claude-haiku-4.5',
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
@@ -106,7 +106,11 @@ def complete_with_llm(chat_history, message_list):
         for call in tool_calls:
             print(f'\t- {call.function.name}')
             fn_pointer = globals()[call.function.name]
-            fn_args = json.loads(call.function.arguments)
+            if call.function.arguments is not None and len(call.function.arguments) > 0:
+                print(f'\t- {call.function.arguments}')
+                fn_args = json.loads(call.function.arguments)
+            else:
+                fn_args = {}
             tool_call_obj = {
                 'role': 'assistant',
                 'content': None,

@@ -1,5 +1,5 @@
 python-dotenv~=1.2.1
-openai~=1.109.1
+openai~=2.7.1
 slack_bolt~=1.26.0
 markdownify~=1.2.0
 selenium~=4.38.0

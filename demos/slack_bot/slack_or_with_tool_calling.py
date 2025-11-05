@@ -24,7 +24,7 @@ tool_list.append(tools_search_descriptor)
 tool_list.extend(tools_get_website_contents)
 
 # OpenRouter
-or_client = OpenRouterClient(model_name=GPT_4O_MINI,
+or_client = OpenRouterClient(model_name='anthropic/claude-haiku-4.5',
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
