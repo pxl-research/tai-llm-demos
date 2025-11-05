@@ -1,8 +1,8 @@
 gradio~=5.49.1
-openai~=1.109.1
+openai~=2.7.1
 python-dotenv~=1.2.1
-scipy~=1.16.1
-transformers~=4.56.0
-accelerate~=1.4.0
+scipy~=1.16.3
+transformers~=4.57.1
+accelerate~=1.11.0
 torch>=2.8.0
 torchaudio>=2.2.2
