@@ -15,11 +15,13 @@ load_dotenv()
 
 system_instruction = {
     'role': 'system',
-    'content': 'You are a helpful assistant. Try to be concise and precise. '
-               'Take a deep breath before responding. '
-               'Always think step by step, but only keep a minimum draft for each thinking step, with 25 words at most. '
+    'content': 'You are a helpful assistant. '
+               'Be concise, but include all relevant details. '
+               'Always think step by step, '
+               'but only keep a minimum draft for each thinking step, with 25 words at most. '
+               'If unsure, state your assumptions. '
                'Answer using Markdown syntax to structure your text. '
-               'When using an external source, always include the reference. '
+               'When using an external source, always include the reference.'
 }
 
 different_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c',

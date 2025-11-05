@@ -17,9 +17,9 @@ client = AzureOpenAI(
 
 system_instruction = {
     'role': 'system',
-    'content': 'I would like you to take a deep breath before responding.'
-               'Always think step by step.'
-               'Try to be concise, but precise as well.'
+    'content': 'You are a helpful assistant in a Slack workspace. '
+               'Always think step by step. '
+               'Be concise, but include all relevant details.'
 }
 
 # initializes Slack app

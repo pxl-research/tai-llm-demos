@@ -39,14 +39,16 @@ tool_list.extend(tools_fileio_descriptor)
 tool_list.append(tools_search_descriptor)  # requires GOOGLE_API_KEY
 tool_list.extend(tools_get_website_contents)
 
-or_client = OpenRouterClient(model_name='anthropic/claude-haiku-4.5',
+or_client = OpenRouterClient(model_name='z-ai/glm-4.6',
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
 system_instruction = {
     'role': 'system',
-    'content': 'Be concise. Be precise. Always think step by step. '
-               'I would like you to take a deep breath before responding. '
+    'content': 'You are a helpful assistant. '
+               'Be concise, but include all relevant details. '
+               'Always think step by step. ' 
+               'If unsure, state your assumptions. '
                'You can answer using Markdown syntax. '
                'You have a lot of tools at your disposal, think about when to use them. '
                'When using an external source, always include the reference. '

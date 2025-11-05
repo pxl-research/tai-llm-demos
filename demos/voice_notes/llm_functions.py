@@ -21,8 +21,8 @@ system_instruction = {
                'Try to always summarize the essential parts of the audio fragment in a bulleted list. '
                'Use the same language as the source material (e.g. Dutch summary for Dutch transcripts). '
                'Use Markdown syntax to format your response more clearly. '
-               'Be concise and precise. '
-               'I would like you to take a deep breath before responding. '
+               'Be concise, but include all relevant details. '
+               'If unsure about the content, proceed with your best guess.'
 }
 
 
