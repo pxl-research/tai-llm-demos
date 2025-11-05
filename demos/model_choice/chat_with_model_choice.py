@@ -109,15 +109,11 @@ def colorize_scores(value, df, col):
 def on_row_selected(select_data: gr.SelectData):
     # find the name of the model in the dataframe
     if select_data is not None:
-        if len(select_data.index) > 1 and select_data.target.value is not None:
-            row_idx = select_data.index[0]
-            df_data = select_data.target.value
-
-            if df_data['data'] is not None and len(df_data['data']) > row_idx:
-                selected_row = df_data['data'][row_idx]
-                return selected_row[1], selected_row[1]  # this should be the model name
-
+        if select_data.row_value is not None:
+            if len(select_data.row_value) > 0:
+                return select_data.row_value[0], select_data.row_value[0]
         # fallback option 1
+        print(f'Warning: using {select_data.value} as model name')
         return select_data.value, select_data.value  # value of clicked cell, might be wrong
 
     # fallback option 2: nothing
@@ -175,7 +171,7 @@ custom_css = """
 with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_css) as llm_client_ui):
     # state
     messages = gr.State([system_instruction])
-    selected_model = gr.State('deepseek/deepseek-chat-v3.1')
+    selected_model = gr.State('z-ai/glm-4.6')
     df_models = gr.State(None)
 
     # ui
