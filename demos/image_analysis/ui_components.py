@@ -115,7 +115,7 @@ def display_chat_history():
             if message["type"] == "text":
                 st.markdown(message["content"])
             elif message["type"] == "image":
-                st.image(message["content"], caption="Uploaded Image", use_column_width=True)
+                st.image(message["content"], caption="Uploaded Image", use_container_width=True)
 
 
 def handle_image_upload():
