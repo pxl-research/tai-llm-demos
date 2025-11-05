@@ -66,7 +66,7 @@ def chat_completion(message, history):
                 del event[key]
 
     # call the language model
-    response_stream = client.chat.completions.create(model='google/gemini-2.0-flash-001',
+    response_stream = client.chat.completions.create(model='anthropic/claude-haiku-4.5',
                                                      messages=history,
                                                      extra_headers={
                                                          'HTTP-Referer': 'https://pxl-research.be/',
