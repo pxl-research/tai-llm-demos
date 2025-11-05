@@ -32,13 +32,14 @@ from tools_weather import (get_current_temperature, get_current_rainfall)
 
 load_dotenv()
 
-tool_list = tools_weather_descriptor
-tool_list.extend(tools_rag_descriptor)
-tool_list.append(tools_search_descriptor)
+tool_list = []
+# tool_list.append(tools_weather_descriptor) # demo example
+# tool_list.extend(tools_rag_descriptor)
+# tool_list.extend(tools_fileio_descriptor)
+tool_list.append(tools_search_descriptor)  # requires GOOGLE_API_KEY
 tool_list.extend(tools_get_website_contents)
-tool_list.extend(tools_fileio_descriptor)
 
-or_client = OpenRouterClient(model_name=GPT_41_MINI,
+or_client = OpenRouterClient(model_name='openai/gpt-5',
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
