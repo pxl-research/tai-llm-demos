@@ -1,0 +1,7 @@
+streamlit
+chromadb
+python-dotenv
+openai
+openrouter
+pymupdf4llm
+markitdown[pdf, docx, pptx, xlsx, xls]
