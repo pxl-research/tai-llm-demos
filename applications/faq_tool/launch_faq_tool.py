@@ -7,7 +7,7 @@ import gradio as gr
 from dotenv import load_dotenv
 
 sys.path.append('../../')
-from demos.components.open_router_client import OpenRouterClient, GPT_4O_MINI
+from demos.components.open_router_client import OpenRouterClient
 from demos.tool_calling.tool_descriptors import (tools_rag_descriptor)
 
 # noinspection PyUnresolvedReferences
@@ -21,7 +21,7 @@ custom_headers = {
 }
 
 tool_list = tools_rag_descriptor
-or_client = OpenRouterClient(model_name='openai/gpt-4.1',
+or_client = OpenRouterClient(model_name='anthropic/claude-haiku-4.5',
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'),
                              temperature=0.25,

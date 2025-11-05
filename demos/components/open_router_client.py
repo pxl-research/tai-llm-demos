@@ -11,7 +11,7 @@ class OpenRouterClient(OpenAI):
     def __init__(self,
                  api_key: str,
                  base_url: str = 'https://openrouter.ai/api/v1',
-                 model_name: str = 'openai/gpt-4o-mini',
+                 model_name: str = 'anthropic/claude-haiku-4.5',
                  tools_list: list = None,
                  temperature: float = 0,
                  custom_headers=None):
@@ -58,13 +58,3 @@ DEEPSEEK_V3 = 'deepseek/deepseek-chat'
 GPT_4O = 'openai/chatgpt-4o'
 GPT_4O_LATEST = 'openai/chatgpt-4o-latest'
 GPT_4O_MINI = 'openai/gpt-4o-mini-2024-07-18'
-
-# older constants
-O3_MINI_HIGH = 'openai/o3-mini-high'
-O3_MINI = 'openai/o3-mini'
-GEMINI_PRO_15 = 'google/gemini-pro-1.5'
-GPT_4O_1305 = 'openai/gpt-4o-2024-05-13'
-QWEN_25_PLUS = 'qwen/qwen-plus'
-LLAMA_405B_I = 'meta-llama/llama-3.1-405b-instruct'
-CLAUDE_35_SONNET_2006 = 'anthropic/claude-3.5-sonnet-20240620'
-GEMINI_2_FLASH_LITE = 'google/gemini-2.0-flash-lite-001'
