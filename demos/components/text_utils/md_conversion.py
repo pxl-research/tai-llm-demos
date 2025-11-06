@@ -12,15 +12,19 @@ from demos.components.open_router_client import OpenRouterClient
 load_dotenv()
 
 
-# docx, pptx, xlsx, pdf,
 def document_to_markdown(doc_filename: str) -> str:
+    """
+    Convert a document (docx, pptx, xlsx, pdf) to Markdown text.
+    """
     mid = MarkItDown(enable_plugins=False)
     conversion = mid.convert(doc_filename)
     return conversion.text_content
 
 
-# image files (jpg, png, bmp, tiff, gif) and pptx with images
 def image_description(img_filename: str) -> str:
+    """
+    Generate a Markdown image description using an LLM client.
+    """
     api_key = os.getenv('OPENROUTER_API_KEY')
     model_name = os.getenv('OPENROUTER_MODEL_NAME')
 
