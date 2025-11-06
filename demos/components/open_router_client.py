@@ -4,15 +4,15 @@ from openai import OpenAI
 
 
 class OpenRouterClient(OpenAI):
-    model_name: str
-    tools_list: list
-    temperature: float
+    """
+    Client for OpenRouter API, supporting streaming completions and tool calling.
+    """
 
     def __init__(self,
                  api_key: str,
                  base_url: str = 'https://openrouter.ai/api/v1',
                  model_name: str = 'anthropic/claude-haiku-4.5',
-                 tools_list: list = None,
+                 tools_list: Iterable | None = None,
                  temperature: float = 0,
                  custom_headers=None):
         super().__init__(base_url=base_url,
@@ -23,38 +23,31 @@ class OpenRouterClient(OpenAI):
                 'HTTP-Referer': 'https://pxl-research.be/',
                 'X-Title': 'PXL Smart ICT'
             }
-        self.model_name = model_name
-        self.tools_list = tools_list
-        self.temperature = temperature
-        self.extra_headers = custom_headers
+        self.model_name: str = model_name
+        self.tools_list: Iterable | None = tools_list
+        self.temperature: float = temperature
+        self.extra_headers: dict = custom_headers
 
     def create_completions_stream(self, message_list: Iterable, stream=True):
-        return self.chat.completions.create(model=self.model_name,
-                                            messages=message_list,
-                                            tools=self.tools_list,
-                                            stream=stream,
-                                            temperature=self.temperature,
-                                            extra_headers=self.extra_headers)
+        """
+        Create a streaming chat completion using the configured model and tools.
+        Args:
+            message_list: Iterable of message dicts for the chat API.
+            stream: Whether to stream the response.
+        Returns:
+            Streaming response from OpenRouter chat completion.
+        """
+        return self.chat.completions.create(
+            model=self.model_name,
+            messages=message_list,
+            tools=self.tools_list,
+            stream=stream,
+            temperature=self.temperature,
+            extra_headers=self.extra_headers
+        )
 
     def set_model(self, model_name: str):
+        """
+        Set the model name for future completions.
+        """
         self.model_name = model_name
-
-
-# some models with tool calling (sorted from more to less powerful)
-GEMINI_PRO_25 = 'google/gemini-2.5-pro-preview'
-OPENAI_O3 = 'openai/o3'
-GPT_4O_2011 = 'openai/gpt-4o-2024-11-20'
-GEMINI_FLASH_25 = 'google/gemini-2.5-flash-preview-05-20'
-DEEPSEEK_R1_0528 = 'deepseek/deepseek-r1-0528'
-GPT_41 = 'openai/gpt-4.1'
-DEEPSEEK_V3_0324 = 'deepseek/deepseek-chat-v3-0324'
-OPENAI_O4_MINI = 'openai/o4-mini'
-DEEPSEEK_R1 = 'deepseek/deepseek-r1'
-GEMINI_FLASH_LITE_25 = 'google/gemini-2.5-flash-lite-preview-06-17'
-MISTRAL_MEDIUM_2506 = 'mistralai/magistral-medium-2506'
-GPT_41_MINI = 'openai/gpt-4.1-mini'
-GEMINI_2_FLASH_1 = 'google/gemini-2.0-flash-001'
-DEEPSEEK_V3 = 'deepseek/deepseek-chat'
-GPT_4O = 'openai/chatgpt-4o'
-GPT_4O_LATEST = 'openai/chatgpt-4o-latest'
-GPT_4O_MINI = 'openai/gpt-4o-mini-2024-07-18'
