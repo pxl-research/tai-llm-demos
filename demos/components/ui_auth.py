@@ -10,15 +10,15 @@ def on_add_user(username, password):
     current_users = list_all_users()
     if len(username) < 3:
         gr.Warning('Please enter a username of at least 3 characters')
-        return username, password
+        return username, password, current_users
 
     if username in current_users:
         gr.Warning('Username is already taken, please choose another one')
-        return username, password
+        return username, password, current_users
 
     if len(password) < 10:
         gr.Warning('Please enter a password of at least 10 characters')
-        return username, password
+        return username, password, current_users
 
     add_user(username, password)
     gr.Info(f'User "{username}" successfully added!')
