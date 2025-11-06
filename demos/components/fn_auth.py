@@ -2,11 +2,15 @@ import base64
 
 import bcrypt
 
-DEFAULT_PASSWD_FILE = '.passwd'
-default_encoding = 'utf-8'
+DEFAULT_PASSWD_FILE = '.passwd'  # Path to user credentials file
+DEFAULT_ENCODING = 'utf-8'  # Encoding used for all string operations
 
 
 def auth_method(username: str, password: str, users_file: str = DEFAULT_PASSWD_FILE) -> bool:
+    """
+    Authenticate user by checking username and password against stored credentials.
+    Returns True if credentials match, else False.
+    """
     encoded_username = encode_64(username)
     users_list = []
     with open(users_file, 'r') as log_file:
@@ -19,6 +23,9 @@ def auth_method(username: str, password: str, users_file: str = DEFAULT_PASSWD_F
 
 
 def add_user(username: str, password: str, users_file: str = DEFAULT_PASSWD_FILE) -> None:
+    """
+    Add a new user with hashed password to the credentials file.
+    """
     encoded_username = encode_64(username.strip())
     hashed_password = bc_hash_string(password.strip())
     user_line = f'{encoded_username}|{hashed_password}\n'
@@ -27,6 +34,9 @@ def add_user(username: str, password: str, users_file: str = DEFAULT_PASSWD_FILE
 
 
 def list_all_users(users_file: str = DEFAULT_PASSWD_FILE) -> list[str]:
+    """
+    Return a list of all decoded usernames in the credentials file.
+    """
     with open(users_file, 'r') as log_file:
         user_lines = log_file.read().splitlines()
 
@@ -39,6 +49,10 @@ def list_all_users(users_file: str = DEFAULT_PASSWD_FILE) -> list[str]:
 
 
 def remove_user_on_line(line_number: int, users_file: str = DEFAULT_PASSWD_FILE) -> str:
+    """
+    Remove user at the given line number from the credentials file.
+    Returns the removed line.
+    """
     with open(users_file, 'r') as log_file:
         users_list = log_file.read().splitlines()
     selected_line = users_list.pop(line_number)
@@ -51,27 +65,39 @@ def remove_user_on_line(line_number: int, users_file: str = DEFAULT_PASSWD_FILE)
 # UTILITY METHODS
 
 def bc_hash_string(string: str) -> str:
-    byte_string = string.encode(default_encoding)
+    """
+    Hash a string using bcrypt and return the hash.
+    """
+    byte_string = string.encode(DEFAULT_ENCODING)
     salt = bcrypt.gensalt()
     hashed_byte_string = bcrypt.hashpw(byte_string, salt)
-    return hashed_byte_string.decode(default_encoding)
+    return hashed_byte_string.decode(DEFAULT_ENCODING)
 
 
 def bc_check_string(string: str, stored_hash: str) -> bool:
-    byte_string = string.encode(default_encoding)
-    stored_hash_bytes = stored_hash.encode(default_encoding)
+    """
+    Check if a string matches the given bcrypt hash.
+    """
+    byte_string = string.encode(DEFAULT_ENCODING)
+    stored_hash_bytes = stored_hash.encode(DEFAULT_ENCODING)
     return bcrypt.checkpw(byte_string, stored_hash_bytes)
 
 
 def encode_64(string: str) -> str:
-    byte_string = string.encode(default_encoding)
+    """
+    Encode a string to base64.
+    """
+    byte_string = string.encode(DEFAULT_ENCODING)
     encoded_bytes = base64.b64encode(byte_string)
-    return encoded_bytes.decode(default_encoding)
+    return encoded_bytes.decode(DEFAULT_ENCODING)
 
 
 def decode_64(encoded_string: str) -> str:
+    """
+    Decode a base64-encoded string.
+    """
     decoded_bytes = base64.b64decode(encoded_string)
-    return decoded_bytes.decode(default_encoding)
+    return decoded_bytes.decode(DEFAULT_ENCODING)
 
 # Uncomment this line to manually add a user:
 # add_user('pxl', 'YQhPEN826TJ4uey9sjDKWt')
