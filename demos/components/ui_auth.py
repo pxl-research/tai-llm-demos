@@ -6,7 +6,7 @@ ADMIN_USER = 'admin'  # TODO: change default admin username
 ADMIN_PASS = 'cAZgYBF6d4LCn3mQK2hsU5'  # TODO: change default admin password
 
 
-def on_add_user(username, password):
+def on_add_user(username: str, password: str) -> tuple[str | None, str | None, list[list[str]]]:
     current_users = list_all_users()
     if len(username) < 3:
         gr.Warning('Please enter a username of at least 3 characters')
@@ -27,7 +27,7 @@ def on_add_user(username, password):
     return None, None, user_list  # clear form, refresh user list
 
 
-def list_users():
+def list_users() -> list[list[str]]:
     user_list = list_all_users()
     df_user_list = []
     for user in user_list:
@@ -35,11 +35,11 @@ def list_users():
     return df_user_list
 
 
-def on_row_selected(select_data: gr.SelectData):
+def on_row_selected(select_data: gr.SelectData) -> int:
     return select_data.index
 
 
-def on_remove_user(user_list, select_data):
+def on_remove_user(user_list: list[list[str]], select_data: list[int] | None) -> tuple[list[list[str]], None]:
     if select_data is not None:
         user_index = select_data[0]
         user = remove_user_on_line(user_index)
