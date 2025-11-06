@@ -1,32 +1,33 @@
 import os
 import re
+from typing import Any
 
 import pymupdf4llm
 from markitdown import MarkItDown
 
 
 # pdf only
-def pdf_to_markdown(pdf_file_path):
+def pdf_to_markdown(pdf_file_path: str) -> str:
     md_text = pymupdf4llm.to_markdown(pdf_file_path)
     return md_text
 
 
 # docx, pptx, xlsx
-def document_to_markdown(filename):
+def document_to_markdown(filename: str) -> str:
     # TODO: add image description through LLM?
     mid = MarkItDown(enable_plugins=False)
     conversion = mid.convert(filename)
     return conversion.text_content
 
 
-def sanitize_filename(full_file_path):
+def sanitize_filename(full_file_path: str) -> str:
     cleaner_name = os.path.basename(full_file_path)  # remove path
     cleaner_name = os.path.splitext(cleaner_name)[0]  # remove extension
     cleaner_name = sanitize_string(cleaner_name)
     return cleaner_name[:60]  # crop it
 
 
-def sanitize_string(some_text):
+def sanitize_string(some_text: str) -> str:
     cleaner_name = some_text.strip()
     cleaner_name = cleaner_name.replace(" ", "_")  # spaces to underscores
     cleaner_name = re.sub(r'[^a-zA-Z0-9_-]', '-', cleaner_name)  # replace invalid characters with spaces
@@ -35,7 +36,7 @@ def sanitize_string(some_text):
     return cleaner_name
 
 
-def repack_query_results(result):
+def repack_query_results(result: dict[str, Any]) -> list[dict[str, Any]]:
     fields = ['distances', 'metadatas', 'embeddings', 'documents', 'uris', 'data']
     length = len(result['ids'][0])  # ids are always returned
     repacked = []
@@ -48,7 +49,7 @@ def repack_query_results(result):
     return repacked
 
 
-def doc_to_chunks(doc_contents, document_name):
+def doc_to_chunks(doc_contents: str, document_name: str) -> tuple[list[str], list[str], list[dict[str, Any]]]:
     # https://www.llamaindex.ai/blog/evaluating-the-ideal-chunk-size-for-a-rag-system-using-llamaindex-6207e5d3fec5
     max_size = 2048
 
@@ -83,7 +84,7 @@ def doc_to_chunks(doc_contents, document_name):
     return chunk_list, chunk_id_list, chunk_meta_list
 
 
-def split_by_max_length(large_chunk, max_size):
+def split_by_max_length(large_chunk: str, max_size: int) -> list[str]:
     chunk_list = []
     remainder = large_chunk
     while len(remainder) > max_size:
@@ -95,7 +96,7 @@ def split_by_max_length(large_chunk, max_size):
     return chunk_list
 
 
-def split_in_chunks(section_text, max_size):
+def split_in_chunks(section_text: str, max_size: int) -> list[str]:
     phrase_chunks = re.split(r'\.\s', section_text)  # split into "phrases" with period + whitespace
 
     small_chunks = []
