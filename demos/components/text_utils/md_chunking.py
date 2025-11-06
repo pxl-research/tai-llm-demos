@@ -42,7 +42,6 @@ def split_on_threshold(text: str, max_chars: int = 1024, overlap_pct: float = 0.
     start = 0
     txt_len = len(text)
     overlap = int(max_chars * overlap_pct)
-    print(f'Splitting text of length {txt_len} into chunks of max {max_chars} chars with {overlap} chars overlap')
 
     while start < txt_len:
         end = min(start + max_chars, txt_len)
@@ -78,72 +77,13 @@ def split_on_threshold(text: str, max_chars: int = 1024, overlap_pct: float = 0.
 
 
 def iterative_chunking(md_text: str, max_size: int = 1024) -> list[str]:
+    """
+    Iteratively chunk Markdown text using multiple strategies until all chunks are under max_size.
+    Strategies: header levels, newlines, sentences, threshold.
+    """
     chunks = [md_text]
 
-    strategies = [
-        lambda text: split_by_header(text, header_level=1),  # 0
-        lambda text: split_by_header(text, header_level=2),  # 1
-        lambda text: split_by_header(text, header_level=3),  # 2
-        lambda text: split_by_header(text, header_level=4),  # 3
-        lambda text: split_by_header(text, header_level=5),  # 4
-        lambda text: split_by_header(text, header_level=6),  # 5
-        lambda text: split_by_newlines(text, newline_count=4),  # 6
-        lambda text: split_by_newlines(text, newline_count=3),  # 7
-        lambda text: split_by_newlines(text, newline_count=2),  # 8
-        lambda text: split_by_newlines(text, newline_count=1),  # 9
-        split_on_sentences,  # 10
-        lambda text: split_on_threshold(text, max_chars=max_size, overlap_pct=0.1)  # 11
-    ]
-    strat = 0
-
-    while True:
-        if all(len(chunk) <= max_size for chunk in chunks):
-            return chunks
-
-        for c in range(0, len(chunks)):
-            big_chunk = chunks[c]
-            if len(big_chunk) <= max_size:
-                continue
-
-            new_chunks = strategies[strat](big_chunk)  # potential chunks
-            if len(new_chunks) > 1:
-                # merge small chunks if needed
-                new_chunks = merge_small_chunks(new_chunks, max_size=max_size)
-
-            # replace original big chunk with the new chunks
-            chunks = chunks[:c] + new_chunks + chunks[c + 1:]
-
-        # try next strategy
-        if strat < len(strategies) - 1:
-            strat = strat + 1
-
-
-def merge_small_chunks(small_chunks: list[str], max_size: int = 1024) -> list[str]:
-    """
-    Merges consecutive chunks if their combined size is <= max_size.
-    Returns a list of merged chunks optimized for size.
-    """
-    merged = []
-    current = ''
-
-    for chunk in small_chunks:
-        if len(current) + len(chunk) <= max_size:
-            current = (current + chunk).strip()
-        else:
-            if current:
-                merged.append(current)
-            current = chunk
-    if current:
-        merged.append(current)
-
-    return merged
-
-
-def identical_strategy_chunk(md_text: str, max_size: int = 1024) -> list[str]:
-    """
-    Iteratively chunk Markdown text by trying different strategies until chunks are under max_size.
-    Strategies: header level 1, header level 2, double newlines, single newlines, sentences, fixed threshold.
-    """
+    # list of chunking strategies, from coarse to fine
     strategies = [
         lambda text: split_by_header(text, header_level=1),
         lambda text: split_by_header(text, header_level=2),
@@ -156,12 +96,51 @@ def identical_strategy_chunk(md_text: str, max_size: int = 1024) -> list[str]:
         lambda text: split_by_newlines(text, newline_count=2),
         lambda text: split_by_newlines(text, newline_count=1),
         split_on_sentences,
+        lambda text: split_on_threshold(text, max_chars=max_size, overlap_pct=0.1)
     ]
+    strat = 0
 
-    for strategy in strategies:
-        chunks = strategy(md_text)
+    while True:
+        # if all chunks are small enough, return
         if all(len(chunk) <= max_size for chunk in chunks):
             return chunks
 
-    # Fallback: if all strategies fail, use fixed threshold
-    return split_on_threshold(md_text, max_chars=max_size, overlap_pct=0.1)
+        for c in range(len(chunks)):
+            big_chunk = chunks[c]
+            if len(big_chunk) <= max_size:
+                continue
+
+            # apply current strategy to big chunk
+            new_chunks = strategies[strat](big_chunk)
+            if len(new_chunks) > 1:
+                # merge small chunks if needed
+                new_chunks = merge_small_chunks(new_chunks, max_size=max_size)
+
+            # replace original big chunk with new chunks
+            chunks = chunks[:c] + new_chunks + chunks[c + 1:]
+
+        # try next strategy if available
+        if strat < len(strategies) - 1:
+            strat += 1
+
+
+def merge_small_chunks(small_chunks: list[str], max_size: int = 1024) -> list[str]:
+    """
+    Merge consecutive chunks if their combined size is <= max_size.
+    Returns a list of merged chunks optimized for size.
+    """
+    merged = []
+    current = ''
+
+    for chunk in small_chunks:
+        # if adding chunk keeps size under max_size, merge
+        if len(current) + len(chunk) <= max_size:
+            current = (current + chunk).strip()
+        else:
+            if current:
+                merged.append(current)
+            current = chunk
+    if current:
+        merged.append(current)
+
+    return merged
