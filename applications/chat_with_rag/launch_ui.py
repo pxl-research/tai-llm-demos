@@ -24,7 +24,7 @@ sys.path.append('../../')
 
 from applications.chat_with_rag.blocks_rag_upload import remove_collection
 from demos.components.vectorstore.vs_utilities import sanitize_string
-from demos.components.fn_auth import auth_method
+from demos.components.auth.fn_auth import auth_method
 
 
 def show_live():
