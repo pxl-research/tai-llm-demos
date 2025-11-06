@@ -1,15 +1,27 @@
 import sys
 
 import chromadb
+from chromadb import QueryResult
 from tqdm import tqdm
 
 sys.path.append('../')
 sys.path.append('../../')
 
-from demos.components.vectorstore.vs_utilities import (sanitize_filename,
-                                                       doc_to_chunks,
-                                                       repack_query_results,
-                                                       document_to_markdown)
+from demos.components.text_utils.string_utils import clean_up_string
+
+
+def repack_query_results(results: QueryResult):
+    # not included in mapping: 'uris', 'embeddings', 'data' , 'included'
+    fields = ['ids', 'distances', 'metadatas', 'documents']
+    length = len(results['ids'][0])  # ids are always returned
+    repacked = []
+    for r in range(length):
+        repacked_result = {}
+        for field in fields:
+            if results[field] is not None:
+                repacked_result[field[:-1]] = results[field][0][r]
+        repacked.append(repacked_result)
+    return repacked
 
 
 class ChromaDocumentStore:
@@ -17,12 +29,16 @@ class ChromaDocumentStore:
 
     def __init__(self, path=None):
         if path is None:
+            print('WARNING: using in-memory ChromaDB, no persistence!')
             self.cdb_client = chromadb.Client()  # in memory
         else:
             self.cdb_client = chromadb.PersistentClient(path=path)  # on disk
 
-    def add_document(self, document_path: str, tqdm_func=tqdm):
-        collection_name = sanitize_filename(document_path)
+    def add_document(self, document_name: str,
+                     chunks: list[str],
+                     meta_infos: list,
+                     tqdm_func=tqdm):
+        collection_name = clean_up_string(document_name)
 
         current_document_list = self.list_documents()
         if collection_name in current_document_list:
@@ -30,21 +46,18 @@ class ChromaDocumentStore:
             # self.remove_document(collection_name)
             return
 
-        md_text = document_to_markdown(document_path)
-
-        chunks, chunk_ids, meta_infos = doc_to_chunks(md_text, collection_name)
-        # print(f"Split {len(file_content)} characters into {len(chunk_ids)} chunks for '{collection_name}'")
-
+        # create a new collection for this document
         cdb_collection = self.cdb_client.create_collection(collection_name)
-        total = len(chunks)
-        taqaddum = tqdm_func(range(total))
+
+        taqaddum = tqdm_func(range(len(chunks)))
+        taqaddum.set_description(desc=collection_name)
         for c in taqaddum:
+            # add each chunk with its metadata
             cdb_collection.add(
                 documents=chunks[c],
-                ids=chunk_ids[c],
+                ids=meta_infos[c]['id'],
                 metadatas=meta_infos[c]
             )
-            taqaddum.set_description(desc=collection_name)
 
     def remove_document(self, document_name):
         self.cdb_client.delete_collection(document_name)
@@ -54,19 +67,21 @@ class ChromaDocumentStore:
         collection_names = []
         for collection in collections:
             collection_names.append(collection.name)
+        collection_names.sort()
         return collection_names
 
     def query_store(self, query: str, amount: int = 5):
+        all_results: list = []
+
         collections = self.cdb_client.list_collections()
-        all_results = []
         for collection in collections:
-            collection = self.cdb_client.get_collection(collection.name)
-            result = collection.query(
+            results = collection.query(
                 query_texts=[query],
                 n_results=amount,
             )
-            repacked = repack_query_results(result)
-            all_results = all_results + repacked
+            cleaned_results = repack_query_results(results)
+            all_results.extend(cleaned_results)
 
         # sort results by distance
-        return sorted(all_results, key=lambda r: r['distances'])
+        sorted(all_results, key=lambda r: r['distance'])
+        return all_results[:amount]
