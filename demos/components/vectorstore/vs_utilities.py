@@ -2,17 +2,12 @@ import os
 import re
 from typing import Any
 
-import pymupdf4llm
 from markitdown import MarkItDown
 
 
-# pdf only
-def pdf_to_markdown(pdf_file_path: str) -> str:
-    md_text = pymupdf4llm.to_markdown(pdf_file_path)
-    return md_text
+# TODO: replace with newer version!
 
-
-# docx, pptx, xlsx
+# pdf, docx, pptx, xlsx
 def document_to_markdown(filename: str) -> str:
     # TODO: add image description through LLM?
     mid = MarkItDown(enable_plugins=False)

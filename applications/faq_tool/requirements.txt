@@ -3,5 +3,4 @@ gradio~=5.49.1
 openai~=2.7.1
 chromadb~=1.3.3
 tqdm~=4.67.1
-pymupdf4llm~=0.0.27
 markitdown[pdf, docx, pptx, xlsx, xls]~=0.1.3
