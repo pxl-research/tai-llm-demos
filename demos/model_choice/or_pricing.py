@@ -24,6 +24,10 @@ def get_models(tools_only=False,
 
     filtered_data = model_list['data']
 
+    if skip_experimental:
+        filtered_data = [m for m in filtered_data if
+                         not any(term in m['id'] for term in ['beta', '-exp', ':free'])]  # remove experimental / beta
+
     # context
     if min_context > 0:
         filtered_data = [m for m in filtered_data if m['context_length'] >= min_context]  # at least medium-size context
@@ -41,9 +45,10 @@ def get_models(tools_only=False,
         filtered_data = [m for m in filtered_data if
                          float(m['pricing']['prompt']) > 0]  # remove free ones because they are rate limited
 
-    if skip_experimental:
+    if image_only:
         filtered_data = [m for m in filtered_data if
-                         not any(term in m['id'] for term in ['beta', '-exp', ':free'])]  # remove experimental / beta
+                         'image' in m.get('architecture', {}).get('input_modalities', [])
+                         and 'text' in m.get('architecture', {}).get('input_modalities', [])]  # image input support
 
     print(f'{len(filtered_data)} models left after filtering ...\n')
 
