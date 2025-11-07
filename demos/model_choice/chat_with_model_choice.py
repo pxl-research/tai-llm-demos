@@ -31,7 +31,13 @@ providers = {}
 
 # blocks UI method
 def on_load_ui():
-    data_models = get_models(tools_only=False, as_dataframe=True)
+    data_models = get_models(tools_only=False,
+                             image_only=False,
+                             min_context=16000,
+                             max_completion_price=20,
+                             max_prompt_price=10,
+                             skip_free=True,
+                             skip_experimental=True)
 
     # set precision of price values
     price_columns = data_models.filter(like='price').columns
@@ -44,7 +50,6 @@ def on_load_ui():
                     .map(colorize_quantiles, df=data_models, col='prompt_price', subset=['prompt_price'])
                     .map(colorize_contexts, subset=['context_length'])
                     .map(colorize_providers, subset=['provider'])
-                    .map(colorize_scores, df=data_models, col='lm_arena_score', subset=['lm_arena_score'])
                     )
 
     return data_models, style_models
@@ -204,9 +209,9 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
                                           type="pandas",
                                           show_search='search',
                                           interactive=False,
-                                          headers=['Full Model Name', 'LM Arena Score', 'Prompt Price',
-                                                   'Completion Price', 'Context Length', 'Max Completion Tokens',
-                                                   'Provider'])
+                                          headers=['Full Model Name', 'Prompt Price',
+                                                   'Completion Price', 'Context Length',
+                                                   'Max Completion Tokens', 'Provider'])
 
     # event handlers
     tb_user.submit(append_user,
