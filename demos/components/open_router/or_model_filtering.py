@@ -85,7 +85,7 @@ def get_models(tools_only=False,
     pd.set_option('display.precision', 3)
 
     # saving
-    df_models.to_csv('or_pricing.csv')
+    df_models.to_csv('or_models.csv')
 
     return df_models
 

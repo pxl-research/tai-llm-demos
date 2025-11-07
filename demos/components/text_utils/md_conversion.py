@@ -7,7 +7,7 @@ from markitdown import MarkItDown
 sys.path.append('../')
 sys.path.append('../../')
 
-from demos.components.open_router_client import OpenRouterClient
+from demos.components.open_router.open_router_client import OpenRouterClient
 
 load_dotenv()
 
