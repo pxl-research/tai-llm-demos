@@ -7,7 +7,7 @@ import requests
 from thefuzz import fuzz
 
 sys.path.append('../../')
-from demos.components.open_router.or_model_filtering import get_models
+from components.open_router.or_model_filtering import get_models
 
 
 def load_model_scores(csv_path="./lmarena_vision_250616.csv") -> Dict[str, float]:

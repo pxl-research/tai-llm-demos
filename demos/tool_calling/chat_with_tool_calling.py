@@ -4,7 +4,7 @@ import os
 import gradio as gr
 from dotenv import load_dotenv
 
-from demos.components.open_router.open_router_client import OpenRouterClient
+from components.open_router.open_router_client import OpenRouterClient
 from demos.tool_calling.descriptors_fileio import tools_fileio_descriptor
 from demos.tool_calling.tool_descriptors import (tools_weather_descriptor,
                                                  tools_rag_descriptor,
