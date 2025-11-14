@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 sys.path.append('../')
 sys.path.append('../../')
 
-from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore
+from components.vectorstore.chroma_document_store import ChromaDocumentStore
 
 load_dotenv()
 

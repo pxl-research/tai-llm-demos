@@ -19,12 +19,12 @@ from blocks_view_history import (
     set_folder,
     remove_file
 )
-from demos.components.text_utils.string_utils import clean_up_string
+from components.text_utils.string_utils import clean_up_string
 
 sys.path.append('../../')
 
 from applications.chat_with_rag.blocks_rag_upload import remove_collection
-from demos.components.auth.fn_auth import auth_method
+from components.auth.fn_auth import auth_method
 
 
 def show_live():

@@ -5,14 +5,14 @@ import gradio as gr
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-from demos.components.text_utils.md_chunking import iterative_chunking
-from demos.components.text_utils.md_conversion import document_to_markdown
-from demos.components.text_utils.string_utils import sanitize_filename
+from components.text_utils.md_chunking import iterative_chunking
+from components.text_utils.md_conversion import document_to_markdown
+from components.text_utils.string_utils import sanitize_filename
 
 sys.path.append('../')
 sys.path.append('../../')
 
-from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore
+from components.vectorstore.chroma_document_store import ChromaDocumentStore
 
 load_dotenv()
 
