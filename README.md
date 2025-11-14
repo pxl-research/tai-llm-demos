@@ -14,7 +14,6 @@ This repository contains chatbot and related examples using Azure OpenAI and Ope
 - [Slack Chatbot](demos/slack_bot/README.md): Slack bot examples with tool-calling capabilities.
 - [Tool Calling](demos/tool_calling/README.md): A chatbot using OpenRouter with tool-calling functionality.
 - [Voice Notes](demos/voice_notes/README.md): A Gradio tool for transcribing and summarizing audio files.
-- [GUI Application](gui/README.md): A standalone GUI-based LLM chat application built with wxPython.
 
 ### Applications
 

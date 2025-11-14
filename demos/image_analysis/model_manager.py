@@ -1,21 +1,33 @@
-from typing import Dict, List, Any, Tuple
+import sys
+from typing import Dict, List, Any
 
 import streamlit as st
 
+from app_config import DEFAULT_MODEL, OPENROUTER_API_KEY
 from utils import (
-    get_image_capable_models,
     call_openrouter_api,
     load_model_scores,
     sort_models_by_score
 )
-from app_config import DEFAULT_MODEL, OPENROUTER_API_KEY
+
+sys.path.append('../../')
+from demos.components.open_router.or_model_filtering import get_models
+
 
 def load_and_sort_models():
     """Load models from OpenRouter API and sort them by score"""
     # Only load models if not already loaded
     if not st.session_state.all_models_data:
         # Get models that support image processing
-        models = get_image_capable_models()
+        df_models = get_models(tools_only=False,
+                               image_only=True,
+                               min_context=16000,
+                               max_completion_price=20,
+                               max_prompt_price=10,
+                               skip_free=True,
+                               skip_experimental=True)
+
+        models = df_models.to_dict('records')
         st.session_state.all_models_data = models
         st.session_state.total_image_capable_models = len(models)
 
@@ -42,11 +54,11 @@ def load_and_sort_models():
 def set_default_model(models: List[Dict[str, Any]]):
     """Set the default model from available options"""
     # Try to use the preferred default model if available
-    if any(model['id'] == DEFAULT_MODEL for model in models):
+    if any(model['full_model_name'] == DEFAULT_MODEL for model in models):
         st.session_state.selected_model_id = DEFAULT_MODEL
     # Otherwise use the first available model
     elif models:
-        st.session_state.selected_model_id = models[0]['id']
+        st.session_state.selected_model_id = models[0]['full_model_name']
 
 
 def update_selected_model():

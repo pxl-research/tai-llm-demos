@@ -1,59 +1,13 @@
 import base64
+import sys
 from typing import Dict, List, Any, Tuple
 
 import pandas as pd
 import requests
 from thefuzz import fuzz
 
-
-def get_image_capable_models() -> List[Dict[str, Any]]:
-    """
-    Fetches models from OpenRouter API that support both text and image inputs.
-    Filters out experimental, free, and expensive models.
-    """
-    models_url = 'https://openrouter.ai/api/v1/models'
-    try:
-        response = requests.get(models_url)
-        response.raise_for_status()
-        model_list = response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching models from OpenRouter: {e}")
-        return []
-
-    filtered_models = []
-    for model in model_list.get('data', []):
-        # Skip if model id contains indicators of experimental or free models
-        if any(term in model['id'] for term in ['beta', '-exp', ':free']):
-            continue
-
-        # Check for required modalities
-        architecture = model.get('architecture', {})
-        input_modalities = architecture.get('input_modalities', [])
-        if "text" not in input_modalities or "image" not in input_modalities:
-            continue
-
-        # Skip models with insufficient context length
-        if model.get('context_length', 0) < 16000:
-            continue
-
-        # Skip models with high prices
-        pricing = model.get('pricing', {})
-        prompt_price = float(pricing.get('prompt', 0))
-        completion_price = float(pricing.get('completion', 0))
-
-        prompt_price_per_million = prompt_price * 1000000
-        completion_price_per_million = completion_price * 1000000
-
-        if prompt_price_per_million >= 10 or completion_price_per_million >= 20:
-            continue
-
-        # Skip free models (often rate-limited)
-        if prompt_price == 0:
-            continue
-
-        filtered_models.append(model)
-
-    return filtered_models
+sys.path.append('../../')
+from demos.components.open_router.or_model_filtering import get_models
 
 
 def load_model_scores(csv_path="./lmarena_vision_250616.csv") -> Dict[str, float]:
@@ -92,7 +46,7 @@ def sort_models_by_score(model_objects: List[Dict[str, Any]],
     matched_count = 0
 
     for model in model_objects:
-        model_id = model['id']
+        model_id = model['full_model_name']
         # Try direct match first
         score = score_map.get(model_id.lower(), None)
 
@@ -178,7 +132,15 @@ def call_openrouter_api(model_id: str, messages: List[Dict[str, Any]], api_key: 
 if __name__ == '__main__':
     # Test the functions
     print("--- Testing get_image_capable_models ---")
-    all_image_capable_models = get_image_capable_models()
+    models = get_models(tools_only=False,
+                        image_only=True,
+                        min_context=16000,
+                        max_completion_price=20,
+                        max_prompt_price=10,
+                        skip_free=True,
+                        skip_experimental=True)
+
+    all_image_capable_models = models.to_dict('records')
     if all_image_capable_models:
         print(f"Found {len(all_image_capable_models)} image-capable models.")
     else:

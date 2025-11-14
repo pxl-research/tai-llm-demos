@@ -3,10 +3,14 @@ import sys
 import gradio as gr
 from tqdm import tqdm
 
+from demos.components.text_utils.md_chunking import iterative_chunking
+from demos.components.text_utils.md_conversion import document_to_markdown
+from demos.components.text_utils.string_utils import sanitize_filename
+
 sys.path.append('../')
 sys.path.append('../../')
 
-from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore, sanitize_filename
+from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore
 
 cdb_store = ChromaDocumentStore(path='store/')
 
@@ -21,7 +25,13 @@ def on_file_uploaded(file_list, progress=gr.Progress(track_tqdm=True)):
     for file_path in file_list:
         collection_name = sanitize_filename(file_path)
         if collection_name not in current_documents:
-            cdb_store.add_document(file_path, tqdm)
+            md_text = document_to_markdown(file_path)
+            chunks = iterative_chunking(md_text)
+            meta_info = [{'source': file_path, 'id': f'chunk_{i}'} for i in range(len(chunks))]
+            cdb_store.add_document(document_name=collection_name,
+                                   chunks=chunks,
+                                   meta_infos=meta_info,
+                                   tqdm_func=tqdm)
 
     return [None, wrap_document_list()]
 

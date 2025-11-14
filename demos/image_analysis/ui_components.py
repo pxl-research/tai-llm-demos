@@ -19,7 +19,7 @@ def initialize_session_state(session_keys: Dict[str, Any]):
 
 def display_model_details(model: Dict[str, Any]):
     """Display details about the selected model in the sidebar"""
-    st.sidebar.markdown(f"### **{model['id']}**")
+    st.sidebar.markdown(f"### **{model['full_model_name']}**")
 
     # Extract model details
     pricing = model.get('pricing', {})
@@ -58,12 +58,12 @@ def display_model_details(model: Dict[str, Any]):
     # Show additional model details
     st.sidebar.markdown(f"**Context Length:** {model.get('context_length', 'N/A')} tokens")
     st.sidebar.markdown(f"**Max Completion Tokens:** {max_completion_tokens}")
-    st.sidebar.markdown(f"**Provider:** {model['id'].split('/')[0]}")
+    st.sidebar.markdown(f"**Provider:** {model['full_model_name'].split('/')[0]}")
 
 
 def setup_model_selector():
     """Display model selection UI in the sidebar"""
-    model_ids = [model['id'] for model in st.session_state.all_models_data]
+    model_ids = [model['full_model_name'] for model in st.session_state.all_models_data]
     
     if not model_ids:
         st.sidebar.warning("No models available.")
@@ -87,7 +87,7 @@ def setup_model_selector():
     # Get the selected model data
     selected_model = next(
         (model for model in st.session_state.all_models_data
-         if model['id'] == st.session_state.selected_model_id),
+         if model['full_model_name'] == st.session_state.selected_model_id),
         None
     )
 

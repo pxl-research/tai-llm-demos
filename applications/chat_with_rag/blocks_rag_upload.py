@@ -5,6 +5,10 @@ import gradio as gr
 from dotenv import load_dotenv
 from tqdm import tqdm
 
+from demos.components.text_utils.md_chunking import iterative_chunking
+from demos.components.text_utils.md_conversion import document_to_markdown
+from demos.components.text_utils.string_utils import sanitize_filename
+
 sys.path.append('../')
 sys.path.append('../../')
 
@@ -20,7 +24,14 @@ def on_file_uploaded(uploaded_files, progress=gr.Progress(track_tqdm=True)):
     """Add uploaded files to the ChromaDB store and return updated collection names."""
     for file_path in uploaded_files:
         try:
-            cdb_store.add_document(file_path, tqdm)
+            collection_name = sanitize_filename(file_path)
+            md_text = document_to_markdown(file_path)
+            chunks = iterative_chunking(md_text)
+            meta_info = [{'source': file_path, 'id': f'chunk_{i}'} for i in range(len(chunks))]
+            cdb_store.add_document(document_name=collection_name,
+                                   chunks=chunks,
+                                   meta_infos=meta_info,
+                                   tqdm_func=tqdm)
         except Exception as e:
             print(e)
             pass
