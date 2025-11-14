@@ -83,5 +83,5 @@ class ChromaDocumentStore:
             all_results.extend(cleaned_results)
 
         # sort results by distance
-        sorted(all_results, key=lambda r: r['distance'])
+        all_results = sorted(all_results, key=lambda r: r['distance'])
         return all_results[:amount]
