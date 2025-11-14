@@ -5,9 +5,9 @@ from chromadb import QueryResult
 from tqdm import tqdm
 
 sys.path.append('../')
-sys.path.append('../../')
+sys.path.append('../../demos/')
 
-from demos.components.text_utils.string_utils import clean_up_string
+from components.text_utils.string_utils import clean_up_string
 
 
 def repack_query_results(results: QueryResult):
