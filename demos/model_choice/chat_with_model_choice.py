@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 
 sys.path.append('../../')
 
-from demos.components.open_router.open_router_client import OpenRouterClient
-from demos.components.open_router.or_model_filtering import get_models
+from components.open_router.open_router_client import OpenRouterClient
+from components.open_router.or_model_filtering import get_models
 
 load_dotenv()
 

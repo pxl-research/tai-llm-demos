@@ -1,6 +1,6 @@
 import json
 
-from demos.components.vectorstore.chroma_document_store import ChromaDocumentStore
+from components.vectorstore.chroma_document_store import ChromaDocumentStore
 
 
 def pretty_print(json_obj):

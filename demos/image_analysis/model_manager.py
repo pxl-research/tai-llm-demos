@@ -11,7 +11,7 @@ from utils import (
 )
 
 sys.path.append('../../')
-from demos.components.open_router.or_model_filtering import get_models
+from components.open_router.or_model_filtering import get_models
 
 
 def load_and_sort_models():

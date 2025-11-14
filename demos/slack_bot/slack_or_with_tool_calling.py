@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-from demos.components.open_router.open_router_client import OpenRouterClient
+from components.open_router.open_router_client import OpenRouterClient
 from demos.tool_calling.tool_descriptors import (tools_rag_descriptor,
                                                  tools_search_descriptor,
                                                  tools_get_website_contents)
@@ -82,7 +82,10 @@ def handle_tool_calls(tool_calls, message_list):
         print(f'Processing {len(tool_calls)} tool calls')
         for call in tool_calls:
             fn_pointer = globals()[call.function.name]
-            fn_args = json.loads(call.function.arguments)
+            if call.function.arguments is None or call.function.arguments == '':
+                fn_args = {}
+            else:
+                fn_args = json.loads(call.function.arguments)
             tool_call_obj = {
                 'role': 'assistant',
                 'content': None,

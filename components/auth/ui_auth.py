@@ -1,6 +1,6 @@
 import gradio as gr
 
-from demos.components.auth.fn_auth import add_user, list_all_users, remove_user_on_line
+from components.auth.fn_auth import add_user, list_all_users, remove_user_on_line
 
 ADMIN_USER = 'admin'  # TODO: change default admin username
 ADMIN_PASS = 'cAZgYBF6d4LCn3mQK2hsU5'  # TODO: change default admin password
