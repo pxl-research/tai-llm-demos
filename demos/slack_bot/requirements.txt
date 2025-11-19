@@ -1,6 +1,6 @@
 python-dotenv~=1.2.1
-openai~=2.7.1
-slack_bolt~=1.26.0
-markdownify~=1.2.0
+openai~=2.8.1
+slack_bolt~=1.27.0
+markdownify~=1.2.2
 selenium~=4.38.0
 webdriver-manager~=4.0.2
