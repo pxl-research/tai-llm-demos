@@ -1,8 +1,11 @@
 """
 Chat Interface Component: Handles message display and LLM responses.
 """
+import asyncio
 import html
 import json
+from queue import Queue
+from threading import Thread
 from typing import Callable, Optional
 from nicegui import ui
 
@@ -21,6 +24,7 @@ class ChatInterface:
         self.conversation_id = None  # Set when first message is sent
         self.messages = [SYSTEM_INSTRUCTION.copy()]  # Initialize with system instruction
         self.chat_display = None
+        self.scroll_area = None  # For auto-scrolling to bottom
         self.input_field = None
         self.send_button = None
 
@@ -32,7 +36,8 @@ class ChatInterface:
             Tuple of (chat_display, input_container)
         """
         # Chat display area - full width with proper scrolling
-        with ui.scroll_area().classes('w-full border rounded-lg shadow-inner bg-gray-50').style('height: calc(100vh - 300px)'):
+        self.scroll_area = ui.scroll_area().classes('w-full border rounded-lg shadow-inner bg-gray-50').style('height: calc(100vh - 300px)')
+        with self.scroll_area:
             self.chat_display = ui.column().classes('w-full gap-2 p-4')
 
         # Input area - full width
@@ -49,7 +54,7 @@ class ChatInterface:
 
         return self.chat_display, self.input_field
 
-    def _on_send_clicked(self, e=None):
+    async def _on_send_clicked(self, e=None):
         """Handle send button click."""
         user_input = self.input_field.value.strip()
         if not user_input:
@@ -65,50 +70,81 @@ class ChatInterface:
                 with ui.card().classes('bg-indigo-100 border-indigo-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
                     ui.label(html.escape(user_input)).classes('whitespace-pre-wrap text-sm text-gray-800')
 
+        self._scroll_to_bottom()
+
         # Clear input
         self.input_field.value = ''
 
-        # Get LLM response
-        self._get_llm_response()
+        # Get LLM response asynchronously
+        await self._get_llm_response()
 
-    def _get_llm_response(self):
-        """Stream response from LLM."""
+    async def _get_llm_response(self):
+        """Stream response from LLM asynchronously."""
         try:
-            response_stream = self.llm_service.stream_completion(self.messages)
+            chunk_queue = Queue()
+
+            def stream_worker():
+                """Worker thread to consume stream without blocking UI."""
+                try:
+                    response_stream = self.llm_service.stream_completion(self.messages)
+                    for chunk in response_stream:
+                        chunk_queue.put(chunk)
+                    chunk_queue.put(None)  # Sentinel value
+                    response_stream.close()
+                except Exception as e:
+                    chunk_queue.put(('error', e))
+
+            # Start worker thread
+            thread = Thread(target=stream_worker, daemon=True)
+            thread.start()
 
             partial_message = ''
             tool_calls = []
             message_markdown = None
             card_created = False
 
-            for chunk in response_stream:
-                if len(chunk.choices) > 0:
-                    # Handle text responses
-                    if chunk.choices[0].delta.content is not None:
-                        # Create assistant message card only when we have content
-                        if not card_created:
-                            with self.chat_display:
-                                with ui.row().classes('w-full mb-2'):
-                                    with ui.card().classes('bg-white border-gray-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
-                                        message_markdown = ui.markdown('').classes('text-sm text-gray-700')
-                            card_created = True
+            # Process chunks from queue asynchronously
+            while True:
+                # Check for chunks without blocking
+                if not chunk_queue.empty():
+                    chunk = chunk_queue.get()
 
-                        partial_message += chunk.choices[0].delta.content
-                        message_markdown.content = partial_message
+                    # Handle errors from worker thread
+                    if isinstance(chunk, tuple) and chunk[0] == 'error':
+                        raise chunk[1]
 
-                    # Handle tool calls
-                    if chunk.choices[0].delta.tool_calls is not None:
-                        for tool_call_chunk in chunk.choices[0].delta.tool_calls:
-                            if tool_call_chunk.index >= len(tool_calls):
-                                tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
-                            else:
-                                if tool_call_chunk.function is not None:
-                                    if tool_calls[tool_call_chunk.index].function is None:
-                                        tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
-                                    else:
-                                        tool_calls[tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
+                    if chunk is None:  # Sentinel - stream complete
+                        break
 
-            response_stream.close()
+                    if len(chunk.choices) > 0:
+                        # Handle text responses
+                        if chunk.choices[0].delta.content is not None:
+                            # Create assistant message card only when we have content
+                            if not card_created:
+                                with self.chat_display:
+                                    with ui.row().classes('w-full mb-2'):
+                                        with ui.card().classes('bg-white border-gray-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
+                                            message_markdown = ui.markdown('').classes('text-sm text-gray-700')
+                                card_created = True
+
+                            partial_message += chunk.choices[0].delta.content
+                            message_markdown.content = partial_message
+                            self._scroll_to_bottom()
+
+                        # Handle tool calls
+                        if chunk.choices[0].delta.tool_calls is not None:
+                            for tool_call_chunk in chunk.choices[0].delta.tool_calls:
+                                if tool_call_chunk.index >= len(tool_calls):
+                                    tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
+                                else:
+                                    if tool_call_chunk.function is not None:
+                                        if tool_calls[tool_call_chunk.index].function is None:
+                                            tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
+                                        else:
+                                            tool_calls[tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
+
+                # Yield to event loop to keep UI responsive
+                await asyncio.sleep(0.01)
 
             # If there's a text response, add it to history
             if partial_message:
@@ -119,7 +155,7 @@ class ChatInterface:
             if tool_calls:
                 self._handle_tool_calls(tool_calls)
                 # After handling tools, continue conversation to get LLM's final response
-                self._continue_conversation_after_tools()
+                await self._continue_conversation_after_tools()
             else:
                 # No tools, just auto-save
                 if self.auto_save_callback and len(self.messages) > 1:
@@ -130,37 +166,94 @@ class ChatInterface:
                 with ui.card().classes('bg-red-50 border-red-200 shadow-sm rounded-lg p-4'):
                     ui.label(error_msg).classes('text-sm text-red-700')
 
-    def _continue_conversation_after_tools(self):
+    async def _continue_conversation_after_tools(self, recursion_depth=0):
         """Continue conversation after tool calls to get LLM's final response."""
+        MAX_RECURSION = 5  # Prevent infinite tool call loops
+
+        if recursion_depth >= MAX_RECURSION:
+            with self.chat_display:
+                with ui.card().classes('bg-yellow-50 border-yellow-200 shadow-sm rounded-lg p-3'):
+                    ui.label(f"⚠️ Maximum tool call depth ({MAX_RECURSION}) reached").classes('text-xs text-yellow-700')
+            return
+
         try:
-            response_stream = self.llm_service.stream_completion(self.messages)
+            chunk_queue = Queue()
+
+            def stream_worker():
+                """Worker thread to consume stream without blocking UI."""
+                try:
+                    response_stream = self.llm_service.stream_completion(self.messages)
+                    for chunk in response_stream:
+                        chunk_queue.put(chunk)
+                    chunk_queue.put(None)  # Sentinel value
+                    response_stream.close()
+                except Exception as e:
+                    chunk_queue.put(('error', e))
+
+            # Start worker thread
+            thread = Thread(target=stream_worker, daemon=True)
+            thread.start()
 
             partial_message = ''
+            tool_calls = []
             message_markdown = None
             card_created = False
 
-            for chunk in response_stream:
-                if len(chunk.choices) > 0:
-                    if chunk.choices[0].delta.content is not None:
-                        # Create card only when we have content
-                        if not card_created:
-                            with self.chat_display:
-                                with ui.row().classes('w-full mb-2'):
-                                    with ui.card().classes('bg-purple-50 border-purple-200 shadow-sm rounded-lg p-4'):
-                                        message_markdown = ui.markdown('').classes('text-sm text-gray-700')
-                            card_created = True
+            # Process chunks from queue asynchronously
+            while True:
+                # Check for chunks without blocking
+                if not chunk_queue.empty():
+                    chunk = chunk_queue.get()
 
-                        partial_message += chunk.choices[0].delta.content
-                        message_markdown.content = partial_message
+                    # Handle errors from worker thread
+                    if isinstance(chunk, tuple) and chunk[0] == 'error':
+                        raise chunk[1]
 
-            response_stream.close()
+                    if chunk is None:  # Sentinel - stream complete
+                        break
 
-            # Add the final response
+                    if len(chunk.choices) > 0:
+                        # Handle text responses
+                        if chunk.choices[0].delta.content is not None:
+                            # Create card only when we have content
+                            if not card_created:
+                                with self.chat_display:
+                                    with ui.row().classes('w-full mb-2'):
+                                        with ui.card().classes('bg-purple-50 border-purple-200 shadow-sm rounded-lg p-4'):
+                                            message_markdown = ui.markdown('').classes('text-sm text-gray-700')
+                                card_created = True
+
+                            partial_message += chunk.choices[0].delta.content
+                            message_markdown.content = partial_message
+                            self._scroll_to_bottom()
+
+                        # Handle tool calls (recursive)
+                        if chunk.choices[0].delta.tool_calls is not None:
+                            for tool_call_chunk in chunk.choices[0].delta.tool_calls:
+                                if tool_call_chunk.index >= len(tool_calls):
+                                    tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
+                                else:
+                                    if tool_call_chunk.function is not None:
+                                        if tool_calls[tool_call_chunk.index].function is None:
+                                            tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
+                                        else:
+                                            tool_calls[tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
+
+                # Yield to event loop to keep UI responsive
+                await asyncio.sleep(0.01)
+
+            # Add the text response to history
             if partial_message:
                 assistant_message = {'role': 'assistant', 'content': partial_message}
                 self.messages.append(assistant_message)
 
-                # Auto-save after response completes
+            # Handle recursive tool calls
+            if tool_calls:
+                self._handle_tool_calls(tool_calls)
+                # Recursively continue for more tool calls
+                await self._continue_conversation_after_tools(recursion_depth + 1)
+            else:
+                # Only auto-save when no more tool calls
                 if self.auto_save_callback and len(self.messages) > 1:
                     self.auto_save_callback()
 
@@ -225,6 +318,8 @@ class ChatInterface:
                             result_json = json.dumps(result, indent=2)
                             ui.markdown(f"```json\n{result_json}\n```").classes('text-xs')
 
+                self._scroll_to_bottom()
+
             except Exception as e:
                 error_result = {'error': str(e)}
                 tool_resp = {
@@ -240,6 +335,13 @@ class ChatInterface:
                     with ui.card().classes('bg-red-50 border-red-200 shadow-sm rounded-lg p-2'):
                         with ui.expansion(f"✗ {call.function.name}", value=False).classes('text-xs text-red-700'):
                             ui.markdown(f"```\n{html.escape(str(e))}\n```").classes('text-xs')
+
+                self._scroll_to_bottom()
+
+    def _scroll_to_bottom(self):
+        """Scroll the chat display to the bottom."""
+        if self.scroll_area:
+            self.scroll_area.scroll_to(percent=1)
 
     def push_message(self, content: str, role: str = 'assistant'):
         """Push a message to the chat display."""
