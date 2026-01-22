@@ -31,9 +31,9 @@ class ChatInterface:
         Returns:
             Tuple of (chat_display, input_container)
         """
-        # Chat display area - full width
-        with ui.column().classes('w-full flex-grow overflow-auto border rounded-lg shadow-inner p-4 bg-gray-50').style('min-height: 400px'):
-            self.chat_display = ui.column().classes('w-full gap-2')
+        # Chat display area - full width with proper scrolling
+        with ui.scroll_area().classes('w-full border rounded-lg shadow-inner bg-gray-50').style('height: calc(100vh - 300px)'):
+            self.chat_display = ui.column().classes('w-full gap-2 p-4')
 
         # Input area - full width
         with ui.row().classes('w-full gap-2 p-3 bg-white shadow-md rounded-lg mt-2'):
@@ -78,17 +78,21 @@ class ChatInterface:
 
             partial_message = ''
             tool_calls = []
-
-            # Create assistant message card (left-aligned)
-            with self.chat_display:
-                with ui.row().classes('w-full mb-2'):
-                    with ui.card().classes('bg-white border-gray-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
-                        message_markdown = ui.markdown('').classes('text-sm text-gray-700')
+            message_markdown = None
+            card_created = False
 
             for chunk in response_stream:
                 if len(chunk.choices) > 0:
                     # Handle text responses
                     if chunk.choices[0].delta.content is not None:
+                        # Create assistant message card only when we have content
+                        if not card_created:
+                            with self.chat_display:
+                                with ui.row().classes('w-full mb-2'):
+                                    with ui.card().classes('bg-white border-gray-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
+                                        message_markdown = ui.markdown('').classes('text-sm text-gray-700')
+                            card_created = True
+
                         partial_message += chunk.choices[0].delta.content
                         message_markdown.content = partial_message
 
@@ -132,14 +136,20 @@ class ChatInterface:
             response_stream = self.llm_service.stream_completion(self.messages)
 
             partial_message = ''
-            with self.chat_display:
-                with ui.row().classes('w-full mb-2'):
-                    with ui.card().classes('bg-purple-50 border-purple-200 shadow-sm rounded-lg p-4'):
-                        message_markdown = ui.markdown('').classes('text-sm text-gray-700')
+            message_markdown = None
+            card_created = False
 
             for chunk in response_stream:
                 if len(chunk.choices) > 0:
                     if chunk.choices[0].delta.content is not None:
+                        # Create card only when we have content
+                        if not card_created:
+                            with self.chat_display:
+                                with ui.row().classes('w-full mb-2'):
+                                    with ui.card().classes('bg-purple-50 border-purple-200 shadow-sm rounded-lg p-4'):
+                                        message_markdown = ui.markdown('').classes('text-sm text-gray-700')
+                            card_created = True
+
                         partial_message += chunk.choices[0].delta.content
                         message_markdown.content = partial_message
 
@@ -208,12 +218,12 @@ class ChatInterface:
                 }
                 self.messages.append(tool_resp)
 
-                # Display tool result
+                # Display tool result (collapsible)
                 with self.chat_display:
-                    with ui.card().classes('bg-green-50 border-green-200 shadow-sm rounded-lg p-3'):
-                        result_json = json.dumps(result, indent=2)
-                        result_markdown = f"**✓ {call.function.name}**\n\n```json\n{result_json}\n```"
-                        ui.markdown(result_markdown).classes('text-xs text-green-700')
+                    with ui.card().classes('bg-green-50 border-green-200 shadow-sm rounded-lg p-2'):
+                        with ui.expansion(f"✓ {call.function.name}", value=False).classes('text-xs text-green-700'):
+                            result_json = json.dumps(result, indent=2)
+                            ui.markdown(f"```json\n{result_json}\n```").classes('text-xs')
 
             except Exception as e:
                 error_result = {'error': str(e)}
@@ -225,11 +235,11 @@ class ChatInterface:
                 }
                 self.messages.append(tool_resp)
 
-                # Display error
+                # Display error (collapsible)
                 with self.chat_display:
-                    with ui.card().classes('bg-red-50 border-red-200 shadow-sm rounded-lg p-3'):
-                        error_markdown = f"**✗ {call.function.name}**\n\n```\n{html.escape(str(e))}\n```"
-                        ui.markdown(error_markdown).classes('text-xs text-red-700')
+                    with ui.card().classes('bg-red-50 border-red-200 shadow-sm rounded-lg p-2'):
+                        with ui.expansion(f"✗ {call.function.name}", value=False).classes('text-xs text-red-700'):
+                            ui.markdown(f"```\n{html.escape(str(e))}\n```").classes('text-xs')
 
     def push_message(self, content: str, role: str = 'assistant'):
         """Push a message to the chat display."""
