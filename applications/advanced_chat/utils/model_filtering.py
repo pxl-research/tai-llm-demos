@@ -95,12 +95,19 @@ def get_models(tools_only=False,
                                       'provider'])
     df_models = df_models.drop_duplicates()
 
-    # sorting
-    df_models['token_sum'] = df_models['max_completion_tokens'] + df_models['context_length']
-    df_models.sort_values(by=['provider', 'token_sum', 'completion_price', 'prompt_price', 'full_model_name'],
-                          ascending=[True, False, False, False, False],
-                          inplace=True)
-    df_models = df_models.drop(columns=['token_sum'])
+    # sorting - order by provider, then by capabilities (descending), then by name
+    df_models.sort_values(
+        by=[
+            'provider',              # Group by provider (A-Z)
+            'completion_price',      # Expensive first (high to low)
+            'prompt_price',          # Expensive first (high to low)
+            'context_length',        # Large context first (high to low)
+            'max_completion_tokens', # Large completion first (high to low)
+            'full_model_name'        # Alphabetical within same specs (A-Z)
+        ],
+        ascending=[True, False, False, False, False, True],
+        inplace=True
+    )
 
     # styling
     df_models.style.background_gradient()
