@@ -3,6 +3,7 @@ Model filtering utilities - copied from components/open_router/or_model_filterin
 Self-contained for this application.
 """
 import json
+
 import pandas as pd
 import requests
 
@@ -84,7 +85,9 @@ def get_models(tools_only=False,
                         ppm_c,
                         model['context_length'],
                         model['top_provider']['max_completion_tokens'],
-                        model['id'].split('/')[0]])
+                        model['id'].split('/')[0],
+                        model['created']
+                        ])
 
     df_models = pd.DataFrame(md_data,
                              columns=['full_model_name',
@@ -92,20 +95,22 @@ def get_models(tools_only=False,
                                       'completion_price',
                                       'context_length',
                                       'max_completion_tokens',
-                                      'provider'])
+                                      'provider',
+                                      'created_at'])
     df_models = df_models.drop_duplicates()
 
     # sorting - order by provider, then by capabilities (descending), then by name
     df_models.sort_values(
         by=[
-            'provider',              # Group by provider (A-Z)
-            'completion_price',      # Expensive first (high to low)
-            'prompt_price',          # Expensive first (high to low)
-            'context_length',        # Large context first (high to low)
-            'max_completion_tokens', # Large completion first (high to low)
-            'full_model_name'        # Alphabetical within same specs (A-Z)
+            'provider',  # Group by provider (A-Z)
+            'created_at',  # Newest first (high to low)
+            'completion_price',  # Expensive first (high to low)
+            'prompt_price',  # Expensive first (high to low)
+            'context_length',  # Large context first (high to low)
+            'max_completion_tokens',  # Large completion first (high to low)
+            'full_model_name'  # Alphabetical within same specs (A-Z)
         ],
-        ascending=[True, False, False, False, False, True],
+        ascending=[True, False, False, False, False, False, True],
         inplace=True
     )
 
