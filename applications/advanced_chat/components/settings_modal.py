@@ -191,7 +191,7 @@ class SettingsModal:
                 if self.all_models:  # Only filter if models are loaded
                     self._filter_results(e.value, results_container, self.all_models, select_model)
 
-            search_input.on('input', on_search)
+            search_input.on_value_change(on_search)
 
             # Auto-load models on init
             async def load_models():
