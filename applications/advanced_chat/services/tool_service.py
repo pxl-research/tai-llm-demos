@@ -3,7 +3,6 @@ Tool Service: Orchestrates tool calling and execution.
 """
 import json
 import sys
-import os
 from pathlib import Path
 from typing import Callable, Optional, Dict, Any
 

@@ -15,7 +15,7 @@ from services.rag_service import RAGService
 from components.chat_interface import ChatInterface
 from components.settings_modal import SettingsModal
 from components.document_panel import DocumentPanel
-from utils.config import DEFAULT_MODEL, DEFAULT_TEMPERATURE, SYSTEM_INSTRUCTION
+from utils.config import DEFAULT_MODEL, DEFAULT_TEMPERATURE
 from utils.auth import authenticate
 from tools.web_search import search_on_google, search_descriptor
 from tools.web_scraper import get_webpage_content, scraper_descriptor
@@ -40,7 +40,6 @@ def update_tools():
     # Clear existing tools to avoid duplicates
     tool_service.clear_tools()
 
-    # Register tools
     tool_service.register_tool('search_on_google', search_on_google, search_descriptor)
     tool_service.register_tool('get_webpage_content', get_webpage_content, scraper_descriptor)
     tool_service.register_tool('lookup_in_documentation', lookup_in_documentation, rag_lookup_descriptor)
@@ -74,17 +73,11 @@ def on_document_removed(doc_name: str):
     ui.notify(f'Document "{doc_name}" removed from RAG')
 
 
-def handle_tool_execution(tool_name: str, args: dict, result: dict):
-    """Handle tool execution callback."""
-    print(f"Tool executed: {tool_name}")
-
-
 def auto_save_conversation():
     """Auto-save conversation after each message."""
     if not history_service or not chat_interface:
         return
 
-    # Generate conversation_id on first save
     if not chat_interface.conversation_id:
         chat_interface.conversation_id = str(uuid4())
 
@@ -96,12 +89,12 @@ def auto_save_conversation():
             settings={'temperature': llm_service.temperature}
         )
     except Exception as e:
-        print(f"Auto-save error: {e}")
+        ui.notify(f"Auto-save error: {str(e)[:50]}", type='warning')
 
 
 def build_authenticated_ui():
     """Build the main authenticated application UI."""
-    global llm_service, chat_interface, history_service, tool_service, rag_service, document_panel
+    global llm_service, chat_interface, history_service, tool_service, rag_service, document_panel, settings_modal
 
     # Initialize services with current user
     llm_service = LLMService(
@@ -109,7 +102,7 @@ def build_authenticated_ui():
         temperature=DEFAULT_TEMPERATURE
     )
     history_service = HistoryService(current_user)
-    tool_service = ToolService(handle_tool_execution)
+    tool_service = ToolService(None)
     rag_service = RAGService()
 
     # Initialize chat interface with auto-save callback

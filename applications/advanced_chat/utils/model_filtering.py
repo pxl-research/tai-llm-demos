@@ -115,7 +115,6 @@ def get_models(tools_only=False,
     )
 
     # styling
-    df_models.style.background_gradient()
     pd.set_option('display.width', 200)
     pd.set_option('display.precision', 3)
 

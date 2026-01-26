@@ -1,9 +1,8 @@
 """
 Web Search Tool: Search the web using Google API.
 """
-import os
 import requests
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 from utils.config import GOOGLE_API_KEY, GOOGLE_SEARCH_ENGINE_ID
 

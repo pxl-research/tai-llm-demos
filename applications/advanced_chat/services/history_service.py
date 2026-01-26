@@ -2,7 +2,6 @@
 History Service: Manages conversation persistence and loading.
 """
 import json
-import os
 from datetime import datetime
 from uuid import uuid4
 from pathlib import Path
@@ -54,7 +53,6 @@ class HistoryService:
             'settings': settings
         }
 
-        # Save to JSON file
         file_path = self.user_dir / f"{conversation_id}.json"
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(conversation_data, f, indent=2, ensure_ascii=False)
@@ -99,7 +97,6 @@ class HistoryService:
         for file_path in json_files[:limit]:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                # Create summary
                 summary = {
                     'conversation_id': data['conversation_id'],
                     'created_at': data['created_at'],
@@ -110,98 +107,3 @@ class HistoryService:
                 conversations.append(summary)
 
         return conversations
-
-    def delete_conversation(self, conversation_id: str) -> bool:
-        """
-        Delete a conversation.
-
-        Args:
-            conversation_id: ID of conversation to delete
-
-        Returns:
-            True if deleted, False if not found
-        """
-        file_path = self.user_dir / f"{conversation_id}.json"
-        if file_path.exists():
-            file_path.unlink()
-            return True
-        return False
-
-    def get_conversation_preview(self, conversation_id: str, max_messages: int = 5) -> Optional[dict]:
-        """
-        Get a preview of a conversation with limited messages.
-
-        Args:
-            conversation_id: ID of conversation
-            max_messages: Maximum number of recent messages to return
-
-        Returns:
-            Conversation data with limited messages or None
-        """
-        conv_data = self.load_conversation(conversation_id)
-        if not conv_data:
-            return None
-
-        # Keep only system message and last max_messages
-        messages = conv_data['messages']
-        if len(messages) > max_messages + 1:  # +1 for system message
-            # Keep system message and last max_messages
-            conv_data['messages'] = [messages[0]] + messages[-(max_messages):]
-
-        return conv_data
-
-    def export_conversation(self, conversation_id: str, output_format: str = 'json') -> Optional[str]:
-        """
-        Export conversation to a different format.
-
-        Args:
-            conversation_id: ID of conversation
-            output_format: Format to export ('json', 'md', 'txt')
-
-        Returns:
-            Exported content or None if not found
-        """
-        conv_data = self.load_conversation(conversation_id)
-        if not conv_data:
-            return None
-
-        if output_format == 'json':
-            return json.dumps(conv_data, indent=2, ensure_ascii=False)
-
-        elif output_format == 'md':
-            # Markdown format
-            lines = [
-                f"# Conversation: {conv_data['conversation_id']}",
-                f"**Model:** {conv_data['model']}",
-                f"**Created:** {conv_data['created_at']}",
-                f"**User:** {conv_data['user']}",
-                "",
-            ]
-            for msg in conv_data['messages']:
-                if msg['role'] == 'system':
-                    continue
-                lines.append(f"## {msg['role'].upper()}")
-                lines.append(msg['content'])
-                lines.append("")
-            return '\n'.join(lines)
-
-        elif output_format == 'txt':
-            # Plain text format
-            lines = [
-                f"Conversation ID: {conv_data['conversation_id']}",
-                f"Model: {conv_data['model']}",
-                f"Created: {conv_data['created_at']}",
-                f"User: {conv_data['user']}",
-                "",
-                "-" * 80,
-                ""
-            ]
-            for msg in conv_data['messages']:
-                if msg['role'] == 'system':
-                    continue
-                lines.append(f"{msg['role'].upper()}:")
-                lines.append(msg['content'])
-                lines.append("")
-            return '\n'.join(lines)
-
-        return None

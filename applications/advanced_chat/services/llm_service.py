@@ -4,7 +4,7 @@ LLM Service: Manages interactions with OpenRouter LLM client.
 from typing import Iterable, Optional
 
 from utils.open_router_client import OpenRouterClient
-from utils.config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL, SYSTEM_INSTRUCTION
+from utils.config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL
 
 
 class LLMService:

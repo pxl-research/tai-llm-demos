@@ -32,32 +32,22 @@ class ChromaDocumentStore:
 
     def add_document(self, document_name: str, chunks: list[str], meta_infos: list):
         """Add a document to the store."""
-        # Clean document name for collection
         collection_name = document_name.replace(' ', '_').replace('-', '_').lower()
-        print(f"DEBUG ChromaDB: Cleaned collection name: {collection_name}")
 
         current_docs = self.list_documents()
-        print(f"DEBUG ChromaDB: Current documents: {current_docs}")
 
         if collection_name in current_docs:
             print(f'Document already exists: {collection_name}')
             return
 
-        # Create collection
-        print(f"DEBUG ChromaDB: Creating collection: {collection_name}")
         cdb_collection = self.cdb_client.create_collection(collection_name)
-        print(f"DEBUG ChromaDB: Collection created successfully")
 
-        # Add chunks
-        print(f"DEBUG ChromaDB: Adding {len(chunks)} chunks...")
-        for c in range(len(chunks)):
-            print(f"DEBUG ChromaDB: Adding chunk {c+1}/{len(chunks)}")
+        for c, chunk in enumerate(chunks):
             cdb_collection.add(
-                documents=[chunks[c]],  # ChromaDB expects a list
-                ids=[meta_infos[c]['id']],  # ChromaDB expects a list
-                metadatas=[meta_infos[c]]  # ChromaDB expects a list
+                documents=[chunk],
+                ids=[meta_infos[c]['id']],
+                metadatas=[meta_infos[c]]
             )
-        print(f"DEBUG ChromaDB: All chunks added successfully")
 
     def remove_document(self, document_name: str):
         """Remove a document from the store."""

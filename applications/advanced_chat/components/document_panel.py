@@ -2,7 +2,6 @@
 Document Panel Component: File upload and document management.
 """
 import sys
-import os
 from pathlib import Path
 from typing import Callable
 
@@ -74,19 +73,15 @@ class DocumentPanel:
             uploaded_file = e.file
             file_name = uploaded_file.name
 
-            print(f"DEBUG: Processing upload: {file_name}")
-
             # Handle both LargeFileUpload (on disk) and SmallFileUpload (in memory)
             if hasattr(uploaded_file, '_path'):
                 # LargeFileUpload - file already on disk
                 temp_path = uploaded_file._path
-                print(f"DEBUG: Large file, using existing path: {temp_path}")
             elif hasattr(uploaded_file, '_data'):
                 # SmallFileUpload - file in memory
                 temp_path = Path('/tmp') / file_name
                 with open(temp_path, 'wb') as f:
                     f.write(uploaded_file._data)
-                print(f"DEBUG: Small file, saved to temp path: {temp_path}")
             else:
                 raise ValueError(f"Unknown upload type: {type(uploaded_file)}")
 
@@ -94,16 +89,10 @@ class DocumentPanel:
             self.status_label.text = f'Processing {file_name}...'
             success = self.rag_service.add_document(str(temp_path))
 
-            print(f"DEBUG: RAG add_document returned: {success}")
-
             if success:
                 self.status_label.text = f'✓ Added {file_name}'
                 self.on_document_added(file_name)
                 self._refresh_documents()
-
-                # Check what documents are now in the store
-                docs = self.rag_service.list_documents()
-                print(f"DEBUG: Documents in store: {docs}")
             else:
                 self.status_label.text = f'✗ Failed to add {file_name}'
 

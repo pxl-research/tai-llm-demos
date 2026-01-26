@@ -27,19 +27,14 @@ class RAGService:
             True if successful, False otherwise
         """
         try:
-            print(f"DEBUG RAG: Starting to add document: {file_path}")
-
             # Convert document to markdown
             markdown_content = document_to_markdown(file_path)
-            print(f"DEBUG RAG: Converted to markdown, length: {len(markdown_content)}")
 
             # Get document name
             doc_name = Path(file_path).stem
-            print(f"DEBUG RAG: Document name: {doc_name}")
 
             # Chunk the document
             chunks = chunk_markdown(markdown_content, chunk_size=500, overlap=50)
-            print(f"DEBUG RAG: Created {len(chunks)} chunks")
 
             # Create metadata for chunks
             meta_infos = []
@@ -52,13 +47,7 @@ class RAGService:
                 })
 
             # Add to store
-            print(f"DEBUG RAG: Adding to ChromaDB store...")
             self.store.add_document(doc_name, chunks, meta_infos)
-            print(f"DEBUG RAG: Successfully added to store")
-
-            # Verify it was added
-            docs = self.store.list_documents()
-            print(f"DEBUG RAG: Documents in store after add: {docs}")
 
             return True
 

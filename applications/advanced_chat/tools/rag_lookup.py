@@ -2,8 +2,7 @@
 RAG Lookup Tool: Search uploaded documents.
 """
 import sys
-import os
-from typing import Dict, List, Any
+from typing import Dict, Any
 from pathlib import Path
 
 # Add parent directories to path

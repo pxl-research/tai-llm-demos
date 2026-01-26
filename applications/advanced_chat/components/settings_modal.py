@@ -1,7 +1,7 @@
 """
 Settings Modal Component: Model selection and configuration.
 """
-from typing import Callable, Optional
+from typing import Callable
 
 from nicegui import ui
 from utils.model_filtering import get_models
@@ -313,10 +313,8 @@ class SettingsModal:
         results_container.clear()
 
         if not search_text:
-            # Show all models
             filtered = all_models
         else:
-            # Filter by name or provider
             search_lower = search_text.lower()
             filtered = [
                 m for m in all_models

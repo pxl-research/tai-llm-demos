@@ -2,7 +2,6 @@
 Text processing utilities - simplified from components/text_utils/
 Self-contained for this application.
 """
-import re
 from markitdown import MarkItDown
 
 
