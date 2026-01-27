@@ -230,7 +230,6 @@ def on_login(username: str, password: str):
     global current_user
 
     if not authenticate(username, password):
-        ui.notify('Invalid credentials', type='negative')
         return False
 
     current_user = username
@@ -246,327 +245,280 @@ def perform_logout():
 
 def show_logout_dialog():
     """Show logout confirmation dialog."""
-    with ui.dialog() as logout_dialog, ui.card():
-        ui.label('Logout Confirmation').classes('text-h6 font-bold')
-        ui.label(f'Are you sure you want to logout, {current_user}?').classes('text-sm text-gray-600 mt-2')
+    with ui.dialog() as logout_dialog, ui.card().style('padding: 24px; border-radius: 2px; max-width: 400px'):
+        ui.label('Logout Confirmation').style('font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 12px')
+        ui.label(f'Are you sure you want to logout, {current_user}?').style('font-size: 14px; color: #737373; margin-bottom: 20px')
 
-        with ui.row().classes('justify-end gap-2 mt-4 w-full'):
-            ui.button('Cancel', on_click=lambda: logout_dialog.close()).props('flat')
-            ui.button('Logout', on_click=lambda: perform_logout()).props('unelevated color=negative')
+        with ui.row().classes('gap-2 w-full').style('justify-content: flex-end'):
+            ui.button('Cancel', on_click=lambda: logout_dialog.close()).props('flat').style('color: #525252')
+            ui.button('Logout', on_click=lambda: perform_logout()).style('background: #262626; color: white; border-radius: 2px')
 
     logout_dialog.open()
 
 
 def build_login_ui():
-    """Build the login UI with premium holographic design."""
+    """Build a clean, elegant login interface."""
 
-    # Add custom styles for premium login experience
+    # Minimal, refined CSS - Swiss modernist approach
     ui.add_head_html('''
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap');
-
-            /* Animated gradient background */
-            .login-background {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(135deg,
-                    #0f0c29 0%,
-                    #302b63 35%,
-                    #24243e 100%);
-                animation: gradientShift 15s ease infinite;
-                z-index: -1;
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
             }
 
-            @keyframes gradientShift {
-                0%, 100% { filter: hue-rotate(0deg) brightness(0.9); }
-                50% { filter: hue-rotate(15deg) brightness(1.1); }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
             }
 
-            /* Floating ambient orbs */
-            .login-background::before,
-            .login-background::after {
-                content: '';
-                position: absolute;
-                border-radius: 50%;
-                filter: blur(80px);
-                opacity: 0.3;
-                animation: float 20s ease-in-out infinite;
+            .login-container {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #fafafa;
+                padding: 20px;
             }
 
-            .login-background::before {
-                width: 400px;
-                height: 400px;
-                background: linear-gradient(to right, rgb(79, 70, 229), rgb(147, 51, 234));
-                top: -100px;
-                left: -100px;
-                animation-delay: -5s;
-            }
-
-            .login-background::after {
-                width: 300px;
-                height: 300px;
-                background: linear-gradient(to left, rgb(147, 51, 234), rgb(236, 72, 153));
-                bottom: -80px;
-                right: -80px;
-            }
-
-            @keyframes float {
-                0%, 100% { transform: translate(0, 0) scale(1); }
-                33% { transform: translate(30px, -30px) scale(1.1); }
-                66% { transform: translate(-20px, 20px) scale(0.9); }
-            }
-
-            /* Premium login card */
             .login-card {
-                background: rgba(255, 255, 255, 0.05) !important;
-                backdrop-filter: blur(20px) !important;
-                border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                border-radius: 24px !important;
-                padding: 48px 40px !important;
-                width: 420px !important;
-                box-shadow:
-                    0 8px 32px rgba(0, 0, 0, 0.3),
-                    0 0 0 1px rgba(255, 255, 255, 0.05),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-                position: relative;
-                overflow: hidden;
-                animation: cardEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-                margin: 20px;
+                background: #ffffff;
+                width: 100%;
+                max-width: 380px;
+                padding: 48px 40px;
+                border-radius: 2px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06),
+                            0 1px 2px rgba(0, 0, 0, 0.08);
+                border: 1px solid #e8e8e8;
             }
 
-            @keyframes cardEntrance {
-                from {
-                    opacity: 0;
-                    transform: translateY(30px) scale(0.95);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                }
+            .login-header {
+                margin-bottom: 32px;
+                text-align: center;
             }
 
-            /* Holographic border effect */
-            .login-card::before {
-                content: '';
-                position: absolute;
-                top: -2px;
-                left: -2px;
-                right: -2px;
-                bottom: -2px;
-                background: linear-gradient(
-                    45deg,
-                    transparent 30%,
-                    rgba(147, 51, 234, 0.4) 50%,
-                    transparent 70%
-                );
-                border-radius: 24px;
-                z-index: -1;
-                opacity: 0;
-                transition: opacity 0.5s ease;
-                animation: holographicShift 3s linear infinite;
-            }
-
-            .login-card:hover::before {
-                opacity: 1;
-            }
-
-            @keyframes holographicShift {
-                0% { background-position: -200% center; }
-                100% { background-position: 200% center; }
-            }
-
-            /* Title styling */
             .login-title {
-                font-family: 'Playfair Display', serif !important;
-                font-weight: 900 !important;
-                font-size: 36px !important;
-                letter-spacing: -0.02em !important;
-                background: linear-gradient(135deg, #ffffff 0%, #e0d7ff 100%) !important;
-                -webkit-background-clip: text !important;
-                -webkit-text-fill-color: transparent !important;
-                background-clip: text !important;
-                margin-bottom: 8px !important;
-                text-align: center !important;
-                animation: titleGlow 3s ease-in-out infinite;
-            }
-
-            @keyframes titleGlow {
-                0%, 100% { filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.3)); }
-                50% { filter: drop-shadow(0 0 30px rgba(147, 51, 234, 0.5)); }
+                font-size: 21px;
+                font-weight: 600;
+                color: #1a1a1a;
+                letter-spacing: -0.02em;
+                margin-bottom: 8px;
             }
 
             .login-subtitle {
-                font-family: 'DM Sans', sans-serif !important;
-                font-size: 14px !important;
-                color: rgba(255, 255, 255, 0.5) !important;
-                text-align: center !important;
-                letter-spacing: 0.05em !important;
-                text-transform: uppercase !important;
-                margin-bottom: 40px !important;
-                font-weight: 500 !important;
+                font-size: 14px;
+                font-weight: 400;
+                color: #737373;
+                letter-spacing: 0;
             }
 
-            /* Input field enhancements - simplified to work with Quasar */
-            .login-input .q-field__control {
-                background: rgba(255, 255, 255, 0.08) !important;
-                border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                border-radius: 12px !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                font-family: 'DM Sans', sans-serif !important;
-                min-height: 56px !important;
+            .login-form {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
             }
 
-            .login-input .q-field__control:hover {
-                background: rgba(255, 255, 255, 0.12) !important;
-                border-color: rgba(147, 51, 234, 0.4) !important;
+            .form-field {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
             }
 
-            .login-input.q-field--focused .q-field__control {
-                background: rgba(255, 255, 255, 0.15) !important;
-                border-color: rgb(147, 51, 234) !important;
-                box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1) !important;
-            }
-
-            .login-input .q-field__label {
-                color: rgba(255, 255, 255, 0.6) !important;
-                font-family: 'DM Sans', sans-serif !important;
-                font-weight: 500 !important;
+            .field-label {
+                font-size: 13px;
+                font-weight: 500;
+                color: #404040;
+                letter-spacing: -0.01em;
             }
 
             .login-input input {
-                color: rgba(255, 255, 255, 0.9) !important;
-                font-family: 'DM Sans', sans-serif !important;
-                font-weight: 500 !important;
+                width: 100% !important;
+                height: 44px !important;
+                padding: 0 14px !important;
+                font-size: 15px !important;
+                font-weight: 400 !important;
+                color: #1a1a1a !important;
+                background: #ffffff !important;
+                border: 1px solid #d4d4d4 !important;
+                border-radius: 2px !important;
+                transition: all 180ms ease !important;
+                outline: none !important;
+            }
+
+            .login-input input:hover {
+                border-color: #a3a3a3 !important;
+            }
+
+            .login-input input:focus {
+                border-color: #525252 !important;
+                box-shadow: 0 0 0 3px rgba(82, 82, 82, 0.05) !important;
             }
 
             .login-input input::placeholder {
-                color: rgba(255, 255, 255, 0.3) !important;
+                color: #a3a3a3 !important;
             }
 
-            /* Premium button styling */
+            .error-message {
+                font-size: 13px;
+                font-weight: 400;
+                color: #dc2626;
+                margin-top: -12px;
+                margin-bottom: 8px;
+                display: none;
+            }
+
+            .error-message.visible {
+                display: block;
+            }
+
             .login-button {
-                background: linear-gradient(135deg, rgb(79, 70, 229), rgb(147, 51, 234)) !important;
-                border: none !important;
-                border-radius: 12px !important;
-                height: 52px !important;
-                font-family: 'DM Sans', sans-serif !important;
-                font-weight: 600 !important;
-                font-size: 16px !important;
-                letter-spacing: 0.02em !important;
-                text-transform: none !important;
+                width: 100% !important;
+                height: 44px !important;
                 margin-top: 8px !important;
-                position: relative !important;
-                overflow: hidden !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3) !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
+                color: #ffffff !important;
+                background: #262626 !important;
+                border: none !important;
+                border-radius: 2px !important;
+                cursor: pointer !important;
+                transition: all 160ms ease !important;
+                letter-spacing: -0.01em !important;
             }
 
-            .login-button::before {
+            .login-button:hover:not(.disabled) {
+                background: #171717 !important;
+            }
+
+            .login-button:active:not(.disabled) {
+                transform: scale(0.99) !important;
+            }
+
+            .login-button.disabled {
+                background: #d4d4d4 !important;
+                color: #a3a3a3 !important;
+                cursor: not-allowed !important;
+            }
+
+            .login-button.loading {
+                position: relative !important;
+                color: transparent !important;
+            }
+
+            .login-button.loading::after {
                 content: '';
                 position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg,
-                    transparent,
-                    rgba(255, 255, 255, 0.2),
-                    transparent);
-                transition: left 0.5s ease;
-            }
-
-            .login-button:hover {
-                transform: translateY(-2px) !important;
-                box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4) !important;
-            }
-
-            .login-button:hover::before {
-                left: 100%;
-            }
-
-            .login-button:active {
-                transform: translateY(0) !important;
-            }
-
-            /* Decorative elements */
-            .login-glow-top,
-            .login-glow-bottom {
-                position: absolute;
-                width: 200px;
-                height: 200px;
+                width: 16px;
+                height: 16px;
+                top: 50%;
+                left: 50%;
+                margin-left: -8px;
+                margin-top: -8px;
+                border: 2px solid #ffffff;
+                border-bottom-color: transparent;
                 border-radius: 50%;
-                filter: blur(60px);
-                pointer-events: none;
-                z-index: -1;
+                animation: spin 600ms linear infinite;
             }
 
-            .login-glow-top {
-                top: -100px;
-                right: -100px;
-                background: rgba(147, 51, 234, 0.2);
-            }
-
-            .login-glow-bottom {
-                bottom: -100px;
-                left: -100px;
-                background: rgba(79, 70, 229, 0.2);
+            @keyframes spin {
+                to { transform: rotate(360deg); }
             }
         </style>
     ''')
 
-    # Animated background
-    ui.html('<div class="login-background"></div>', sanitize=False)
-
-    # Login card with premium styling - wrapped in flexbox container for proper centering
-    with ui.element('div').style('''
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        width: 100%;
-    '''):
+    # Container
+    with ui.column().classes('login-container'):
         with ui.card().classes('login-card'):
-            # Decorative glows
-            ui.html('<div class="login-glow-top"></div>', sanitize=False)
-            ui.html('<div class="login-glow-bottom"></div>', sanitize=False)
+            # Header
+            with ui.column().classes('login-header'):
+                ui.label('Advanced Chat').classes('login-title')
+                ui.label('Sign in to continue').classes('login-subtitle')
 
-            # Title
-            ui.label('Advanced LLM Chat').classes('login-title')
-            ui.label('Secure Authentication').classes('login-subtitle')
+            # Form
+            with ui.column().classes('login-form'):
+                # Username field
+                with ui.column().classes('form-field'):
+                    ui.label('Username').classes('field-label')
+                    username_input = ui.input(placeholder='Enter username').props('autocomplete=username outlined=false dense=false').classes('login-input')
 
-            # Input fields with premium styling
-            username_input = ui.input(
-                label='Username',
-                placeholder='Enter your username'
-            ).classes('login-input w-full').style('margin-bottom: 20px')
+                # Password field
+                with ui.column().classes('form-field'):
+                    ui.label('Password').classes('field-label')
+                    password_input = ui.input(placeholder='Enter password', password=True).props('autocomplete=current-password outlined=false dense=false').classes('login-input')
 
-            password_input = ui.input(
-                label='Password',
-                placeholder='Enter your password',
-                password=True
-            ).classes('login-input w-full')
+                # Error message
+                error_message = ui.label('').classes('error-message')
 
-            def login_clicked():
-                username = username_input.value.strip()
-                password = password_input.value.strip()
+                # Login button
+                login_button = ui.button('Sign In').classes('login-button')
 
-                if not username or not password:
-                    ui.notify('Please fill all fields', type='warning')
-                    return
+    # Login handler with validation and loading states
+    async def login_clicked():
+        """Handle login with proper validation and feedback."""
+        # Clear previous errors
+        error_message.classes(remove='visible')
+        error_message.text = ''
 
-                if on_login(username, password):
-                    # Clear login UI and show main app
-                    ui.run_javascript('window.location.reload()')
+        # Get values
+        username = username_input.value.strip() if username_input.value else ''
+        password = password_input.value.strip() if password_input.value else ''
 
-            # Bind Enter key to both input fields
-            username_input.on('keydown.enter', login_clicked)
-            password_input.on('keydown.enter', login_clicked)
+        # Validate fields
+        if not username:
+            error_message.text = 'Please enter your username'
+            error_message.classes(add='visible')
+            return
 
-            # Premium login button
-            ui.button('Login', on_click=login_clicked).classes('w-full login-button')
+        if not password:
+            error_message.text = 'Please enter your password'
+            error_message.classes(add='visible')
+            return
+
+        # Show loading state
+        login_button.classes(add='loading disabled')
+        username_input.disable()
+        password_input.disable()
+
+        # Attempt authentication
+        try:
+            if on_login(username, password):
+                # Success - navigate to trigger page rebuild
+                ui.run_javascript("window.location.href = '/';")
+            else:
+                # Failed - show error
+                error_message.text = 'Invalid username or password'
+                error_message.classes(add='visible')
+                # Remove loading state
+                login_button.classes(remove='loading disabled')
+                username_input.enable()
+                password_input.enable()
+        except Exception as e:
+            # Show actual error for debugging
+            print(f"Login error: {e}")
+            import traceback
+            traceback.print_exc()
+            error_message.text = f'Error: {str(e)}'
+            error_message.classes(add='visible')
+            # Remove loading state
+            login_button.classes(remove='loading disabled')
+            username_input.enable()
+            password_input.enable()
+
+    # Clear errors on input
+    def clear_error():
+        error_message.classes(remove='visible')
+
+    username_input.on('focus', clear_error)
+    password_input.on('focus', clear_error)
+
+    # Button click handler
+    login_button.on('click', login_clicked)
+
+    # Enter key handlers
+    username_input.on('keydown.enter', login_clicked)
+    password_input.on('keydown.enter', login_clicked)
 
 
 @ui.page('/')
