@@ -42,10 +42,10 @@ class ChatInterface:
 
         # Input area - full width
         with ui.row().classes('w-full gap-2 p-3 bg-white shadow-md rounded-lg mt-2'):
-            self.input_field = ui.input(
-                placeholder='Enter your message...',
-            ).props('outlined dense').classes('flex-grow')
-            self.input_field.on('keydown.enter', lambda: self._on_send_clicked())
+            self.input_field = ui.textarea(
+                placeholder='Enter your message (Shift+Enter for newline)...',
+            ).props('outlined dense autogrow').classes('flex-grow').style('min-height: 2.5em; max-height: 15em')
+            self.input_field.on('keydown.enter', lambda e: None if e.args.get('shiftKey') else self._on_send_clicked())
 
             self.send_button = ui.button(
                 icon='send',
