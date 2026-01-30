@@ -105,8 +105,8 @@ The application will be available at `http://127.0.0.1:7860`
 
 ### Conversation History
 - Click "Load Recent" to view saved conversations
-- Conversations auto-save in `data/conversations/<username>/`
-- JSON format for easy inspection/backup
+- Conversations auto-save in `data/users/<username>/conversations/`
+- Msgpack binary format for efficient storage
 
 ## Architecture
 
@@ -136,16 +136,18 @@ The application will be available at `http://127.0.0.1:7860`
 ```
 applications/advanced_chat/
 ├── data/
-│   ├── conversations/      # User conversation histories
-│   │   └── {username}/    # Per-user directories
-│   └── rag_db/            # ChromaDB vector store
+│   └── users/             # Per-user data directories
+│       └── {username}/    # Each user has their own folder
+│           ├── conversations/  # User's chat histories (msgpack)
+│           ├── rag_db/        # User's ChromaDB vector store
+│           └── settings.json  # User's model/temperature preferences
 ├── .passwd                # User credentials (bcrypt hashed)
 └── .env                   # Environment variables
 ```
 
 ### Conversation Format
-JSON files in `data/conversations/{username}/`:
-```json
+Msgpack binary files in `data/users/{username}/conversations/`:
+```python
 {
   "conversation_id": "uuid-...",
   "user": "username",
@@ -159,6 +161,7 @@ JSON files in `data/conversations/{username}/`:
   "settings": {"temperature": 0.7}
 }
 ```
+Note: Files are stored in msgpack binary format for efficiency, but the data structure remains the same.
 
 ## API Keys Required
 
@@ -264,9 +267,10 @@ Powered by `markitdown`, supports:
 - RAG queries optimized to top-5 results
 
 ### Storage
-- Conversations stored as JSON (human-readable)
-- RAG DB persisted in ChromaDB
-- User data isolated by username
+- Conversations stored as msgpack (binary format for efficiency)
+- RAG DB persisted in ChromaDB per user
+- User settings stored as JSON (model, temperature)
+- Complete per-user data isolation in `data/users/{username}/`
 
 ### API Rate Limits
 - OpenRouter: Check https://openrouter.ai for limits
