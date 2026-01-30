@@ -12,6 +12,7 @@ from services.llm_service import LLMService
 from services.history_service import HistoryService
 from services.tool_service import ToolService
 from services.rag_service import RAGService
+from services.settings_service import SettingsService
 from components.chat_interface import ChatInterface
 from components.settings_modal import SettingsModal
 from components.document_panel import DocumentPanel
@@ -28,8 +29,10 @@ chat_interface = None
 history_service = None
 tool_service = None
 rag_service = None
+settings_service = None
 settings_modal = None
 document_panel = None
+model_label = None
 
 
 def update_tools():
@@ -53,12 +56,18 @@ def on_model_changed(model_name: str):
     """Handle model change."""
     if llm_service:
         llm_service.set_model(model_name)
+        if settings_service:
+            settings_service.update_setting('model', model_name)
+        if model_label:
+            model_label.text = f"Currently using: {model_name}"
 
 
 def on_settings_changed(settings: dict):
     """Handle settings change."""
     if 'temperature' in settings and llm_service:
         llm_service.set_temperature(settings['temperature'])
+        if settings_service:
+            settings_service.update_setting('temperature', settings['temperature'])
 
 
 def on_document_added(doc_name: str):
@@ -94,16 +103,20 @@ def auto_save_conversation():
 
 def build_authenticated_ui():
     """Build the main authenticated application UI."""
-    global llm_service, chat_interface, history_service, tool_service, rag_service, document_panel, settings_modal
+    global llm_service, chat_interface, history_service, tool_service, rag_service, document_panel, settings_modal, settings_service, model_label
 
-    # Initialize services with current user
+    # Initialize settings service and load user preferences
+    settings_service = SettingsService(current_user)
+    user_settings = settings_service.load_settings()
+
+    # Initialize services with current user and saved settings
     llm_service = LLMService(
-        model_name=DEFAULT_MODEL,
-        temperature=DEFAULT_TEMPERATURE
+        model_name=user_settings.get('model', DEFAULT_MODEL),
+        temperature=user_settings.get('temperature', DEFAULT_TEMPERATURE)
     )
     history_service = HistoryService(current_user)
     tool_service = ToolService(None)
-    rag_service = RAGService()
+    rag_service = RAGService(current_user)
 
     # Initialize chat interface with auto-save callback
     chat_interface = ChatInterface(llm_service, tool_service=tool_service, auto_save_callback=auto_save_conversation)
@@ -129,6 +142,10 @@ def build_authenticated_ui():
                     icon='settings',
                     on_click=lambda: settings_modal.show()
                 ).props('flat round')
+
+    # Model indicator
+    model_label = ui.label().classes('text-center text-xs text-gray-500 py-2 bg-gray-50')
+    model_label.text = f"Currently using: {llm_service.model_name}"
 
     # Main content area - full width container
     with ui.column().classes('w-full flex-grow items-center p-4').style('height: calc(100vh - 120px)'):
@@ -187,25 +204,43 @@ def show_recent_conversations():
     """Show dialog with recent conversations."""
     conversations = history_service.list_conversations(5)
 
+    def delete_conversation_ui(conversation_id: str, dialog):
+        """Delete conversation and refresh dialog."""
+        if history_service.delete_conversation(conversation_id):
+            ui.notify('Conversation deleted', type='positive')
+            dialog.close()
+            show_recent_conversations()  # Refresh the list
+        else:
+            ui.notify('Failed to delete conversation', type='negative')
+
     with ui.dialog() as dialog:
-        with ui.card().classes('w-full max-w-md'):
-            ui.label('Recent Conversations').classes('text-h6 font-bold')
+        with ui.card().classes('w-full').style('min-width: 40%; max-width: 50%'):
+            ui.label('Recent Conversations').classes('text-h6 font-bold mb-4')
 
             if not conversations:
-                ui.label('No saved conversations').classes('text-gray-500')
+                ui.label('No conversations yet').classes('text-gray-500')
             else:
                 for conv in conversations:
-                    with ui.card().classes('w-full'):
-                        with ui.column().classes('w-full'):
-                            ui.label(conv['created_at'][:10]).classes('text-sm text-gray-600')
-                            ui.label(f"Messages: {conv['message_count']}").classes('text-xs')
-                            ui.label(conv['preview']).classes('text-sm truncate')
-                            ui.button(
-                                'Load',
-                                on_click=lambda cid=conv['conversation_id']: load_conversation(cid, dialog)
-                            ).props('outline small').classes('w-full')
+                    with ui.card().classes('w-full bg-gray-50 border p-3 mb-2'):
+                        with ui.row().classes('w-full items-center gap-2'):
+                            # Left side: conversation info
+                            with ui.column().classes('flex-grow'):
+                                ui.label(f"📅 {conv['created_at'][:10]} • {conv['message_count']} messages").classes('text-xs text-gray-600')
+                                ui.label(conv['preview']).classes('text-sm whitespace-normal break-words')
 
-            ui.button('Close', on_click=dialog.close).props('flat').classes('w-full mt-4')
+                            # Right side: buttons
+                            with ui.row().classes('gap-1'):
+                                ui.button(
+                                    icon='folder_open',
+                                    on_click=lambda c=conv: load_conversation(c['conversation_id'], dialog)
+                                ).props('flat dense round').classes('text-blue-600')
+
+                                ui.button(
+                                    icon='delete',
+                                    on_click=lambda c=conv: delete_conversation_ui(c['conversation_id'], dialog)
+                                ).props('flat dense round').classes('text-red-600')
+
+            ui.button('Close', on_click=lambda: dialog.close()).props('flat').classes('mt-4')
 
     dialog.open()
 
@@ -214,15 +249,21 @@ def load_conversation(conv_id: str, dialog):
     """Load a saved conversation."""
     conv_data = history_service.load_conversation(conv_id)
     if conv_data:
-        # Restore messages (skip system message)
+        # Restore messages to chat interface
         chat_interface.messages = conv_data['messages']
-        chat_interface.chat_display.value = [
-            {'content': msg['content'], 'avatar': '👤' if msg['role'] == 'user' else '🤖'}
-            for msg in conv_data['messages'][1:]  # Skip system instruction
-        ]
-        chat_interface.chat_display.refresh()
+
+        # Clear the current display
+        chat_interface.chat_display.clear()
+
+        # Re-display each message (skip system instruction at index 0)
+        for msg in conv_data['messages'][1:]:
+            chat_interface.push_message(msg['content'], role=msg['role'])
+
+        # Scroll to bottom to show latest messages
+        chat_interface._scroll_to_bottom()
+
         dialog.close()
-        ui.notify('Conversation loaded')
+        ui.notify('Conversation loaded', type='positive')
 
 
 def on_login(username: str, password: str):

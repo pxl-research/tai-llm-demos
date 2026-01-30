@@ -11,13 +11,30 @@ load_dotenv()
 # Paths
 APP_ROOT = Path(__file__).parent.parent
 DATA_DIR = APP_ROOT / "data"
-CONVERSATIONS_DIR = DATA_DIR / "conversations"
-RAG_DB_PATH = DATA_DIR / "rag_db"
 
-# Ensure data directories exist
+# Ensure data directory exists
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-CONVERSATIONS_DIR.mkdir(parents=True, exist_ok=True)
-RAG_DB_PATH.mkdir(parents=True, exist_ok=True)
+
+
+# User-specific path functions
+def get_user_data_dir(username: str) -> Path:
+    """Get the data directory for a specific user."""
+    return DATA_DIR / "users" / username
+
+
+def get_user_conversations_dir(username: str) -> Path:
+    """Get the conversations directory for a specific user."""
+    return get_user_data_dir(username) / "conversations"
+
+
+def get_user_rag_db_path(username: str) -> Path:
+    """Get the RAG database path for a specific user."""
+    return get_user_data_dir(username) / "rag_db"
+
+
+def get_user_settings_path(username: str) -> Path:
+    """Get the settings file path for a specific user."""
+    return get_user_data_dir(username) / "settings.json"
 
 # API Configuration
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')

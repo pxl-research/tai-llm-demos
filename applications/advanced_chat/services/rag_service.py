@@ -6,15 +6,18 @@ from typing import List, Dict, Any
 
 from utils.chroma_store import ChromaDocumentStore
 from utils.text_processing import document_to_markdown, chunk_markdown
-from utils.config import RAG_DB_PATH
+from utils.config import get_user_rag_db_path
 
 
 class RAGService:
     """Manages RAG document indexing and retrieval."""
 
-    def __init__(self):
-        """Initialize RAG service."""
-        self.store = ChromaDocumentStore(path=str(RAG_DB_PATH))
+    def __init__(self, username: str = 'default'):
+        """Initialize RAG service for a specific user."""
+        self.username = username
+        rag_db_path = get_user_rag_db_path(username)
+        rag_db_path.mkdir(parents=True, exist_ok=True)
+        self.store = ChromaDocumentStore(path=str(rag_db_path))
 
     def add_document(self, file_path: str) -> bool:
         """

@@ -1,13 +1,13 @@
 """
 History Service: Manages conversation persistence and loading.
 """
-import json
+import msgpack
 from datetime import datetime
 from uuid import uuid4
 from pathlib import Path
 from typing import Optional, List
 
-from utils.config import CONVERSATIONS_DIR
+from utils.config import get_user_conversations_dir
 
 
 class HistoryService:
@@ -16,7 +16,7 @@ class HistoryService:
     def __init__(self, username: str = 'default'):
         """Initialize history service for a user."""
         self.username = username
-        self.user_dir = CONVERSATIONS_DIR / username
+        self.user_dir = get_user_conversations_dir(username)
         self.user_dir.mkdir(parents=True, exist_ok=True)
 
     def save_conversation(
@@ -53,9 +53,9 @@ class HistoryService:
             'settings': settings
         }
 
-        file_path = self.user_dir / f"{conversation_id}.json"
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(conversation_data, f, indent=2, ensure_ascii=False)
+        file_path = self.user_dir / f"{conversation_id}.msgpack"
+        with open(file_path, 'wb') as f:
+            msgpack.pack(conversation_data, f)
 
         return conversation_id
 
@@ -69,12 +69,12 @@ class HistoryService:
         Returns:
             Conversation data or None if not found
         """
-        file_path = self.user_dir / f"{conversation_id}.json"
+        file_path = self.user_dir / f"{conversation_id}.msgpack"
         if not file_path.exists():
             return None
 
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        with open(file_path, 'rb') as f:
+            return msgpack.unpack(f, raw=False)
 
     def list_conversations(self, limit: int = 20) -> List[dict]:
         """
@@ -88,15 +88,15 @@ class HistoryService:
         """
         conversations = []
 
-        json_files = sorted(
-            self.user_dir.glob('*.json'),
+        msgpack_files = sorted(
+            self.user_dir.glob('*.msgpack'),
             key=lambda p: p.stat().st_mtime,
             reverse=True
         )
 
-        for file_path in json_files[:limit]:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+        for file_path in msgpack_files[:limit]:
+            with open(file_path, 'rb') as f:
+                data = msgpack.unpack(f, raw=False)
                 summary = {
                     'conversation_id': data['conversation_id'],
                     'created_at': data['created_at'],
@@ -107,3 +107,20 @@ class HistoryService:
                 conversations.append(summary)
 
         return conversations
+
+    def delete_conversation(self, conversation_id: str) -> bool:
+        """
+        Delete a conversation file.
+
+        Args:
+            conversation_id: ID of conversation to delete
+
+        Returns:
+            True if deleted successfully, False otherwise
+        """
+        file_path = self.user_dir / f"{conversation_id}.msgpack"
+
+        if file_path.exists():
+            file_path.unlink()
+            return True
+        return False

@@ -106,6 +106,7 @@ class ChatInterface:
         tool_calls = []
         message_markdown = None
         card_created = False
+        copy_button_container = None
 
         # Process chunks from queue asynchronously
         while True:
@@ -127,7 +128,11 @@ class ChatInterface:
                             with self.chat_display:
                                 with ui.row().classes('w-full mb-2'):
                                     with ui.card().classes(f'{card_color} border-gray-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
-                                        message_markdown = ui.markdown('').classes('text-sm text-gray-700')
+                                        with ui.row().classes('w-full justify-between items-start gap-2'):
+                                            with ui.column().classes('flex-grow'):
+                                                message_markdown = ui.markdown('').classes('text-sm text-gray-700')
+                                            # Copy button will be added after message is complete
+                                            copy_button_container = ui.column()
                             card_created = True
 
                         partial_message += chunk.choices[0].delta.content
@@ -148,6 +153,14 @@ class ChatInterface:
 
             # Yield to event loop to keep UI responsive
             await asyncio.sleep(0.01)
+
+        # Add copy button after message is complete
+        if card_created and partial_message and copy_button_container is not None:
+            with copy_button_container:
+                ui.button(
+                    icon='content_copy',
+                    on_click=lambda msg=partial_message: self._copy_to_clipboard(msg)
+                ).props('flat dense round size=sm').classes('text-gray-400 hover:text-gray-600')
 
         return partial_message, tool_calls
 
@@ -289,6 +302,15 @@ class ChatInterface:
         if self.scroll_area:
             self.scroll_area.scroll_to(percent=1)
 
+    def _copy_to_clipboard(self, text: str):
+        """Copy text to clipboard using JavaScript."""
+        ui.run_javascript(f'''
+            navigator.clipboard.writeText({json.dumps(text)}).then(() => {{
+                console.log('Copied to clipboard');
+            }});
+        ''')
+        ui.notify('Copied to clipboard', type='positive', position='top')
+
     def push_message(self, content: str, role: str = 'assistant'):
         """Push a message to the chat display."""
         with self.chat_display:
@@ -299,7 +321,13 @@ class ChatInterface:
             else:
                 with ui.row().classes('w-full mb-2'):
                     with ui.card().classes('bg-white border-gray-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
-                        ui.markdown(content).classes('text-sm text-gray-700')
+                        with ui.row().classes('w-full justify-between items-start gap-2'):
+                            with ui.column().classes('flex-grow'):
+                                ui.markdown(content).classes('text-sm text-gray-700')
+                            ui.button(
+                                icon='content_copy',
+                                on_click=lambda: self._copy_to_clipboard(content)
+                            ).props('flat dense round size=sm').classes('text-gray-400 hover:text-gray-600')
 
     def get_messages(self) -> list:
         """Get current message history."""
