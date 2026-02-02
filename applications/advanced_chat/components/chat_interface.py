@@ -37,6 +37,7 @@ class ChatInterface:
         """
         # Chat display area - full width with proper scrolling
         self.scroll_area = ui.scroll_area().classes('w-full border rounded-lg shadow-inner bg-gray-50').style('height: calc(100vh - 300px)')
+        self.scroll_area.props('role="log" aria-live="polite" aria-label="Chat conversation"')
         with self.scroll_area:
             self.chat_display = ui.column().classes('w-full gap-2 p-4')
 
@@ -44,13 +45,13 @@ class ChatInterface:
         with ui.row().classes('w-full gap-2 p-3 bg-white shadow-md rounded-lg mt-2'):
             self.input_field = ui.textarea(
                 placeholder='Enter your message (Shift+Enter for newline)...',
-            ).props('outlined dense autogrow').classes('flex-grow').style('min-height: 2.5em; max-height: 15em')
+            ).props('outlined dense autogrow aria-label="Type your message. Press Enter to send, Shift+Enter for new line"').classes('flex-grow').style('min-height: 2.5em; max-height: 15em')
             self.input_field.on('keydown.enter', lambda e: None if e.args.get('shiftKey') else self._on_send_clicked())
 
             self.send_button = ui.button(
                 icon='send',
                 on_click=self._on_send_clicked
-            ).props('flat round').classes('text-indigo-600')
+            ).props('flat round aria-label="Send message"').classes('text-indigo-600')
 
         return self.chat_display, self.input_field
 
@@ -160,7 +161,7 @@ class ChatInterface:
                 ui.button(
                     icon='content_copy',
                     on_click=lambda msg=partial_message: self._copy_to_clipboard(msg)
-                ).props('flat dense round size=sm').classes('text-gray-400 hover:text-gray-600')
+                ).props('flat dense round size=sm aria-label="Copy message to clipboard"').classes('text-gray-400 hover:text-gray-600')
 
         return partial_message, tool_calls
 
@@ -270,12 +271,19 @@ class ChatInterface:
                 }
                 self.messages.append(tool_resp)
 
-                # Display tool result (collapsible)
+                # Display tool result (collapsible with improved preview)
                 with self.chat_display:
                     with ui.card().classes('bg-green-50 border-green-200 shadow-sm rounded-lg p-2'):
-                        with ui.expansion(f"✓ {call.function.name}", value=False).classes('text-xs text-green-700'):
-                            result_json = json.dumps(result, indent=2)
-                            ui.markdown(f"```json\n{result_json}\n```").classes('text-xs')
+                        with ui.expansion(
+                            self._create_tool_preview(call.function.name, result),
+                            value=False  # User preference: collapsed by default
+                        ).classes('text-xs border-l-4 border-green-500'):
+                            formatted_result = self._format_tool_result(call.function.name, result)
+                            ui.markdown(formatted_result).classes('text-sm')
+
+                            # Raw JSON in nested expansion
+                            with ui.expansion("Show raw JSON", value=False).classes('mt-2'):
+                                ui.markdown(f"```json\n{json.dumps(result, indent=2)}\n```").classes('text-xs')
 
                 self._scroll_to_bottom()
 
@@ -289,11 +297,19 @@ class ChatInterface:
                 }
                 self.messages.append(tool_resp)
 
-                # Display error (collapsible)
+                # Display error (collapsible with friendly message)
+                friendly_error = self._humanize_error(call.function.name, e)
                 with self.chat_display:
                     with ui.card().classes('bg-red-50 border-red-200 shadow-sm rounded-lg p-2'):
-                        with ui.expansion(f"✗ {call.function.name}", value=False).classes('text-xs text-red-700'):
-                            ui.markdown(f"```\n{html.escape(str(e))}\n```").classes('text-xs')
+                        with ui.expansion(
+                            f"✗ {call.function.name}: {friendly_error[:50]}...",
+                            value=False
+                        ).classes('text-xs border-l-4 border-red-500'):
+                            ui.label(friendly_error).classes('text-sm text-red-700 mb-2')
+
+                            # Technical details in nested expansion
+                            with ui.expansion("Show technical details", value=False).classes('mt-2'):
+                                ui.markdown(f"```\n{html.escape(str(e))}\n```").classes('text-xs')
 
                 self._scroll_to_bottom()
 
@@ -310,6 +326,111 @@ class ChatInterface:
             }});
         ''')
         ui.notify('Copied to clipboard', type='positive', position='top')
+
+    def _create_tool_preview(self, tool_name: str, result: dict) -> str:
+        """
+        Create a brief preview for collapsed tool result.
+
+        Returns:
+            Short preview text (under 60 chars)
+        """
+        if tool_name == 'search_on_google':
+            count = len(result.get('items', []))
+            return f"✓ {tool_name}: Found {count} results"
+
+        elif tool_name == 'get_webpage_content':
+            return f"✓ {tool_name}: Page fetched successfully"
+
+        elif tool_name == 'lookup_in_documentation':
+            count = len(result.get('results', []))
+            return f"✓ {tool_name}: Found {count} documents"
+
+        elif tool_name == 'list_documents':
+            count = len(result.get('documents', []))
+            return f"✓ {tool_name}: {count} documents indexed"
+
+        else:
+            return f"✓ {tool_name}: Completed"
+
+    def _format_tool_result(self, tool_name: str, result: dict) -> str:
+        """
+        Format tool result as user-friendly text.
+        """
+        # Google search
+        if tool_name == 'search_on_google':
+            if 'error' in result:
+                return f"**Error:** {result['error']}"
+            items = result.get('items', [])
+            if not items:
+                return "No results found."
+
+            formatted = "### Search Results\n\n"
+            for i, item in enumerate(items[:5], 1):
+                formatted += f"**{i}. [{item['title']}]({item['link']})**\n"
+                formatted += f"   {item.get('snippet', '')}\n\n"
+            return formatted
+
+        # Web scraper
+        elif tool_name == 'get_webpage_content':
+            if 'error' in result:
+                return f"**Error:** {result['error']}"
+            content = result.get('content', '')
+            return f"**Page Content** (first 500 characters):\n\n{content[:500]}..."
+
+        # RAG lookup
+        elif tool_name == 'lookup_in_documentation':
+            if 'error' in result:
+                return f"**Error:** {result['error']}"
+            results = result.get('results', [])
+            if not results:
+                return "No relevant documents found."
+
+            formatted = "### Found in Documents\n\n"
+            for doc in results:
+                source = doc.get('source', 'Unknown')
+                content_preview = doc.get('content', '')[:200]
+                formatted += f"**{source}:** {content_preview}...\n\n"
+            return formatted
+
+        # List documents
+        elif tool_name == 'list_documents':
+            docs = result.get('documents', [])
+            if not docs:
+                return "No documents uploaded yet."
+            return "**Indexed Documents:**\n\n" + "\n".join(f"- {doc}" for doc in docs)
+
+        # Default: Show formatted JSON
+        else:
+            return f"```json\n{json.dumps(result, indent=2)}\n```"
+
+    def _humanize_error(self, tool_name: str, exception: Exception) -> str:
+        """
+        Convert exception to user-friendly message.
+        """
+        error_str = str(exception).lower()
+
+        # Network errors
+        if 'connection' in error_str or 'timeout' in error_str:
+            return f"Cannot connect to {tool_name}. Check your internet connection."
+
+        # API key errors
+        if 'api key' in error_str or 'unauthorized' in error_str or '401' in error_str:
+            return f"{tool_name} requires a valid API key. Check your .env configuration."
+
+        # Rate limiting
+        if 'rate limit' in error_str or '429' in error_str:
+            return f"{tool_name} is rate-limited. Please wait a moment and try again."
+
+        # Permission errors
+        if 'permission' in error_str or 'forbidden' in error_str or '403' in error_str:
+            return f"Permission denied when accessing {tool_name}."
+
+        # Not found
+        if 'not found' in error_str or '404' in error_str:
+            return f"Resource not found in {tool_name}."
+
+        # Generic error with first 100 chars
+        return f"{tool_name} failed: {str(exception)[:100]}"
 
     def push_message(self, content: str, role: str = 'assistant'):
         """Push a message to the chat display."""

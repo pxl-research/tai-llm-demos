@@ -119,9 +119,9 @@ class SettingsModal:
         </style>
         ''')
 
-        with ui.dialog() as dialog:
+        with ui.dialog().props('role="dialog" aria-labelledby="settings-title"') as dialog:
             with ui.card().classes('w-full max-w-2xl max-h-[80vh] overflow-y-auto'):
-                ui.label('Settings').classes('text-h6 font-bold')
+                ui.label('Settings').classes('text-h6 font-bold').props('id="settings-title"')
 
                 with ui.tabs().classes('w-full') as tabs:
                     model_tab = ui.tab('Model Selection')
@@ -142,11 +142,11 @@ class SettingsModal:
 
                 # Buttons
                 with ui.row().classes('justify-end gap-2 mt-4 w-full'):
-                    ui.button('Cancel', on_click=lambda: dialog.close()).props('flat')
+                    ui.button('Cancel', on_click=lambda: dialog.close()).props('flat aria-label="Cancel and close settings"')
                     ui.button(
                         'Save',
                         on_click=lambda: self._save_settings(dialog)
-                    ).props('unelevated')
+                    ).props('unelevated aria-label="Save settings and apply changes"')
 
         self.dialog = dialog
         return dialog
@@ -164,7 +164,7 @@ class SettingsModal:
             # Search input with icon - initially disabled until models load
             search_input = ui.input(
                 placeholder='Search models...'
-            ).classes('w-full search-input-loading').props('outlined clearable disabled')
+            ).classes('w-full search-input-loading').props('outlined clearable disabled aria-label="Search models" role="searchbox"')
             search_input.props('prepend-inner-icon=search')
 
             # Loading state
@@ -352,7 +352,7 @@ class SettingsModal:
         """
         with ui.card().classes(
             'model-card w-full bg-white border border-gray-200 p-2 cursor-pointer'
-        ) as card:
+        ).props('role="button" tabindex="0"') as card:
             with ui.row().classes('w-full justify-between items-center'):
                 # Provider badge
                 ui.label(model_data['provider']).classes('provider-badge')

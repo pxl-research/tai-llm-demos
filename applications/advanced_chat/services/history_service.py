@@ -76,15 +76,15 @@ class HistoryService:
         with open(file_path, 'rb') as f:
             return msgpack.unpack(f, raw=False)
 
-    def list_conversations(self, limit: int = 20) -> List[dict]:
+    def list_conversations(self, limit: Optional[int] = None) -> List[dict]:
         """
         List saved conversations for the user.
 
         Args:
-            limit: Maximum number of conversations to return
+            limit: Maximum number to return (None = all)
 
         Returns:
-            List of conversation summaries
+            List of conversation summaries, newest first
         """
         conversations = []
 
@@ -94,13 +94,16 @@ class HistoryService:
             reverse=True
         )
 
-        for file_path in msgpack_files[:limit]:
+        # Apply limit if specified
+        files_to_process = msgpack_files[:limit] if limit else msgpack_files
+
+        for file_path in files_to_process:
             with open(file_path, 'rb') as f:
                 data = msgpack.unpack(f, raw=False)
                 summary = {
                     'conversation_id': data['conversation_id'],
                     'created_at': data['created_at'],
-                    'model': data['model'],
+                    'model': data.get('model', 'unknown'),
                     'message_count': len(data['messages']),
                     'preview': data['messages'][-1]['content'][:100] if data['messages'] else 'Empty'
                 }

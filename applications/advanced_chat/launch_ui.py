@@ -137,11 +137,11 @@ def build_authenticated_ui():
                     f'User: {current_user}',
                     icon='person',
                     on_click=lambda: show_logout_dialog()
-                ).props('flat').classes('text-sm hover:bg-white/10')
+                ).props('flat aria-label="User menu - click to logout"').classes('text-sm hover:bg-white/10')
                 ui.button(
                     icon='settings',
                     on_click=lambda: settings_modal.show()
-                ).props('flat round')
+                ).props('flat round aria-label="Open settings"')
 
     # Model indicator
     model_label = ui.label().classes('text-center text-xs text-gray-500 py-2 bg-gray-50')
@@ -165,13 +165,13 @@ def build_authenticated_ui():
                 'New Chat',
                 on_click=on_new_chat,
                 icon='refresh'
-            ).props('outline').classes('rounded-md')
+            ).props('outline aria-label="Start new conversation"').classes('rounded-md')
 
             ui.button(
                 'Load Recent',
                 on_click=lambda: show_recent_conversations(),
                 icon='history'
-            ).props('outline').classes('rounded-md')
+            ).props('outline aria-label="Load conversation history"').classes('rounded-md')
 
     # Drawer for documents (right side) - wider drawer
     with ui.right_drawer(fixed=False).props('bordered overlay width=600') as drawer:
@@ -192,7 +192,7 @@ def build_authenticated_ui():
 
     # Floating button to toggle drawer
     ui.button(icon='description', on_click=drawer.toggle) \
-        .props('fab') \
+        .props('fab aria-label="Open documents panel"') \
         .classes('fixed bottom-6 right-6') \
         .style('background: linear-gradient(to right, rgb(79, 70, 229), rgb(147, 51, 234))')
 
@@ -201,46 +201,107 @@ def build_authenticated_ui():
 
 
 def show_recent_conversations():
-    """Show dialog with recent conversations."""
-    conversations = history_service.list_conversations(5)
+    """Show dialog with all conversations in scrollable list."""
+    # Load ALL conversations (no limit)
+    conversations = history_service.list_conversations(limit=None)
 
     def delete_conversation_ui(conversation_id: str, dialog):
-        """Delete conversation and refresh dialog."""
-        if history_service.delete_conversation(conversation_id):
-            ui.notify('Conversation deleted', type='positive')
-            dialog.close()
-            show_recent_conversations()  # Refresh the list
-        else:
-            ui.notify('Failed to delete conversation', type='negative')
+        """Delete with confirmation."""
+        with ui.dialog() as confirm_dialog, ui.card():
+            ui.label('Delete Conversation?').classes('text-lg font-semibold')
+            ui.label('This action cannot be undone.').classes('text-sm text-gray-600 mt-2')
+
+            with ui.row().classes('gap-2 mt-4'):
+                ui.button('Cancel', on_click=confirm_dialog.close).props('flat')
+                ui.button('Delete', on_click=lambda: (
+                    history_service.delete_conversation(conversation_id),
+                    confirm_dialog.close(),
+                    dialog.close(),
+                    show_recent_conversations(),
+                    ui.notify('Conversation deleted', type='positive')
+                )).props('color=negative')
+
+        confirm_dialog.open()
 
     with ui.dialog() as dialog:
-        with ui.card().classes('w-full').style('min-width: 40%; max-width: 50%'):
-            ui.label('Recent Conversations').classes('text-h6 font-bold mb-4')
+        with ui.card().classes('w-full').style('min-width: 50%; max-width: 70%; max-height: 80vh'):
+            # Header
+            with ui.row().classes('w-full items-center justify-between mb-3'):
+                ui.label('Conversation History').classes('text-h6 font-bold')
+                ui.label(f'{len(conversations)} total').classes('text-sm text-gray-500')
 
-            if not conversations:
-                ui.label('No conversations yet').classes('text-gray-500')
-            else:
-                for conv in conversations:
-                    with ui.card().classes('w-full bg-gray-50 border p-3 mb-2'):
-                        with ui.row().classes('w-full items-center gap-2'):
-                            # Left side: conversation info
-                            with ui.column().classes('flex-grow'):
-                                ui.label(f"📅 {conv['created_at'][:10]} • {conv['message_count']} messages").classes('text-xs text-gray-600')
-                                ui.label(conv['preview']).classes('text-sm whitespace-normal break-words')
+            # Search input
+            search_input = ui.input(
+                placeholder='Search conversations...'
+            ).classes('w-full mb-3').props('outlined dense clearable')
 
-                            # Right side: buttons
-                            with ui.row().classes('gap-1'):
-                                ui.button(
-                                    icon='folder_open',
-                                    on_click=lambda c=conv: load_conversation(c['conversation_id'], dialog)
-                                ).props('flat dense round').classes('text-blue-600')
+            # Scrollable list (simple chronological order - user preference)
+            results_scroll = ui.scroll_area().classes('w-full').style('height: 55vh')
 
-                                ui.button(
-                                    icon='delete',
-                                    on_click=lambda c=conv: delete_conversation_ui(c['conversation_id'], dialog)
-                                ).props('flat dense round').classes('text-red-600')
+            with results_scroll:
+                results_container = ui.column().classes('w-full gap-2')
 
-            ui.button('Close', on_click=lambda: dialog.close()).props('flat').classes('mt-4')
+            def render_conversations(search_term: str = ''):
+                """Render conversations with optional search filter."""
+                results_container.clear()
+
+                with results_container:
+                    if not conversations:
+                        ui.label('No conversations yet').classes('text-gray-500 text-center py-8')
+                        return
+
+                    # Filter by search term
+                    if search_term:
+                        filtered = [
+                            c for c in conversations
+                            if search_term.lower() in c['preview'].lower()
+                            or search_term.lower() in c.get('model', '').lower()
+                        ]
+                    else:
+                        filtered = conversations
+
+                    if not filtered:
+                        ui.label('No matching conversations').classes('text-gray-500 text-center py-8')
+                        return
+
+                    # Simple chronological list (newest first)
+                    for conv in filtered:
+                        with ui.card().classes('w-full bg-gray-50 border hover:bg-gray-100 transition-colors p-3'):
+                            with ui.row().classes('w-full items-start gap-3'):
+                                # Left: info
+                                with ui.column().classes('flex-grow'):
+                                    # Date and metadata
+                                    from datetime import datetime
+                                    conv_datetime = datetime.fromisoformat(conv['created_at'])
+                                    date_str = conv_datetime.strftime('%Y-%m-%d %I:%M %p')
+
+                                    ui.label(
+                                        f"📅 {date_str} • {conv['message_count']} msgs • {conv.get('model', 'unknown')}"
+                                    ).classes('text-xs text-gray-600')
+
+                                    # Preview
+                                    ui.label(conv['preview']).classes('text-sm mt-1 break-words')
+
+                                # Right: actions
+                                with ui.row().classes('gap-1 flex-shrink-0'):
+                                    ui.button(
+                                        icon='folder_open',
+                                        on_click=lambda c=conv: load_conversation(c['conversation_id'], dialog)
+                                    ).props('flat dense round aria-label="Load conversation"').classes('text-blue-600')
+
+                                    ui.button(
+                                        icon='delete',
+                                        on_click=lambda c=conv: delete_conversation_ui(c['conversation_id'], dialog)
+                                    ).props('flat dense round aria-label="Delete conversation"').classes('text-red-600')
+
+            # Wire search
+            search_input.on('input', lambda e: render_conversations(e.value))
+
+            # Initial render
+            render_conversations()
+
+            # Close button
+            ui.button('Close', on_click=dialog.close).props('flat').classes('mt-3')
 
     dialog.open()
 
@@ -300,152 +361,68 @@ def show_logout_dialog():
 def build_login_ui():
     """Build a clean, elegant login interface."""
 
-    # Minimal, refined CSS - Swiss modernist approach
+    # Simplified CSS - uses NiceGui's native styling with minimal overrides
     ui.add_head_html('''
         <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
             body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
+                background-color: #fafafa;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
 
             .login-container {
-                min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: #fafafa;
-                padding: 20px;
+                min-height: 100vh;
+                padding: 1rem;
             }
 
             .login-card {
-                background: #ffffff;
+                background: white;
+                border-radius: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.08);
+                padding: 2.5rem;
                 width: 100%;
                 max-width: 380px;
-                padding: 48px 40px;
-                border-radius: 2px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06),
-                            0 1px 2px rgba(0, 0, 0, 0.08);
-                border: 1px solid #e8e8e8;
-            }
-
-            .login-header {
-                margin-bottom: 32px;
-                text-align: center;
             }
 
             .login-title {
                 font-size: 21px;
                 font-weight: 600;
                 color: #1a1a1a;
-                letter-spacing: -0.02em;
-                margin-bottom: 8px;
+                margin-bottom: 0.5rem;
+                text-align: center;
             }
 
             .login-subtitle {
                 font-size: 14px;
-                font-weight: 400;
                 color: #737373;
-                letter-spacing: 0;
-            }
-
-            .login-form {
-                display: flex;
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            .form-field {
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-            }
-
-            .field-label {
-                font-size: 13px;
-                font-weight: 500;
-                color: #404040;
-                letter-spacing: -0.01em;
-            }
-
-            .login-input input {
-                width: 100% !important;
-                height: 44px !important;
-                padding: 0 14px !important;
-                font-size: 15px !important;
-                font-weight: 400 !important;
-                color: #1a1a1a !important;
-                background: #ffffff !important;
-                border: 1px solid #d4d4d4 !important;
-                border-radius: 2px !important;
-                transition: all 180ms ease !important;
-                outline: none !important;
-            }
-
-            .login-input input:hover {
-                border-color: #a3a3a3 !important;
-            }
-
-            .login-input input:focus {
-                border-color: #525252 !important;
-                box-shadow: 0 0 0 3px rgba(82, 82, 82, 0.05) !important;
-            }
-
-            .login-input input::placeholder {
-                color: #a3a3a3 !important;
-            }
-
-            .error-message {
-                font-size: 13px;
-                font-weight: 400;
-                color: #dc2626;
-                margin-top: -12px;
-                margin-bottom: 8px;
-                display: none;
-            }
-
-            .error-message.visible {
-                display: block;
+                margin-bottom: 2rem;
+                text-align: center;
             }
 
             .login-button {
-                width: 100% !important;
-                height: 44px !important;
-                margin-top: 8px !important;
-                font-size: 14px !important;
-                font-weight: 500 !important;
-                color: #ffffff !important;
-                background: #262626 !important;
-                border: none !important;
-                border-radius: 2px !important;
-                cursor: pointer !important;
-                transition: all 160ms ease !important;
-                letter-spacing: -0.01em !important;
+                width: 100%;
+                height: 44px;
+                background: #262626;
+                color: white;
+                border-radius: 2px;
+                transition: background-color 0.2s;
             }
 
-            .login-button:hover:not(.disabled) {
-                background: #171717 !important;
+            .login-button:hover {
+                background: #171717;
             }
 
-            .login-button:active:not(.disabled) {
-                transform: scale(0.99) !important;
-            }
-
-            .login-button.disabled {
-                background: #d4d4d4 !important;
-                color: #a3a3a3 !important;
-                cursor: not-allowed !important;
+            .error-message {
+                color: #dc2626;
+                font-size: 14px;
+                margin-top: 0.5rem;
             }
 
             .login-button.loading {
-                position: relative !important;
-                color: transparent !important;
+                position: relative;
+                color: transparent;
             }
 
             .login-button.loading::after {
@@ -466,6 +443,19 @@ def build_login_ui():
             @keyframes spin {
                 to { transform: rotate(360deg); }
             }
+
+            /* Keyboard focus indicators */
+            button:focus-visible,
+            input:focus-visible,
+            textarea:focus-visible {
+                outline: 2px solid rgb(79, 70, 229) !important;
+                outline-offset: 2px;
+            }
+
+            .q-card:focus-visible {
+                outline: 2px solid rgb(79, 70, 229);
+                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+            }
         </style>
     ''')
 
@@ -473,33 +463,26 @@ def build_login_ui():
     with ui.column().classes('login-container'):
         with ui.card().classes('login-card'):
             # Header
-            with ui.column().classes('login-header'):
-                ui.label('Advanced Chat').classes('login-title')
-                ui.label('Sign in to continue').classes('login-subtitle')
+            ui.label('Advanced Chat').classes('login-title')
+            ui.label('Sign in to continue').classes('login-subtitle')
 
-            # Form
-            with ui.column().classes('login-form'):
-                # Username field
-                with ui.column().classes('form-field'):
-                    ui.label('Username').classes('field-label')
-                    username_input = ui.input(placeholder='Enter username').props('autocomplete=username outlined=false dense=false').classes('login-input')
+            # Username field
+            username_input = ui.input('Username', placeholder='Enter username').props('outlined dense').classes('mb-3')
 
-                # Password field
-                with ui.column().classes('form-field'):
-                    ui.label('Password').classes('field-label')
-                    password_input = ui.input(placeholder='Enter password', password=True).props('autocomplete=current-password outlined=false dense=false').classes('login-input')
+            # Password field
+            password_input = ui.input('Password', placeholder='Enter password', password=True).props('outlined dense').classes('mb-3')
 
-                # Error message
-                error_message = ui.label('').classes('error-message')
+            # Error message
+            error_message = ui.label('').classes('error-message').style('display: none')
 
-                # Login button
-                login_button = ui.button('Sign In').classes('login-button')
+            # Login button
+            login_button = ui.button('Sign In').classes('login-button')
 
     # Login handler with validation and loading states
     async def login_clicked():
         """Handle login with proper validation and feedback."""
         # Clear previous errors
-        error_message.classes(remove='visible')
+        error_message.style('display: none')
         error_message.text = ''
 
         # Get values
@@ -509,16 +492,16 @@ def build_login_ui():
         # Validate fields
         if not username:
             error_message.text = 'Please enter your username'
-            error_message.classes(add='visible')
+            error_message.style('display: block')
             return
 
         if not password:
             error_message.text = 'Please enter your password'
-            error_message.classes(add='visible')
+            error_message.style('display: block')
             return
 
         # Show loading state
-        login_button.classes(add='loading disabled')
+        login_button.classes(add='loading')
         username_input.disable()
         password_input.disable()
 
@@ -530,9 +513,9 @@ def build_login_ui():
             else:
                 # Failed - show error
                 error_message.text = 'Invalid username or password'
-                error_message.classes(add='visible')
+                error_message.style('display: block')
                 # Remove loading state
-                login_button.classes(remove='loading disabled')
+                login_button.classes(remove='loading')
                 username_input.enable()
                 password_input.enable()
         except Exception as e:
@@ -541,15 +524,15 @@ def build_login_ui():
             import traceback
             traceback.print_exc()
             error_message.text = f'Error: {str(e)}'
-            error_message.classes(add='visible')
+            error_message.style('display: block')
             # Remove loading state
-            login_button.classes(remove='loading disabled')
+            login_button.classes(remove='loading')
             username_input.enable()
             password_input.enable()
 
     # Clear errors on input
     def clear_error():
-        error_message.classes(remove='visible')
+        error_message.style('display: none')
 
     username_input.on('focus', clear_error)
     password_input.on('focus', clear_error)

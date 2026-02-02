@@ -43,11 +43,14 @@ class DocumentPanel:
                     'Supported: PDF, DOCX, PPTX, XLSX, XLS'
                 ).classes('text-xs text-gray-600')
 
+                # Add progress container above upload widget
+                self.upload_progress_container = ui.column().classes('w-full gap-2 mb-3')
+
                 self.upload_widget = ui.upload(
-                    on_upload=self._on_upload,
+                    on_upload=self._handle_file_upload,
                     auto_upload=True,
                     multiple=True
-                ).props('accept=.pdf,.docx,.pptx,.xlsx,.xls')
+                ).props('accept=.pdf,.docx,.pptx,.xlsx,.xls max-file-size=26214400 aria-label="Upload documents for RAG. Supported: PDF, DOCX, PPTX, XLSX, XLS. Max 25 MB"')
 
             # Status
             self.status_label = ui.label('Ready').classes('text-sm text-gray-600')
@@ -61,42 +64,96 @@ class DocumentPanel:
             ui.button(
                 'Refresh List',
                 on_click=self._refresh_documents
-            ).props('flat outline small').classes('w-full')
+            ).props('flat outline small aria-label="Refresh document list"').classes('w-full')
 
             # Initial load
             self._refresh_documents()
 
-    def _on_upload(self, e):
-        """Handle file upload."""
+    def _handle_file_upload(self, e):
+        """Handle file upload with step-by-step progress."""
         try:
-            # Access file from UploadEventArguments (NiceGUI 3.0.3)
             uploaded_file = e.file
             file_name = uploaded_file.name
 
-            # Handle both LargeFileUpload (on disk) and SmallFileUpload (in memory)
+            # Calculate file size
+            if hasattr(uploaded_file, '_data'):
+                file_size_bytes = len(uploaded_file._data)
+            elif hasattr(uploaded_file, '_path'):
+                file_size_bytes = Path(uploaded_file._path).stat().st_size
+            else:
+                file_size_bytes = 0
+
+            file_size_mb = file_size_bytes / (1024 * 1024)
+
+            # Check 25 MB limit
+            if file_size_mb > 25:
+                self.status_label.text = f'✗ File too large: {file_size_mb:.1f} MB (max 25 MB)'
+                ui.notify(f'File exceeds 25 MB limit', type='negative')
+                return
+
+            # Create progress card
+            with self.upload_progress_container:
+                progress_card = ui.card().classes('w-full bg-blue-50 border-blue-200 p-3')
+                with progress_card:
+                    # Header: filename and size
+                    with ui.row().classes('w-full items-center gap-2'):
+                        ui.icon('description').classes('text-blue-600')
+                        ui.label(file_name).classes('font-semibold flex-grow text-sm')
+                        ui.label(f"{file_size_mb:.1f} MB").classes('text-xs text-gray-600')
+
+                    # Progress steps
+                    with ui.column().classes('w-full gap-1 mt-2'):
+                        step1 = ui.label("⏳ Uploading...").classes('text-xs text-blue-600')
+                        step2 = ui.label("⏺ Converting to markdown...").classes('text-xs text-gray-400')
+                        step3 = ui.label("⏺ Indexing content...").classes('text-xs text-gray-400')
+
+            # Get file path
             if hasattr(uploaded_file, '_path'):
-                # LargeFileUpload - file already on disk
                 temp_path = uploaded_file._path
             elif hasattr(uploaded_file, '_data'):
-                # SmallFileUpload - file in memory
                 temp_path = Path('/tmp') / file_name
                 with open(temp_path, 'wb') as f:
                     f.write(uploaded_file._data)
             else:
                 raise ValueError(f"Unknown upload type: {type(uploaded_file)}")
 
-            # Process document (convert, chunk, add to ChromaDB)
-            self.status_label.text = f'Processing {file_name}...'
+            # Step 1: Upload complete
+            step1.set_text("✓ Uploaded")
+            step1.classes(remove='text-blue-600', add='text-green-600')
+
+            # Step 2: Converting
+            step2.set_text("⏳ Converting to markdown...")
+            step2.classes(remove='text-gray-400', add='text-blue-600')
+
+            # Step 3: Indexing (conversion happens inside add_document)
+            step2.set_text("✓ Converted")
+            step2.classes(remove='text-blue-600', add='text-green-600')
+            step3.set_text("⏳ Indexing content...")
+            step3.classes(remove='text-gray-400', add='text-blue-600')
+
+            # Process document
             success = self.rag_service.add_document(str(temp_path))
 
             if success:
+                # Success
+                step3.set_text("✓ Indexed")
+                step3.classes(remove='text-blue-600', add='text-green-600')
                 self.status_label.text = f'✓ Added {file_name}'
                 self.on_document_added(file_name)
                 self._refresh_documents()
-            else:
-                self.status_label.text = f'✗ Failed to add {file_name}'
+                ui.notify(f'Added {file_name}', type='positive')
 
-            # Clean up temp file only for SmallFileUpload
+                # Auto-remove progress card after 3 seconds
+                ui.timer(3.0, lambda: progress_card.delete(), once=True)
+            else:
+                # Failed
+                step3.set_text("✗ Failed to index")
+                step3.classes(remove='text-blue-600', add='text-red-600')
+                progress_card.classes(remove='bg-blue-50 border-blue-200', add='bg-red-50 border-red-200')
+                self.status_label.text = f'✗ Failed to add {file_name}'
+                ui.notify(f'Failed to add {file_name}', type='negative')
+
+            # Cleanup temp file
             if hasattr(uploaded_file, '_data'):
                 Path(temp_path).unlink(missing_ok=True)
 
@@ -105,6 +162,13 @@ class DocumentPanel:
             error_trace = traceback.format_exc()
             print(f"ERROR in upload: {error_trace}")
             self.status_label.text = f'Error: {str(e)[:50]}'
+            ui.notify(f'Upload error: {str(e)[:50]}', type='negative')
+
+            # Show error in progress card if exists
+            if 'progress_card' in locals():
+                progress_card.classes(remove='bg-blue-50', add='bg-red-50')
+                with progress_card:
+                    ui.label(f"❌ {str(e)[:100]}").classes('text-xs text-red-600 mt-2')
 
     def _refresh_documents(self):
         """Refresh the documents list."""
@@ -122,21 +186,40 @@ class DocumentPanel:
                         ui.button(
                             icon='delete',
                             on_click=lambda d=doc_name: self._delete_document(d)
-                        ).props('flat small dense')
+                        ).props(f'flat small dense aria-label="Delete document {doc_name}"')
 
     def get_documents(self) -> list:
         """Get list of indexed documents."""
         return self.rag_service.list_documents()
 
     def _delete_document(self, doc_name: str):
-        """Delete a document from RAG store."""
+        """Delete document with confirmation dialog."""
+        with ui.dialog() as confirm_dialog, ui.card():
+            ui.label(f'Delete "{doc_name}"?').classes('text-lg font-semibold')
+            ui.label('This will permanently remove the document from your knowledge base.').classes('text-sm text-gray-600 mt-2')
+
+            with ui.row().classes('w-full justify-end gap-2 mt-4'):
+                ui.button('Cancel', on_click=confirm_dialog.close).props('flat')
+                ui.button(
+                    'Delete',
+                    on_click=lambda: self._perform_delete(doc_name, confirm_dialog)
+                ).props('color=negative')
+
+        confirm_dialog.open()
+
+    def _perform_delete(self, doc_name: str, dialog):
+        """Execute the deletion."""
         try:
             success = self.rag_service.remove_document(doc_name)
             if success:
-                self.status_label.text = f'Deleted {doc_name}'
+                self.status_label.text = f'✓ Deleted {doc_name}'
                 self.on_document_removed(doc_name)
                 self._refresh_documents()
+                dialog.close()
+                ui.notify(f'Deleted {doc_name}', type='positive')
             else:
                 self.status_label.text = f'Failed to delete {doc_name}'
+                ui.notify(f'Failed to delete {doc_name}', type='negative')
         except Exception as e:
             self.status_label.text = f'Error: {str(e)[:50]}'
+            ui.notify(f'Delete error: {str(e)}', type='negative')
