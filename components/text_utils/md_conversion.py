@@ -1,6 +1,7 @@
 import os
 import sys
 
+import pymupdf4llm
 from dotenv import load_dotenv
 from markitdown import MarkItDown
 
@@ -16,6 +17,11 @@ def document_to_markdown(doc_filename: str) -> str:
     """
     Convert a document (docx, pptx, xlsx, pdf) to Markdown text.
     """
+
+    if doc_filename.endswith('.pdf'):
+        # markitdown does not work well with pdfs so we use pymupdf4llm
+        return pymupdf4llm.to_markdown(doc_filename)
+
     mid = MarkItDown(enable_plugins=False)
     conversion = mid.convert(doc_filename)
     return conversion.text_content

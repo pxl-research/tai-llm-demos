@@ -39,7 +39,7 @@ tool_list.extend(tools_fileio_descriptor)
 tool_list.append(tools_search_descriptor)  # requires GOOGLE_API_KEY
 tool_list.extend(tools_get_website_contents)
 
-or_client = OpenRouterClient(model_name='openai/gpt-oss-120b:exacto',
+or_client = OpenRouterClient(model_name='google/gemini-3-flash-preview',
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
