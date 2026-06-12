@@ -39,7 +39,7 @@ tool_list.extend(tools_fileio_descriptor)
 tool_list.append(tools_search_descriptor)  # requires GOOGLE_API_KEY
 tool_list.extend(tools_get_website_contents)
 
-or_client = OpenRouterClient(model_name='openai/gpt-oss-120b:exacto',
+or_client = OpenRouterClient(model_name='google/gemini-2.5-flash',
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
@@ -75,28 +75,38 @@ def complete_with_llm(chat_history, message_list):
     tool_calls = []
     chat_history.append({'role': 'assistant', 'content': ''})  # append empty response?
 
-    for chunk in response_stream:  # stream the response
-        if len(chunk.choices) > 0:
-            # LLM text reponses
-            if chunk.choices[0].delta.content is not None:
-                partial_message = partial_message + chunk.choices[0].delta.content
-                chat_history[-1]['content'] = partial_message
-                yield chat_history, message_list
+    try:
+        for chunk in response_stream:  # stream the response
+            if len(chunk.choices) > 0:
+                # LLM text reponses
+                if chunk.choices[0].delta.content is not None:
+                    partial_message = partial_message + chunk.choices[0].delta.content
+                    chat_history[-1]['content'] = partial_message
+                    yield chat_history, message_list
 
-            # LLM tool call requests
-            if chunk.choices[0].delta.tool_calls is not None:
-                for tool_call_chunk in chunk.choices[0].delta.tool_calls:
-                    if tool_call_chunk.index >= len(tool_calls):
-                        tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
-                    else:
-                        if tool_call_chunk.function is not None:
-                            existing = tool_calls[tool_call_chunk.index].function
-                            if existing is None:
-                                tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
-                            else:
-                                existing.arguments = (existing.arguments or '') + (tool_call_chunk.function.arguments or '')
-
-    response_stream.close()
+                # LLM tool call requests
+                if chunk.choices[0].delta.tool_calls is not None:
+                    for tool_call_chunk in chunk.choices[0].delta.tool_calls:
+                        if tool_call_chunk.index >= len(tool_calls):
+                            tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
+                        else:
+                            if tool_call_chunk.function is not None:
+                                existing = tool_calls[tool_call_chunk.index].function
+                                if existing is None:
+                                    tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
+                                else:
+                                    existing.arguments = (existing.arguments or '') + (tool_call_chunk.function.arguments or '')
+    except Exception as e:
+        body = getattr(e, 'body', None)
+        code = getattr(e, 'code', None)
+        print(f'[stream error] {type(e).__name__}: {e}')
+        print(f'  code: {code}')
+        print(f'  body: {body}')
+        chat_history[-1]['content'] = f'Stream error ({type(e).__name__}): {e}\n\nbody: {body}'
+        yield chat_history, message_list
+        return
+    finally:
+        response_stream.close()
 
     # handle text responses
     if chat_history[-1]['content'] is not None:

@@ -37,13 +37,20 @@ class OpenRouterClient(OpenAI):
         Returns:
             Streaming response from OpenRouter chat completion.
         """
+        extra_body = {}
+        if self.tools_list:
+            # require_parameters keeps OpenRouter from routing to providers that
+            # don't actually support tools (e.g. "Io Net"), which otherwise surface
+            # as the cryptic 422 "Provider returned error" mid-stream.
+            extra_body['provider'] = {'require_parameters': True}
         return self.chat.completions.create(
             model=self.model_name,
             messages=message_list,
             tools=self.tools_list,
             stream=stream,
             temperature=self.temperature,
-            extra_headers=self.extra_headers
+            extra_headers=self.extra_headers,
+            extra_body=extra_body,
         )
 
     def set_model(self, model_name: str):
