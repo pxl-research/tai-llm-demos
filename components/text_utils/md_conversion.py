@@ -34,3 +34,17 @@ def image_description(img_filename: str) -> str:
                     llm_prompt='Describe the following image in detail, in Dutch, using Markdown format')
     result = md.convert(img_filename)
     return result.text_content
+
+
+if __name__ == '__main__':
+    # convert a document (passed as parameter) to markdown and store in a .md file
+    if len(sys.argv) < 2:
+        print('Usage: python md_conversion.py <document_filename>')
+        sys.exit(1)
+
+    doc_filename = sys.argv[1]
+    md_text = document_to_markdown(doc_filename)
+    md_filename = os.path.splitext(doc_filename)[0] + '.md'
+    with open(md_filename, 'w', encoding='utf-8') as f:
+        f.write(md_text)
+    print(f'Converted {doc_filename} to {md_filename}')

@@ -1,8 +1,8 @@
 gradio~=5.49.1
-python-dotenv~=1.2.1
+python-dotenv~=1.2.2
 openai~=2.7.1
-chromadb~=1.3.3
-markdownify~=1.2.0
+chromadb~=1.3.5
+markdownify~=1.2.2
 selenium~=4.38.0
 webdriver-manager~=4.0.2
 requests~=2.32.5

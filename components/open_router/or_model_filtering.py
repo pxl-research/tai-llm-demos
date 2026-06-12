@@ -13,14 +13,15 @@ def get_models(tools_only=False,
                max_completion_price=0,  # good value: 20
                max_prompt_price=0,  # good value: 10
                skip_free=True,
-               skip_experimental=True):
+               skip_experimental=True,
+               exacto_only=False):
     models_url = 'https://openrouter.ai/api/v1/models'
     if tools_only:
         models_url += '?supported_parameters=tools'
 
     response = requests.get(models_url)
     model_list = json.loads(response.text)
-    print(f'{len(model_list['data'])} models are available.')
+    print(f'{len(model_list["data"])} models are available.')
 
     filtered_data = model_list['data']
 
@@ -45,10 +46,14 @@ def get_models(tools_only=False,
         filtered_data = [m for m in filtered_data if
                          float(m['pricing']['prompt']) > 0]  # remove free ones because they are rate limited
 
+    # modality
     if image_only:
         filtered_data = [m for m in filtered_data if
                          'image' in m.get('architecture', {}).get('input_modalities', [])
                          and 'text' in m.get('architecture', {}).get('input_modalities', [])]  # image input support
+
+    if exacto_only:
+        filtered_data = [m for m in filtered_data if ':exacto' in m['id']]  # exacto only
 
     print(f'{len(filtered_data)} models left after filtering ...\n')
 
@@ -103,5 +108,6 @@ if __name__ == "__main__":
                             max_completion_price=100,
                             max_prompt_price=20,
                             skip_free=True,
-                            skip_experimental=True)
+                            skip_experimental=True,
+                            exacto_only=True)
         pp.pprint(models)

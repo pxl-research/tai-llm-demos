@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 
 from components.open_router.open_router_client import OpenRouterClient
 from demos.tool_calling.descriptors_fileio import tools_fileio_descriptor
-from demos.tool_calling.tool_descriptors import (tools_weather_descriptor,
-                                                 tools_rag_descriptor,
-                                                 tools_search_descriptor,
-                                                 tools_get_website_contents)
+from demos.tool_calling.tool_descriptors import (tools_search_descriptor,
+                                                 tools_get_website_contents,
+                                                 tools_weather_descriptor,
+                                                 tools_rag_descriptor)
 # noinspection PyUnresolvedReferences
 from demos.tool_calling.tools_fileio import (list_files,
                                              get_fs_properties,
@@ -39,7 +39,7 @@ tool_list.extend(tools_fileio_descriptor)
 tool_list.append(tools_search_descriptor)  # requires GOOGLE_API_KEY
 tool_list.extend(tools_get_website_contents)
 
-or_client = OpenRouterClient(model_name='z-ai/glm-4.6',
+or_client = OpenRouterClient(model_name='openai/gpt-oss-120b:exacto',
                              tools_list=tool_list,
                              api_key=os.getenv('OPENROUTER_API_KEY'))
 
@@ -47,7 +47,7 @@ system_instruction = {
     'role': 'system',
     'content': 'You are a helpful assistant. '
                'Be concise, but include all relevant details. '
-               'Always think step by step. ' 
+               'Always think step by step. '
                'If unsure, state your assumptions. '
                'You can answer using Markdown syntax. '
                'You have a lot of tools at your disposal, think about when to use them. '
@@ -90,11 +90,11 @@ def complete_with_llm(chat_history, message_list):
                         tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
                     else:
                         if tool_call_chunk.function is not None:
-                            if tool_calls[tool_call_chunk.index].function is None:
+                            existing = tool_calls[tool_call_chunk.index].function
+                            if existing is None:
                                 tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
                             else:
-                                tool_calls[
-                                    tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
+                                existing.arguments = (existing.arguments or '') + (tool_call_chunk.function.arguments or '')
 
     response_stream.close()
 
