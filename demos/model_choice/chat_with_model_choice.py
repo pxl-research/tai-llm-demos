@@ -175,7 +175,7 @@ custom_css = """
     .blue {background: #247BA0;}
     footer {display:none !important}
 """
-with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_css) as llm_client_ui):
+with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice') as llm_client_ui):
     # state
     messages = gr.State([system_instruction])
     selected_model = gr.State('anthropic/claude-haiku-4.5')
@@ -183,7 +183,6 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
 
     # ui
     cb_live = gr.Chatbot(label='Chat',
-                         type='messages',
                          scale=1,
                          show_copy_button=True)
 
@@ -243,4 +242,5 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice', css=custom_cs
 
 llm_client_ui.queue().launch(auth=None,
                              server_name='0.0.0.0',
-                             server_port=7022)
+                             server_port=7072,
+                             css=custom_css)

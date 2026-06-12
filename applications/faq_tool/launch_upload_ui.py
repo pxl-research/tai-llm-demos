@@ -66,7 +66,7 @@ custom_css = """
     footer {display:none !important}
 """
 
-with gr.Blocks(fill_height=True, title='Pixie FAQ Tool Upload', css=custom_css) as cdb_demo:
+with gr.Blocks(fill_height=True, title='Pixie FAQ Tool Upload') as cdb_demo:
     st_selected_index = gr.State()
 
     # UI elements
@@ -79,7 +79,7 @@ with gr.Blocks(fill_height=True, title='Pixie FAQ Tool Upload', css=custom_css) 
     with gr.Row():
         df_rag_files = gr.Dataframe(label='Collections',
                                     headers=['Name'],
-                                    col_count=1,
+                                    column_count=1,
                                     interactive=False)
 
         btn_remove_rag_file = gr.Button(value='',
@@ -96,4 +96,5 @@ with gr.Blocks(fill_height=True, title='Pixie FAQ Tool Upload', css=custom_css) 
 
 cdb_demo.queue().launch(auth=(ADMIN_USER, ADMIN_PASS),
                         server_name='0.0.0.0',
-                        server_port=10001)
+                        server_port=10001,
+                        css=custom_css)

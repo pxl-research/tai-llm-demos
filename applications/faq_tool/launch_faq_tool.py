@@ -175,14 +175,13 @@ feedback_message = (
 
 concurrency_limit = 10
 
-with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm_client_ui):
+with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool') as llm_client_ui):
     # state variables
     messages = gr.State([system_instruction])
     log_file_name = gr.State()
 
     # UI elements
     cb_live = gr.Chatbot(label='Chat',
-                         type='messages',
                          scale=1,
                          show_copy_button=True)
 
@@ -228,4 +227,5 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool', css=custom_css) as llm
 
 llm_client_ui.launch(auth=None,
                      server_name='0.0.0.0',
-                     server_port=10000)
+                     server_port=10000,
+                     css=custom_css)

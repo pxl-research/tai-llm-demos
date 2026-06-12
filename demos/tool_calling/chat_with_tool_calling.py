@@ -158,10 +158,9 @@ def on_clear_clicked():
 custom_css = """
     footer {display:none !important}
 """
-with (gr.Blocks(fill_height=True, title='Tool Calling', css=custom_css) as llm_client_ui):
+with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
     messages = gr.State([system_instruction])
     cb_live = gr.Chatbot(label='Chat',
-                         type='messages',
                          scale=1,
                          show_copy_button=True)
 
@@ -191,4 +190,4 @@ with (gr.Blocks(fill_height=True, title='Tool Calling', css=custom_css) as llm_c
                     [cb_live, messages],
                     queue=False)
 
-llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=7023)
+llm_client_ui.launch(auth=None, server_name='0.0.0.0', server_port=7023, css=custom_css)
