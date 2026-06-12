@@ -32,8 +32,7 @@ from tools_weather import (get_current_temperature, get_current_rainfall)
 
 load_dotenv()
 
-tool_list = []
-tool_list.append(tools_weather_descriptor)  # demo example
+tool_list = list(tools_weather_descriptor)
 tool_list.extend(tools_rag_descriptor)
 tool_list.extend(tools_fileio_descriptor)
 tool_list.append(tools_search_descriptor)  # requires GOOGLE_API_KEY
