@@ -5,5 +5,5 @@ chromadb~=1.3.5
 markdownify~=1.2.2
 selenium~=4.38.0
 webdriver-manager~=4.0.2
-requests~=2.32.5
+requests~=2.33.0
 tiktoken~=0.12.0
