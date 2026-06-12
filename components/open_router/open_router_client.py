@@ -14,7 +14,8 @@ class OpenRouterClient(OpenAI):
                  model_name: str = 'anthropic/claude-haiku-4.5',
                  tools_list: Iterable | None = None,
                  temperature: float = 0,
-                 custom_headers=None):
+                 custom_headers=None,
+                 require_parameters: bool = False):
         super().__init__(base_url=base_url,
                          api_key=api_key)
 
@@ -27,6 +28,10 @@ class OpenRouterClient(OpenAI):
         self.tools_list: Iterable | None = tools_list
         self.temperature: float = temperature
         self.extra_headers: dict = custom_headers
+        # When True, OpenRouter only routes to providers that genuinely accept
+        # all request parameters (notably `tools`). Useful for tool-calling
+        # demos where some providers silently 422 on tool requests.
+        self.require_parameters: bool = require_parameters
 
     def create_completions_stream(self, message_list: Iterable, stream=True):
         """
@@ -38,10 +43,7 @@ class OpenRouterClient(OpenAI):
             Streaming response from OpenRouter chat completion.
         """
         extra_body = {}
-        if self.tools_list:
-            # require_parameters keeps OpenRouter from routing to providers that
-            # don't actually support tools (e.g. "Io Net"), which otherwise surface
-            # as the cryptic 422 "Provider returned error" mid-stream.
+        if self.require_parameters:
             extra_body['provider'] = {'require_parameters': True}
         return self.chat.completions.create(
             model=self.model_name,

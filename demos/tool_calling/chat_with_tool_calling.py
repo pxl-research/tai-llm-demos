@@ -41,7 +41,8 @@ tool_list.extend(tools_get_website_contents)
 
 or_client = OpenRouterClient(model_name='google/gemini-2.5-flash',
                              tools_list=tool_list,
-                             api_key=os.getenv('OPENROUTER_API_KEY'))
+                             api_key=os.getenv('OPENROUTER_API_KEY'),
+                             require_parameters=True)
 
 system_instruction = {
     'role': 'system',
