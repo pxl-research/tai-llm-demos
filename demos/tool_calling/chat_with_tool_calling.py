@@ -90,12 +90,11 @@ def complete_with_llm(chat_history, message_list):
                         tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
                     else:
                         if tool_call_chunk.function is not None:
-                            if tool_calls[tool_call_chunk.index].function is None:
+                            existing = tool_calls[tool_call_chunk.index].function
+                            if existing is None:
                                 tool_calls[tool_call_chunk.index].function = tool_call_chunk.function
                             else:
-                                # print(f"args: {tool_call_chunk.function.arguments}")
-                                tool_calls[
-                                    tool_call_chunk.index].function.arguments += tool_call_chunk.function.arguments
+                                existing.arguments = (existing.arguments or '') + (tool_call_chunk.function.arguments or '')
 
     response_stream.close()
 

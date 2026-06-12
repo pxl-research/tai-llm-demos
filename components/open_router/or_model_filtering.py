@@ -21,7 +21,7 @@ def get_models(tools_only=False,
 
     response = requests.get(models_url)
     model_list = json.loads(response.text)
-    print(f'{len(model_list['data'])} models are available.')
+    print(f'{len(model_list["data"])} models are available.')
 
     filtered_data = model_list['data']
 
