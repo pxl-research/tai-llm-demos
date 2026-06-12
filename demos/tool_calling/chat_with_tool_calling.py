@@ -162,7 +162,7 @@ with (gr.Blocks(fill_height=True, title='Tool Calling') as llm_client_ui):
     messages = gr.State([system_instruction])
     cb_live = gr.Chatbot(label='Chat',
                          scale=1,
-                         show_copy_button=True)
+                         buttons=["copy"])
 
     with gr.Group() as gr_live:
         with gr.Row():

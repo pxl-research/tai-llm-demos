@@ -155,12 +155,12 @@ with (gr.Blocks(fill_height=True, title='Pixie Lite') as llm_client_ui):
     # header
     with gr.Row():
         gr.Image(value=f'{assets_folder}/logo.png', width=50, height=50, show_label=False,
-                 show_download_button=False, show_share_button=False, show_fullscreen_button=False,
+                 buttons=[],
                  interactive=False, elem_id='logo_img')
         gr.Markdown('# PiXie Lite')
 
     # live chat UI
-    cb_live_chat = gr.Chatbot(label='Chat', scale=1, visible=False, show_copy_button=True)
+    cb_live_chat = gr.Chatbot(label='Chat', scale=1, visible=False, buttons=["copy"])
 
     with gr.Group(elem_classes='max_height') as gr_live:
         with gr.Row():

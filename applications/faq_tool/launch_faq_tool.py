@@ -183,7 +183,7 @@ with (gr.Blocks(fill_height=True, title='Pixie FAQ Tool') as llm_client_ui):
     # UI elements
     cb_live = gr.Chatbot(label='Chat',
                          scale=1,
-                         show_copy_button=True)
+                         buttons=["copy"])
 
     with gr.Group() as gr_live:
         with gr.Row():
