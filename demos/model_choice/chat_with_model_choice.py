@@ -242,5 +242,5 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice') as llm_client
 
 llm_client_ui.queue().launch(auth=None,
                              server_name='0.0.0.0',
-                             server_port=7072,
+                             server_port=7022,
                              css=custom_css)

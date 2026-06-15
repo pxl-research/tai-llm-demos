@@ -78,7 +78,7 @@ def complete_with_llm(chat_history, message_list):
     try:
         for chunk in response_stream:  # stream the response
             if len(chunk.choices) > 0:
-                # LLM text reponses
+                # LLM text responses
                 if chunk.choices[0].delta.content is not None:
                     partial_message = partial_message + chunk.choices[0].delta.content
                     chat_history[-1]['content'] = partial_message
@@ -103,6 +103,7 @@ def complete_with_llm(chat_history, message_list):
         print(f'  code: {code}')
         print(f'  body: {body}')
         chat_history[-1]['content'] = f'Stream error ({type(e).__name__}): {e}\n\nbody: {body}'
+        message_list.append({'role': 'assistant', 'content': '[previous response failed]'})
         yield chat_history, message_list
         return
     finally:

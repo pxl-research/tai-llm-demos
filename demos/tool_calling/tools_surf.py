@@ -1,3 +1,5 @@
+import atexit
+
 import requests
 from markdownify import markdownify
 from selenium import webdriver
@@ -17,6 +19,7 @@ def _get_driver():
             service=FirefoxService(GeckoDriverManager().install()),
             options=br_options,
         )
+        atexit.register(_ff_driver.quit)
     return _ff_driver
 
 
