@@ -156,14 +156,25 @@ def append_ai(thread, message, chat_history, log_folder):
     return "", chat_history, debug
 
 
+def _content_as_text(content):
+    # Gradio 6's Chatbot wraps message content as a list of typed parts on
+    # round-trip (e.g. [{"type": "text", "text": "..."}]); accept both forms.
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "".join(p.get("text", "") for p in content if isinstance(p, dict) and p.get("type") == "text")
+    return ""
+
+
 def estimate_token_count(chat_history):
     prompt_log = ""
     response_log = ""
     for msg in chat_history:
+        text = _content_as_text(msg.get("content", ""))
         if msg.get("role") == "user":
-            prompt_log += msg["content"]
+            prompt_log += text
         elif msg.get("role") == "assistant":
-            response_log += msg["content"]
+            response_log += text
 
     tokeniser = tiktoken.encoding_for_model("gpt-4")
     token_count_prompts = len(tokeniser.encode(prompt_log))

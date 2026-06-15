@@ -56,7 +56,7 @@ custom_css = """
     footer {display:none !important}
 """
 
-with gr.Blocks(fill_height=True, title='RAG Upload Demo', css=custom_css) as cdb_demo:
+with gr.Blocks(fill_height=True, title='RAG Upload Demo') as cdb_demo:
     st_selected_index = gr.State()
 
     # UI elements
@@ -66,10 +66,10 @@ with gr.Blocks(fill_height=True, title='RAG Upload Demo', css=custom_css) as cdb
                               file_types=['.pdf', '.docx', '.pptx', '.xlsx', '.xls'],
                               file_count='multiple')
 
-    with gr.Row():
+    with gr.Row(scale=1):
         df_rag_files = gr.Dataframe(label='Collections',
                                     headers=['Name'],
-                                    col_count=1,
+                                    column_count=1,
                                     interactive=False)
 
         btn_remove_rag_file = gr.Button(value='',
@@ -84,4 +84,4 @@ with gr.Blocks(fill_height=True, title='RAG Upload Demo', css=custom_css) as cdb
     btn_remove_rag_file.click(on_remove_rag, [df_rag_files, st_selected_index], [df_rag_files, st_selected_index])
     cdb_demo.load(wrap_document_list, [], [df_rag_files])
 
-cdb_demo.queue().launch(server_name='0.0.0.0', server_port=7021)
+cdb_demo.queue().launch(server_name='0.0.0.0', server_port=7021, css=custom_css)
