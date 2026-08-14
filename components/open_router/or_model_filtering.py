@@ -59,8 +59,8 @@ def get_models(tools_only=False,
 
     md_data = []
     for model in filtered_data:
-        ppm_p = float(model['pricing']['prompt']) * PRICE_FACTOR
-        ppm_c = float(model['pricing']['completion']) * PRICE_FACTOR
+        ppm_p = round(float(model['pricing']['prompt']) * PRICE_FACTOR, 2)
+        ppm_c = round(float(model['pricing']['completion']) * PRICE_FACTOR, 2)
         md_data.append([model['id'],  # full_model_name
                         ppm_p,  # prompt_price
                         ppm_c,  # completion_price
@@ -90,6 +90,7 @@ def get_models(tools_only=False,
     pd.set_option('display.precision', 3)
 
     # saving
+    df_models = df_models.round(2)  # no long floating-point tails in any numeric column
     df_models.to_csv('or_models.csv')
 
     return df_models

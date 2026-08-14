@@ -33,6 +33,15 @@ def download_leaderboard(subset, category='overall'):
     return df_leaderboard[['model_name', 'organization', 'score', 'rank', 'leaderboard_publish_date']]
 
 
+def save_leaderboard_csv(df_leaderboard, subset, out_dir='.'):
+    """Saves a leaderboard DataFrame using the lmarena_<subset>_<date>.csv naming convention
+    that load_lmarena_scores() (in lmarena_scoring.py) looks for. Returns the path written."""
+    filename = f'lmarena_{subset}_{date.today().strftime("%y%m%d")}.csv'
+    out_path = f'{out_dir}/{filename}'
+    df_leaderboard.to_csv(out_path, sep=';', index=False)
+    return out_path
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download an LMArena leaderboard snapshot from the official '
                                                   'Hugging Face dataset (lmarena-ai/leaderboard-dataset).')
@@ -46,7 +55,5 @@ if __name__ == '__main__':
     df_result = download_leaderboard(args.subset, args.category)
     print(f'Downloaded {len(df_result)} models for subset={args.subset!r}, category={args.category!r}.')
 
-    filename = f'lmarena_{args.subset}_{date.today().strftime("%y%m%d")}.csv'
-    out_path = f'{args.out_dir}/{filename}'
-    df_result.to_csv(out_path, sep=';', index=False)
+    out_path = save_leaderboard_csv(df_result, args.subset, args.out_dir)
     print(f'Saved to {out_path}')
