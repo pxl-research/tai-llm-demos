@@ -27,6 +27,10 @@ def download_leaderboard(subset, category='overall'):
 
     df_leaderboard = pd.read_parquet(url)
     df_leaderboard = df_leaderboard[df_leaderboard['category'] == category]
+    if df_leaderboard.empty:
+        raise ValueError(f"No rows found for category={category!r} in subset={subset!r} "
+                         f"-- check for a typo in --category.")
+
     df_leaderboard = df_leaderboard.rename(columns={score_column: 'score'})
     df_leaderboard['score'] = df_leaderboard['score'].round(2)
 

@@ -20,7 +20,7 @@ if __name__ == '__main__':
     print('Fetching OpenRouter pricing...')
     data_models = get_models(tools_only=False,
                              image_only=False,
-                             min_context=16000,
+                             min_context=0,
                              max_completion_price=0,
                              max_prompt_price=0,
                              skip_free=True,

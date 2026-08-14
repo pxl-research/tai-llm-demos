@@ -27,7 +27,7 @@ To install the necessary libraries, use `pip install -r requirements.txt`
 
 Please create an `.env` file with the same structure as the provided `.env.example` file, and enter your personal **API key** therein.
 
-Before first use (or whenever you want fresher scores), run `lmarena_download.py` to (re)generate the CSV for the subset configured in `chat_with_model_choice.py` (`LMARENA_SUBSET`, default `text_style_control`). Models OpenRouter doesn't have pricing for are skipped automatically (they never enter the OpenRouter-driven model list); OpenRouter models with no matching LM Arena score just show "N/A" for score/cost.
+Before first use (or whenever you want fresher scores), run `lmarena_download.py` to (re)generate the CSV for the subset configured in `chat_with_model_choice.py` (`LMARENA_SUBSET`, default `text_style_control`). Models OpenRouter doesn't have pricing for are skipped automatically (they never enter the OpenRouter-driven model list); OpenRouter models with no matching LM Arena score still get a raw "Cost Estimate" (computed straight from OpenRouter pricing), but show "N/A" for LM Arena score and Scaled Cost Estimate.
 
 ## Use
 

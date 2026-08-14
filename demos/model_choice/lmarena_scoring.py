@@ -41,6 +41,8 @@ def canonicalize_version_numbers(name):
 
 def orgs_match(provider_norm, organization):
     org_norm = normalize_org(organization)
+    if not provider_norm or not org_norm:
+        return False
     if LMARENA_ORG_ALIASES.get(provider_norm) == org_norm:
         return True
     return provider_norm in org_norm or org_norm in provider_norm
@@ -116,17 +118,17 @@ def lmarena_anchor_score(anchor_names, score_df):
 
 def compute_cost_estimate(prompt_price, completion_price):
     """Weighted API price for a rough (coding/web-dev-flavored) run: 80% prompt, 20% completion."""
-    return round(0.8 * prompt_price + 0.2 * completion_price, 2)
+    return round(0.8 * prompt_price + 0.2 * completion_price, 3)
 
 
 def compute_scaled_cost_estimate(lm_arena_score, cost_estimate, baseline, half_life):
     """Scales cost_estimate down for models that score above the 'good' baseline and up for
     models that score below it. A model at the 'very good' anchor tier costs half as much (in
     effective terms) as one at the baseline tier."""
-    if pd.isna(lm_arena_score) or baseline is None or not half_life:
+    if pd.isna(lm_arena_score) or baseline is None or half_life is None or half_life <= 0:
         return float('nan')
 
-    return round(cost_estimate * (2 ** (-(lm_arena_score - baseline) / half_life)), 2)
+    return round(cost_estimate * (2 ** (-(lm_arena_score - baseline) / half_life)), 3)
 
 
 def enrich_with_lmarena(data_models, score_df):
@@ -148,4 +150,4 @@ def enrich_with_lmarena(data_models, score_df):
     data_models = data_models[['full_model_name', 'lm_arena_score', 'prompt_price', 'completion_price',
                                'cost_estimate', 'scaled_cost_estimate', 'context_length', 'max_completion_tokens',
                                'provider']]
-    return data_models.round(2)  # belt-and-suspenders: no long floating-point tails in any numeric column
+    return data_models.round(3)  # belt-and-suspenders: no long floating-point tails in any numeric column

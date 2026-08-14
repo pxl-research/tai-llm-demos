@@ -49,7 +49,7 @@ def on_load_ui():
     price_columns = data_models.filter(like='price').columns
     format_dict = {col: "{:.3f}".format for col in price_columns}
     format_dict.update({col: "{:.0f}".format for col in ['max_completion_tokens']})
-    format_dict.update({'lm_arena_score': "{:.0f}".format, 'cost_estimate': "{:.3f}".format,
+    format_dict.update({'lm_arena_score': "{:.2f}".format, 'cost_estimate': "{:.3f}".format,
                         'scaled_cost_estimate': "{:.3f}".format})
 
     style_models = (data_models.style
