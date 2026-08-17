@@ -1,4 +1,7 @@
 import json
+import sys
+
+sys.path.append('../../')
 
 from components.vectorstore.chroma_document_store import ChromaDocumentStore
 
