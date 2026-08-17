@@ -1,8 +1,11 @@
 import json
 import os
+import sys
 
 import gradio as gr
 from dotenv import load_dotenv
+
+sys.path.append('../../')
 
 from components.open_router.open_router_client import OpenRouterClient
 from demos.tool_calling.descriptors_fileio import tools_fileio_descriptor
