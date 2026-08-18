@@ -1,5 +1,9 @@
+import sys
+
 import gradio as gr
 from tqdm import tqdm
+
+sys.path.append('../../')
 
 from components.text_utils.md_chunking import iterative_chunking
 from components.text_utils.md_conversion import document_to_markdown
@@ -22,27 +26,17 @@ def on_file_uploaded(file_list, progress=gr.Progress(track_tqdm=True)):
                                    meta_infos=meta_info,
                                    tqdm_func=tqdm)
 
-    return [None, wrap_document_list()]
+    return None, refresh_document_choices()
 
 
-def on_remove_rag(file_list, select_data):
-    if select_data is not None:
-        document_name = file_list['Name'][select_data[0]]
-        cdb_store.remove_document(document_name)
-    names = cdb_store.list_documents()
-    return names, None
+def on_remove_rag(selected_name):
+    if selected_name is not None:
+        cdb_store.remove_document(selected_name)
+    return refresh_document_choices()
 
 
-def wrap_document_list():
-    doc_list = cdb_store.list_documents()
-    wrapped_list = []
-    for doc_name in doc_list:
-        wrapped_list.append([doc_name])
-    return wrapped_list
-
-
-def on_row_selected(select_data: gr.SelectData):
-    return select_data.index
+def refresh_document_choices():
+    return gr.Radio(choices=cdb_store.list_documents(), value=None)
 
 
 rag_explainer = (
@@ -57,8 +51,6 @@ custom_css = """
 """
 
 with gr.Blocks(fill_height=True, title='RAG Upload Demo') as cdb_demo:
-    st_selected_index = gr.State()
-
     # UI elements
     lbl_rag_explainer = gr.Markdown(rag_explainer)
 
@@ -67,10 +59,7 @@ with gr.Blocks(fill_height=True, title='RAG Upload Demo') as cdb_demo:
                               file_count='multiple')
 
     with gr.Row(scale=1):
-        df_rag_files = gr.Dataframe(label='Collections',
-                                    headers=['Name'],
-                                    column_count=1,
-                                    interactive=False)
+        rd_rag_files = gr.Radio(label='Collections')
 
         btn_remove_rag_file = gr.Button(value='',
                                         scale=0,
@@ -79,9 +68,8 @@ with gr.Blocks(fill_height=True, title='RAG Upload Demo') as cdb_demo:
                                         elem_classes='danger')
 
     # event handlers
-    file_rag_upload.upload(on_file_uploaded, [file_rag_upload], [file_rag_upload, df_rag_files])
-    df_rag_files.select(on_row_selected, None, [st_selected_index])
-    btn_remove_rag_file.click(on_remove_rag, [df_rag_files, st_selected_index], [df_rag_files, st_selected_index])
-    cdb_demo.load(wrap_document_list, [], [df_rag_files])
+    file_rag_upload.upload(on_file_uploaded, [file_rag_upload], [file_rag_upload, rd_rag_files])
+    btn_remove_rag_file.click(on_remove_rag, [rd_rag_files], [rd_rag_files])
+    cdb_demo.load(refresh_document_choices, [], [rd_rag_files])
 
 cdb_demo.queue().launch(server_name='0.0.0.0', server_port=7021, css=custom_css)

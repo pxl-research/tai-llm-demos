@@ -4,7 +4,10 @@ import random
 import sys
 
 import gradio as gr
+import pandas as pd
 from dotenv import load_dotenv
+
+from lmarena_scoring import LMARENA_SUBSET, load_lmarena_scores, enrich_with_lmarena
 
 sys.path.append('../../')
 
@@ -39,17 +42,26 @@ def on_load_ui():
                              skip_free=True,
                              skip_experimental=True)
 
-    # set precision of price values
+    score_df = load_lmarena_scores(LMARENA_SUBSET)
+    data_models = enrich_with_lmarena(data_models, score_df)
+
+    # set precision of price/score values
     price_columns = data_models.filter(like='price').columns
     format_dict = {col: "{:.3f}".format for col in price_columns}
     format_dict.update({col: "{:.0f}".format for col in ['max_completion_tokens']})
+    format_dict.update({'lm_arena_score': "{:.2f}".format, 'cost_estimate': "{:.3f}".format,
+                        'scaled_cost_estimate': "{:.3f}".format})
 
     style_models = (data_models.style
-                    .format(format_dict)
+                    .format(format_dict, na_rep='N/A')
                     .map(colorize_quantiles, df=data_models, col='completion_price', subset=['completion_price'])
                     .map(colorize_quantiles, df=data_models, col='prompt_price', subset=['prompt_price'])
+                    .map(colorize_quantiles, df=data_models, col='cost_estimate', subset=['cost_estimate'])
+                    .map(colorize_quantiles, df=data_models, col='scaled_cost_estimate',
+                        subset=['scaled_cost_estimate'])
                     .map(colorize_contexts, subset=['context_length'])
                     .map(colorize_providers, subset=['provider'])
+                    .map(colorize_scores, df=data_models, col='lm_arena_score', subset=['lm_arena_score'])
                     )
 
     return data_models, style_models
@@ -94,20 +106,14 @@ def colorize_providers(full_model_name):
 
 
 def colorize_scores(value, df, col):
-    """Colorizes scores based on quantiles."""
-    # Convert value to float if it's a string "N/A"
-    if isinstance(value, str) and value == "N/A":
-        numeric_value = float('-inf')
-    else:
-        numeric_value = float(value)  # Ensure it's a float for comparison
-
-    if numeric_value == -1 or numeric_value == float('-inf'):  # Models with no score or -inf from fuzzy matching
+    """Colorizes LM Arena scores based on quantiles; models with no matching score are left grey."""
+    if pd.isna(value):
         return 'color:grey;'
-    if numeric_value >= df[col].quantile(0.95):
+    if value >= df[col].quantile(0.9):
         return 'color:green;'
-    if numeric_value < df[col].quantile(0.35):
+    if value < df[col].quantile(0.35):
         return 'color:red;'
-    if numeric_value < df[col].quantile(0.65):
+    if value < df[col].quantile(0.65):
         return 'color:orange;'
     return ''
 
@@ -208,9 +214,9 @@ with (gr.Blocks(fill_height=True, title='OpenRouter Model Choice') as llm_client
                                           type="pandas",
                                           show_search='search',
                                           interactive=False,
-                                          headers=['Full Model Name', 'Prompt Price',
-                                                   'Completion Price', 'Context Length',
-                                                   'Max Completion Tokens', 'Provider'])
+                                          headers=['Full Model Name', 'LM Arena Score', 'Prompt Price',
+                                                   'Completion Price', 'Cost Estimate', 'Scaled Cost Estimate',
+                                                   'Context Length', 'Max Completion Tokens', 'Provider'])
 
     # event handlers
     tb_user.submit(append_user,
