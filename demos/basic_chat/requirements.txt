@@ -1,4 +1,4 @@
-openai~=2.53.0
-gradio~=6.19.0
+openai~=3.1.0
+gradio~=6.24.0
 tiktoken~=0.13.0
-python-dotenv~=1.2.2
+python-dotenv~=1.2.3
