@@ -28,6 +28,17 @@ TABLE_STYLES = [
     {'selector': 'th, td', 'props': [('padding', '6px 14px')]},
 ]
 
+# column -> decimal places to display
+NUMBER_FORMATS = {
+    'lm_arena_score': '{:.1f}',
+    'prompt_price': '{:.2f}',
+    'completion_price': '{:.2f}',
+    'cost_estimate': '{:.2f}',
+    'scaled_cost_estimate': '{:.2f}',
+    'context_length': '{:.0f}',
+    'max_completion_tokens': '{:.0f}',
+}
+
 
 def _lerp_color(color_a, color_b, t):
     t = max(0.0, min(1.0, t))
@@ -59,7 +70,8 @@ def render_html_report(data_models):
     price columns, per the low -> mid -> high anchors defined in COLUMN_GRADIENTS."""
     styler = data_models.style.hide(axis='index')
     styler = styler.set_table_styles(TABLE_STYLES)
-    styler = styler.format('{:.2f}', subset=list(COLUMN_GRADIENTS.keys()))
+    styler = styler.format({col: fmt for col, fmt in NUMBER_FORMATS.items() if col in data_models.columns},
+                           na_rep='')
     for column, anchors in COLUMN_GRADIENTS.items():
         if column in data_models.columns:
             styler = styler.map(lambda v, anchors=anchors: _gradient_color(v, *anchors), subset=[column])
