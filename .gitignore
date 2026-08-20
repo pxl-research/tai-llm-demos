@@ -177,5 +177,6 @@ logs/
 
 # data
 *.csv
+*.html
 
 sonar-project.properties
