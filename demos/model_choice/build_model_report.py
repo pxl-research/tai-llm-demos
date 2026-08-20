@@ -4,6 +4,7 @@ import sys
 sys.path.append('../../')
 
 from components.open_router.or_model_filtering import get_models
+from html_report import write_html_report
 from lmarena_download import download_leaderboard, save_leaderboard_csv, SUBSET_SCORE_COLUMNS
 from lmarena_scoring import LMARENA_SUBSET, normalize_lmarena_df, enrich_with_lmarena
 
@@ -15,6 +16,8 @@ if __name__ == '__main__':
     parser.add_argument('--subset', default=LMARENA_SUBSET, choices=sorted(SUBSET_SCORE_COLUMNS.keys()),
                         help='Which LM Arena leaderboard to blend in.')
     parser.add_argument('--out', default='or_lmarena_report.csv', help='Filename for the combined report.')
+    parser.add_argument('--html-out', default=None,
+                        help='Optional filename for a colorized HTML version of the report.')
     args = parser.parse_args()
 
     print('Fetching OpenRouter pricing...')
@@ -38,3 +41,7 @@ if __name__ == '__main__':
 
     matched = data_models['lm_arena_score'].notna().sum()
     print(f'Matched {matched}/{len(data_models)} models. Saved combined report to {args.out}')
+
+    if args.html_out:
+        write_html_report(data_models, args.html_out)
+        print(f'Saved colorized HTML report to {args.html_out}')
