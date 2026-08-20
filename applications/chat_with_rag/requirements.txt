@@ -1,7 +1,7 @@
-gradio~=6.19.0
-openai~=2.53.0
+gradio~=6.24.0
+openai~=3.1.0
 chromadb~=1.5.9
-python-dotenv~=1.2.2
-bcrypt~=4.3.0
+python-dotenv~=1.2.3
+bcrypt~=5.0.0
 tiktoken~=0.13.0
-markitdown[pdf, docx, pptx, xlsx, xls]~=0.1.6
+markitdown[pdf, docx, pptx, xlsx, xls]~=0.1.7
