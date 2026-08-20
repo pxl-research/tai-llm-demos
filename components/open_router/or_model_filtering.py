@@ -14,7 +14,8 @@ def get_models(tools_only=False,
                max_prompt_price=0,  # good value: 10
                skip_free=True,
                skip_experimental=True,
-               exacto_only=False):
+               exacto_only=False,
+               skip_batch=False):
     models_url = 'https://openrouter.ai/api/v1/models'
     if tools_only:
         models_url += '?supported_parameters=tools'
@@ -28,6 +29,9 @@ def get_models(tools_only=False,
     if skip_experimental:
         filtered_data = [m for m in filtered_data if
                          not any(term in m['id'] for term in ['beta', '-exp', ':free'])]  # remove experimental / beta
+
+    if skip_batch:
+        filtered_data = [m for m in filtered_data if ':batch' not in m['id']]  # skip batch models
 
     # context
     if min_context > 0:
