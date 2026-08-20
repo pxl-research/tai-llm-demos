@@ -24,7 +24,8 @@ if __name__ == '__main__':
                              max_completion_price=0,
                              max_prompt_price=0,
                              skip_free=True,
-                             skip_experimental=False)
+                             skip_experimental=False,
+                             skip_batch=True)
 
     print(f'Fetching LM Arena {args.subset!r} leaderboard...')
     df_leaderboard = download_leaderboard(args.subset)
@@ -32,6 +33,7 @@ if __name__ == '__main__':
     print(f'Saved LM Arena snapshot to {lmarena_path}')
 
     data_models = enrich_with_lmarena(data_models, normalize_lmarena_df(df_leaderboard))
+    data_models = data_models.sort_values(by='lm_arena_score', ascending=False)
     data_models.to_csv(args.out, index=False)
 
     matched = data_models['lm_arena_score'].notna().sum()
