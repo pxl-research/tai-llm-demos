@@ -102,7 +102,7 @@ def best_fuzzy_score(full_model_name, score_df, threshold=LMARENA_FUZZY_THRESHOL
         return candidates.loc[prefix_mask, 'score'].max()
 
     best_score, best_ratio = None, 0
-    for name, score in zip(names, candidates['score']):
+    for name, score in zip(names, candidates['score'], strict=True):
         ratio = fuzz.token_set_ratio(slug, name)
         if ratio > best_ratio:
             best_score, best_ratio = score, ratio
