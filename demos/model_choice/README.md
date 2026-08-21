@@ -13,13 +13,9 @@ This folder contains a basic chatbot example where you can choose **which LLM yo
   ```
   `chat_with_model_choice.py` picks up whichever CSV matches its `LMARENA_SUBSET` constant (loads the most recent dated file for that subset). Only one subset is used at a time — they're on different scales and aren't blended.
 
-- `lmarena_scoring.py`: Shared logic (not a script you run directly) for matching OpenRouter model ids to LM Arena entries and computing the cost columns above. Used by both `chat_with_model_choice.py` and `build_model_report.py`.
+- `lmarena_scoring.py`: Shared logic (not a script you run directly) for matching OpenRouter model ids to LM Arena entries and computing the cost columns above. Used by `chat_with_model_choice.py`.
 
-- `build_model_report.py`: Fetches fresh OpenRouter pricing and an LM Arena snapshot, and writes a single combined CSV report (`or_lmarena_report.csv` by default) with pricing + LM Arena score + cost estimate columns — useful for browsing/filtering the full picture in a spreadsheet rather than the in-app dropdown (which caps prices and context length for a more manageable list). Also (re)generates `or_models.csv` and `lmarena_<subset>_<date>.csv` as a side effect.
-  ```bash
-  python3 build_model_report.py                        # text_style_control, -> or_lmarena_report.csv
-  python3 build_model_report.py --subset webdev --out or_lmarena_webdev.csv
-  ```
+- Report generation: the `build_model_report.py` and `html_report.py` scripts (a combined CSV + colorized HTML report of OpenRouter pricing and LM Arena scores) moved to their own repository, [tai-model-report](https://github.com/pxl-research/tai-model-report).
 
 ## Configuration
 
