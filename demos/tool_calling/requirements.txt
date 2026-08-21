@@ -1,9 +1,9 @@
-gradio~=6.19.0
-python-dotenv~=1.2.2
-openai~=2.53.0
+gradio~=6.24.0
+python-dotenv~=1.2.3
+openai~=3.2.0
 chromadb~=1.5.9
 markdownify~=1.2.3
-selenium~=4.45.0
+selenium~=4.47.0
 webdriver-manager~=4.1.2
 requests~=2.34.2
-tiktoken~=0.13.0
+tiktoken~=0.14.0
