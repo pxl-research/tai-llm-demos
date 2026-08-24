@@ -6,7 +6,6 @@ from utils import encode_image_to_base64
 from app_config import (
     PROMPT_PRICE_THRESHOLD,
     COMPLETION_PRICE_THRESHOLD,
-    IMAGE_PRICE_THRESHOLD
 )
 from model_manager import update_selected_model
 
@@ -22,26 +21,14 @@ def display_model_details(model: Dict[str, Any]):
     st.sidebar.markdown(f"### **{model['full_model_name']}**")
 
     # Extract model details
-    pricing = model.get('pricing', {})
-    prompt_price = float(pricing.get('prompt', 0)) * 1000000
-    completion_price = float(pricing.get('completion', 0)) * 1000000
-    image_price_raw = pricing.get('image')
+    prompt_price = model.get('prompt_price') or 0
+    completion_price = model.get('completion_price') or 0
     lm_arena_score = model.get('lm_arena_score', 'N/A')
-    top_provider = model.get('top_provider', {})
-    max_completion_tokens = top_provider.get('max_completion_tokens', 'N/A')
+    max_completion_tokens = model.get('max_completion_tokens')
+    max_completion_tokens = 'N/A' if max_completion_tokens is None else max_completion_tokens
 
     # Show score
     st.sidebar.markdown(f"**LM Arena Score:** {lm_arena_score}")
-
-    # Format and display image price
-    if image_price_raw is not None and float(image_price_raw) != 0:
-        image_price_per_10k = float(image_price_raw) * 10000
-        image_price_str = f"${image_price_per_10k:.2f} / 10K tokens"
-        if image_price_per_10k > IMAGE_PRICE_THRESHOLD:
-            image_price_str = f"<span style='color: orange;'>{image_price_str}</span>"
-        st.sidebar.markdown(f"**Image Price:** {image_price_str}", unsafe_allow_html=True)
-    else:
-        st.sidebar.markdown(f"**Image Price:** N/A")
 
     # Format and display prompt price
     prompt_price_str = f"${prompt_price:.2f} / M tokens"
@@ -99,11 +86,11 @@ def setup_model_selector():
     if st.session_state.matched_models_count > 0:
         st.sidebar.info(
             f"Matched {st.session_state.matched_models_count} out of "
-            f"{st.session_state.total_image_capable_models} models with scores from CSV."
+            f"{st.session_state.total_image_capable_models} models with LM Arena scores."
         )
     else:
         st.sidebar.warning(
-            f"No models matched with scores from CSV (out of "
+            f"No models matched with LM Arena scores (out of "
             f"{st.session_state.total_image_capable_models} total image-capable models)."
         )
 
