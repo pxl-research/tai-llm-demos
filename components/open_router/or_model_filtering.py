@@ -1,5 +1,4 @@
 import json
-import pprint as pp
 
 import pandas as pd
 import requests
@@ -14,13 +13,12 @@ def get_models(tools_only=False,
                max_prompt_price=0,  # good value: 10
                skip_free=True,
                skip_experimental=True,
-               exacto_only=False,
                skip_batch=False):
     models_url = 'https://openrouter.ai/api/v1/models'
     if tools_only:
         models_url += '?supported_parameters=tools'
 
-    response = requests.get(models_url)
+    response = requests.get(models_url, timeout=30)
     model_list = json.loads(response.text)
     print(f'{len(model_list["data"])} models are available.')
 
@@ -56,9 +54,6 @@ def get_models(tools_only=False,
                          'image' in m.get('architecture', {}).get('input_modalities', [])
                          and 'text' in m.get('architecture', {}).get('input_modalities', [])]  # image input support
 
-    if exacto_only:
-        filtered_data = [m for m in filtered_data if ':exacto' in m['id']]  # exacto only
-
     print(f'{len(filtered_data)} models left after filtering ...\n')
 
     md_data = []
@@ -88,31 +83,6 @@ def get_models(tools_only=False,
                           inplace=True)
     df_models = df_models.drop(columns=['token_sum'])
 
-    # styling
-    df_models.style.background_gradient()
-    pd.set_option('display.width', 200)
-    pd.set_option('display.precision', 3)
-
-    # saving
     df_models = df_models.round(3)  # no long floating-point tails in any numeric column
-    df_models.to_csv('or_models.csv')
 
     return df_models
-
-
-def no_duplicates(list_with_duplicates):
-    return list(dict.fromkeys(list_with_duplicates))
-
-
-# some quick tests
-if __name__ == "__main__":
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        models = get_models(tools_only=True,
-                            image_only=False,
-                            min_context=64000,
-                            max_completion_price=100,
-                            max_prompt_price=20,
-                            skip_free=True,
-                            skip_experimental=True,
-                            exacto_only=True)
-        pp.pprint(models)

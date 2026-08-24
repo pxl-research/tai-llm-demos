@@ -4,18 +4,19 @@ from typing import Dict, List, Any
 import streamlit as st
 
 from app_config import DEFAULT_MODEL, OPENROUTER_API_KEY
-from utils import (
-    call_openrouter_api,
-    load_model_scores,
-    sort_models_by_score
-)
+from utils import call_openrouter_api
 
 sys.path.append('../../')
+from components.lmarena.lmarena_scoring import load_lmarena_scores, enrich_with_lmarena
 from components.open_router.or_model_filtering import get_models
+
+# Which components/lmarena/lmarena_download.py --subset CSV to blend in (run that script,
+# from this folder, to (re)generate it).
+LMARENA_SUBSET = 'vision'
 
 
 def load_and_sort_models():
-    """Load models from OpenRouter API and sort them by score"""
+    """Load image-capable models from OpenRouter and sort them by LM Arena vision score."""
     # Only load models if not already loaded
     if not st.session_state.all_models_data:
         # Get models that support image processing
@@ -25,30 +26,27 @@ def load_and_sort_models():
                                max_completion_price=20,
                                max_prompt_price=10,
                                skip_free=True,
-                               skip_experimental=True)
+                               skip_experimental=True,
+                               skip_batch=True)
+
+        if df_models.empty:
+            st.error("No image-capable models found. Please check your internet connection or OpenRouter API.")
+            return
+
+        score_df = load_lmarena_scores(LMARENA_SUBSET)
+        if score_df.empty:
+            st.warning("Could not load LM Arena scores. Models are not sorted by capability.")
+
+        df_models = enrich_with_lmarena(df_models, score_df)
+        st.session_state.matched_models_count = int(df_models['lm_arena_score'].notna().sum())
+
+        df_models = df_models.sort_values('lm_arena_score', ascending=False, na_position='last', kind='stable')
+        df_models['lm_arena_score'] = df_models['lm_arena_score'].where(df_models['lm_arena_score'].notna(), 'N/A')
 
         models = df_models.to_dict('records')
         st.session_state.all_models_data = models
         st.session_state.total_image_capable_models = len(models)
-
-        # Load model scores from CSV
-        scores = load_model_scores()
-        st.session_state.model_scores = scores
-
-        if models and scores:
-            # Sort models by their performance scores
-            sorted_models, matched_count = sort_models_by_score(models, scores)
-            st.session_state.all_models_data = sorted_models
-            st.session_state.matched_models_count = matched_count
-
-            # Set default model
-            set_default_model(sorted_models)
-        elif models:
-            # No scores available, but we have models
-            set_default_model(models)
-            st.warning("Could not load model scores. Models are not sorted by capability.")
-        else:
-            st.error("No image-capable models found. Please check your internet connection or OpenRouter API.")
+        set_default_model(models)
 
 
 def set_default_model(models: List[Dict[str, Any]]):

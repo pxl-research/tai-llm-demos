@@ -7,14 +7,18 @@ import gradio as gr
 import pandas as pd
 from dotenv import load_dotenv
 
-from lmarena_scoring import LMARENA_SUBSET, load_lmarena_scores, enrich_with_lmarena
-
 sys.path.append('../../')
 
+from components.lmarena.lmarena_scoring import load_lmarena_scores, enrich_with_lmarena
 from components.open_router.open_router_client import OpenRouterClient
 from components.open_router.or_model_filtering import get_models
 
 load_dotenv()
+
+# Which components/lmarena/lmarena_download.py --subset CSV to blend in (run that script,
+# from this folder, to (re)generate it). One arena at a time by design; swap this to switch,
+# rather than blending several incompatible scales.
+LMARENA_SUBSET = 'text_style_control'
 
 system_instruction = {
     'role': 'system',
@@ -40,7 +44,8 @@ def on_load_ui():
                              max_completion_price=20,
                              max_prompt_price=10,
                              skip_free=True,
-                             skip_experimental=True)
+                             skip_experimental=True,
+                             skip_batch=True)
 
     score_df = load_lmarena_scores(LMARENA_SUBSET)
     data_models = enrich_with_lmarena(data_models, score_df)

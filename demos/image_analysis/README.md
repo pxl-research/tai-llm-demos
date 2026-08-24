@@ -1,13 +1,13 @@
 # OpenRouter Multimodal Image Analysis Demo
 
-This Streamlit application provides a chat interface that leverages the OpenRouter API to process both text and image inputs. It allows users to dynamically select from a list of image-capable models, view detailed information about each model, and interact with them in a multimodal chat environment. Models are sorted by their capabilities based on an external CSV ranking.
+This Streamlit application provides a chat interface that leverages the OpenRouter API to process both text and image inputs. It allows users to dynamically select from a list of image-capable models, view detailed information about each model, and interact with them in a multimodal chat environment. Models are sorted by their LM Arena vision leaderboard scores.
 
 ## Key Features
 
 - **Multimodal Chat:** Interact with AI models using both text and image inputs.
 - **Image Upload:** Easily upload images via a drag-and-drop interface.
 - **Dynamic Model Selection:** Choose from a curated list of OpenRouter models that support multimodal input.
-- **Capability-Based Sorting:** Models are sorted by their performance scores from an external ranking, helping you identify the most capable options.
+- **Capability-Based Sorting:** Models are sorted by their [LM Arena](https://lmarena.ai/) vision leaderboard scores, helping you identify the most capable options.
 - **Detailed Model Information:** View comprehensive details for the selected model, including provider, pricing (per million tokens), context length, and maximum completion tokens.
 - **Modular Code Structure:** Well-organized codebase with clear separation of concerns for easier maintenance and extension.
 
@@ -27,7 +27,7 @@ Before running this demo, ensure you have the following:
 
 - **Python:** Version 3.8 or higher is recommended.
 - **OpenRouter API Key:** You will need an API key from [OpenRouter.ai](https://openrouter.ai/).
-- **Model Ranking CSV:** The demo relies on a CSV file named `lmarena_vision_250616.csv` which contains ranking data for vision-enabled models. This file should be placed in the same directory as the application.
+- **LM Arena vision snapshot:** The demo needs a `lmarena_vision_<date>.csv` file in this directory (see step 2 below).
 
 ## Setup and Installation
 
@@ -55,8 +55,13 @@ Before running this demo, ensure you have the following:
 
     Replace `sk-or-v1-your_api_key_here` with your actual OpenRouter API key.
 
-2.  **Place the CSV File:**
-    Ensure the `lmarena_vision_250616.csv` file is located directly within the `demos/image_analysis` directory.
+2.  **Download an LM Arena vision snapshot:**
+    From this directory, run:
+    ```bash
+    python3 ../../components/lmarena/lmarena_download.py --subset vision
+    ```
+    This saves `lmarena_vision_<date>.csv` here. Re-run it whenever you want fresher scores. If no
+    snapshot is present, the app still runs but shows models unsorted, with "N/A" scores.
 
 ## Running the Demo
 

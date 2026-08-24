@@ -5,9 +5,6 @@ import re
 import pandas as pd
 from thefuzz import fuzz
 
-# Which lmarena_download.py --subset CSV to blend in by default (run that script to (re)generate it).
-# One arena at a time by design; swap this to switch, rather than blending several incompatible scales.
-LMARENA_SUBSET = 'text_style_control'
 LMARENA_FUZZY_THRESHOLD = 75
 
 # Reference models that calibrate the scaled-cost-estimate curve (see compute_scaled_cost_estimate below).
@@ -58,14 +55,16 @@ def normalize_lmarena_df(df_scores):
     return df_scores[['organization', 'model_name', 'score']]
 
 
-def load_lmarena_scores(subset):
-    """Loads the most recently downloaded lmarena_<subset>_*.csv into an organization/model_name/score
-    DataFrame, ready for best_fuzzy_score() to filter by organization and match by model name."""
-    pattern = os.path.join(os.path.dirname(os.path.abspath(__file__)), f'lmarena_{subset}_*.csv')
+def load_lmarena_scores(subset, csv_dir='.'):
+    """Loads the most recently downloaded lmarena_<subset>_*.csv (from csv_dir, the demo's own folder
+    by default) into an organization/model_name/score DataFrame, ready for best_fuzzy_score() to
+    filter by organization and match by model name."""
+    pattern = os.path.join(csv_dir, f'lmarena_{subset}_*.csv')
     matches = sorted(glob.glob(pattern))
     if not matches:
-        print(f"Warning: no LM Arena CSV found for subset '{subset}'. "
-             f"Run `python3 lmarena_download.py --subset {subset}` first.")
+        print(f"Warning: no LM Arena CSV found for subset '{subset}' in '{csv_dir}'. "
+             f"Run `python3 <path-to>/components/lmarena/lmarena_download.py --subset {subset}` "
+             f"from that folder first.")
         return pd.DataFrame(columns=['organization', 'model_name', 'score'])
 
     return normalize_lmarena_df(pd.read_csv(matches[-1], sep=';'))
@@ -102,7 +101,7 @@ def best_fuzzy_score(full_model_name, score_df, threshold=LMARENA_FUZZY_THRESHOL
         return candidates.loc[prefix_mask, 'score'].max()
 
     best_score, best_ratio = None, 0
-    for name, score in zip(names, candidates['score']):
+    for name, score in zip(names, candidates['score'], strict=True):
         ratio = fuzz.token_set_ratio(slug, name)
         if ratio > best_ratio:
             best_score, best_ratio = score, ratio
