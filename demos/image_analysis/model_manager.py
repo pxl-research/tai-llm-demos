@@ -26,7 +26,8 @@ def load_and_sort_models():
                                max_completion_price=20,
                                max_prompt_price=10,
                                skip_free=True,
-                               skip_experimental=True)
+                               skip_experimental=True,
+                               skip_batch=True)
 
         if df_models.empty:
             st.error("No image-capable models found. Please check your internet connection or OpenRouter API.")

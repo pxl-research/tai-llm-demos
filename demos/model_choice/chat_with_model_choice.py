@@ -44,7 +44,8 @@ def on_load_ui():
                              max_completion_price=20,
                              max_prompt_price=10,
                              skip_free=True,
-                             skip_experimental=True)
+                             skip_experimental=True,
+                             skip_batch=True)
 
     score_df = load_lmarena_scores(LMARENA_SUBSET)
     data_models = enrich_with_lmarena(data_models, score_df)
