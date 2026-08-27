@@ -18,7 +18,7 @@ This repository contains chatbot and related examples using Azure OpenAI and Ope
 ### Applications
 
 - [Chat with RAG](applications/chat_with_rag/README.md): A chat application using Azure OpenAI "Assistants API" with RAG and a custom authentication method.
-- [FAQ Tool](applications/faq_tool/README.md): A chatbot that answers questions based on uploaded documents (PDF, DOCX, PPTX, XLSX, XLS).
+- FAQ Tool: moved to its own repository, [tai-faq-tool](https://github.com/pxl-research/tai-faq-tool).
 
 ## Configuration
 

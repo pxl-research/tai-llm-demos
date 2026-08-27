@@ -92,7 +92,7 @@ custom_css = """
     .imit-height {max-height: 200px;}
     footer {display:none !important}
 """
-with gr.Blocks(fill_height=True, title='Audio summary', css=custom_css) as blocks_ui:
+with gr.Blocks(fill_height=True, title='Audio summary') as blocks_ui:
     # state
     full_transcript = gr.State(None)
 
@@ -138,4 +138,5 @@ with gr.Blocks(fill_height=True, title='Audio summary', css=custom_css) as block
                            outputs=[md_summary])
 
 blocks_ui.queue().launch(server_name='0.0.0.0',
-                         server_port=7029)
+                         server_port=7029,
+                         css=custom_css)
