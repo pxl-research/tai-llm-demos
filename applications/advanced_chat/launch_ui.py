@@ -18,6 +18,7 @@ from components.settings_modal import SettingsModal
 from components.document_panel import DocumentPanel
 from utils.config import DEFAULT_MODEL, DEFAULT_TEMPERATURE
 from utils.auth import authenticate
+from utils.theme import inject_pxl_theme, PXL_BLACK, PXL_BLACK_SOFT, PXL_GOLD
 from tools.web_search import search_on_google, search_descriptor
 from tools.web_scraper import get_webpage_content, scraper_descriptor
 from tools.rag_lookup import lookup_in_documentation, list_documents, rag_lookup_descriptor, list_docs_descriptor, set_rag_service
@@ -128,6 +129,8 @@ def build_authenticated_ui():
     settings_modal = SettingsModal(on_model_changed, on_settings_changed)
     settings_modal.build_ui()
 
+    inject_pxl_theme()
+
     # NiceGui's page content doesn't stretch to fill the viewport on its own -- without
     # this, the chat area below had to guess its height in vh, which drifted out of sync
     # with the header's real height and pushed the page taller than the viewport.
@@ -138,23 +141,26 @@ def build_authenticated_ui():
         </style>
     ''')
 
-    # Header with gradient
-    with ui.header().classes('w-full text-white').style('background: linear-gradient(to right, rgb(79, 70, 229), rgb(147, 51, 234))').props('elevated'):
+    # Header: PXL rich black with a thin gold rule -- the app's one signature accent line
+    with ui.header().classes('w-full text-white').style(
+        f'background: {PXL_BLACK}; border-bottom: 2px solid {PXL_GOLD}'
+    ).props('elevated'):
         with ui.row().classes('w-full items-center justify-between px-4 py-2 no-wrap'):
             with ui.column().classes('gap-0'):
-                ui.label('Advanced LLM Chat').classes('text-lg font-bold leading-tight')
-                model_label = ui.label().classes('text-xs text-indigo-100 leading-tight')
+                ui.label('Advanced LLM Chat').classes('pxl-heading text-lg leading-tight')
+                model_label = ui.label().classes('text-xs leading-tight').style('color: rgba(255,255,255,0.6)')
                 model_label.text = llm_service.model_name
-            with ui.row().classes('items-center gap-1'):
+            with ui.row().classes('items-center gap-4'):
                 ui.button(
                     current_user,
                     icon='person',
                     on_click=lambda: show_logout_dialog()
                 ).props('flat dense no-caps aria-label="User menu - click to logout"').classes('text-sm hover:bg-white/10')
                 ui.button(
+                    'Model settings',
                     icon='settings',
                     on_click=lambda: settings_modal.show()
-                ).props('flat dense round aria-label="Open settings"')
+                ).props('flat dense no-caps aria-label="Open model settings"').classes('text-sm hover:bg-white/10')
 
     # Main content area - fills the space below the header (see the flex CSS above)
     with ui.column().classes('w-full flex-grow min-h-0 items-center p-4'):
@@ -163,7 +169,7 @@ def build_authenticated_ui():
             chat_interface.build_ui()
 
         # Conversation controls - centered to match chat
-        with ui.row().classes('gap-2 mt-2 shrink-0').style('max-width: 1200px; width: 100%'):
+        with ui.row().classes('gap-2 mt-2 shrink-0 justify-center').style('max-width: 1200px; width: 100%'):
             def on_new_chat():
                 # Generate new conversation ID for next chat
                 chat_interface.conversation_id = None
@@ -174,13 +180,13 @@ def build_authenticated_ui():
                 'New Chat',
                 on_click=on_new_chat,
                 icon='refresh'
-            ).props('outline aria-label="Start new conversation"').classes('rounded-md')
+            ).props('outline color=primary aria-label="Start new conversation"').classes('rounded-md')
 
             ui.button(
                 'Load Recent',
                 on_click=lambda: show_recent_conversations(),
                 icon='history'
-            ).props('outline aria-label="Load conversation history"').classes('rounded-md')
+            ).props('outline color=primary aria-label="Load conversation history"').classes('rounded-md')
 
     # Drawer for documents (right side) - wider drawer
     with ui.right_drawer(fixed=False).props('bordered overlay width=600') as drawer:
@@ -189,7 +195,7 @@ def build_authenticated_ui():
             # Header with close button
             with ui.row().classes('w-full items-center justify-between mb-2'):
                 ui.label('Documents & Tools').classes('text-lg font-semibold text-gray-800')
-                ui.button(icon='close', on_click=drawer.toggle) \
+                ui.button(icon='close', on_click=drawer.toggle, color=None) \
                     .props('flat round') \
                     .classes('text-gray-600')
 
@@ -199,11 +205,11 @@ def build_authenticated_ui():
             document_panel = DocumentPanel(rag_service, on_document_added, on_document_removed)
             document_panel.build_ui()
 
-    # Floating button to toggle drawer
-    ui.button(icon='description', on_click=drawer.toggle) \
-        .props('fab aria-label="Open documents panel"') \
-        .classes('fixed bottom-6 right-6') \
-        .style('background: linear-gradient(to right, rgb(79, 70, 229), rgb(147, 51, 234))')
+    # Floating button to toggle drawer -- the one bold gold accent against an otherwise
+    # disciplined black/white/gray app, per the PXL guide's "accent use only" gold
+    ui.button(icon='description', on_click=drawer.toggle, color=PXL_GOLD) \
+        .props('fab text-color=black aria-label="Open documents panel"') \
+        .classes('fixed bottom-6 right-6')
 
     # Initialize tools
     update_tools()
@@ -296,11 +302,12 @@ def show_recent_conversations():
                                     ui.button(
                                         icon='folder_open',
                                         on_click=lambda c=conv: load_conversation(c['conversation_id'], dialog)
-                                    ).props('flat dense round aria-label="Load conversation"').classes('text-blue-600')
+                                    ).props('flat dense round color=primary aria-label="Load conversation"')
 
                                     ui.button(
                                         icon='delete',
-                                        on_click=lambda c=conv: delete_conversation_ui(c['conversation_id'], dialog)
+                                        on_click=lambda c=conv: delete_conversation_ui(c['conversation_id'], dialog),
+                                        color=None
                                     ).props('flat dense round aria-label="Delete conversation"').classes('text-red-600')
 
             # Wire search
@@ -361,80 +368,82 @@ def show_logout_dialog():
         ui.label(f'Are you sure you want to logout, {current_user}?').style('font-size: 14px; color: #737373; margin-bottom: 20px')
 
         with ui.row().classes('gap-2 w-full').style('justify-content: flex-end'):
-            ui.button('Cancel', on_click=lambda: logout_dialog.close()).props('flat').style('color: #525252')
-            ui.button('Logout', on_click=lambda: perform_logout()).style('background: #262626; color: white; border-radius: 2px')
+            # color=None -- ui.button() defaults color to 'primary', whose !important CSS
+            # rule otherwise beats a plain .style()/.classes() color override
+            ui.button('Cancel', on_click=lambda: logout_dialog.close(), color=None).props('flat').style('color: #525252')
+            ui.button('Logout', on_click=lambda: perform_logout(), color=PXL_BLACK).props('text-color=white').style('border-radius: 2px')
 
     logout_dialog.open()
 
 
 def build_login_ui():
     """Build a clean, elegant login interface."""
+    inject_pxl_theme()
 
-    # Simplified CSS - uses NiceGui's native styling with minimal overrides
-    ui.add_head_html('''
+    # Login-page-specific styling (fonts/colors/focus rings come from inject_pxl_theme above)
+    ui.add_head_html(f'''
         <style>
-            body {
+            body {{
                 background-color: #fafafa;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            }
+            }}
 
-            .login-container {
+            /* width: 100% is what actually centers this -- without it the container
+               shrinks to the card's own width and sits flush left, since its parent
+               (NiceGui's default page column) doesn't stretch its children by default. */
+            .login-container {{
                 display: flex;
+                width: 100%;
                 align-items: center;
                 justify-content: center;
                 min-height: 100vh;
                 padding: 1rem;
-            }
+            }}
 
-            .login-card {
+            .login-card {{
                 background: white;
                 border-radius: 2px;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.08);
                 padding: 2.5rem;
                 width: 100%;
                 max-width: 380px;
-            }
+            }}
 
-            .login-title {
-                font-size: 21px;
-                font-weight: 600;
-                color: #1a1a1a;
+            .login-title {{
+                font-family: 'Raleway', sans-serif;
+                font-size: 22px;
+                font-weight: 900;
+                color: {PXL_BLACK};
                 margin-bottom: 0.5rem;
                 text-align: center;
-            }
+            }}
 
-            .login-subtitle {
+            .login-subtitle {{
                 font-size: 14px;
                 color: #737373;
                 margin-bottom: 2rem;
                 text-align: center;
-            }
+            }}
 
-            .login-button {
+            /* Background/text color come from Quasar's primary theme (see ui.colors() in
+               inject_pxl_theme) -- its !important rule beats anything set here anyway. */
+            .login-button {{
                 width: 100%;
                 height: 44px;
-                background: #262626;
-                color: white;
                 border-radius: 2px;
-                transition: background-color 0.2s;
-            }
+            }}
 
-            .login-button:hover {
-                background: #171717;
-            }
-
-            .error-message {
+            .error-message {{
                 color: #dc2626;
                 font-size: 14px;
                 margin-top: 0.5rem;
-            }
+            }}
 
-            .login-button.loading {
+            .login-button.loading {{
                 position: relative;
                 color: transparent;
-            }
+            }}
 
-            .login-button.loading::after {
+            .login-button.loading::after {{
                 content: '';
                 position: absolute;
                 width: 16px;
@@ -447,24 +456,11 @@ def build_login_ui():
                 border-bottom-color: transparent;
                 border-radius: 50%;
                 animation: spin 600ms linear infinite;
-            }
+            }}
 
-            @keyframes spin {
-                to { transform: rotate(360deg); }
-            }
-
-            /* Keyboard focus indicators */
-            button:focus-visible,
-            input:focus-visible,
-            textarea:focus-visible {
-                outline: 2px solid rgb(79, 70, 229) !important;
-                outline-offset: 2px;
-            }
-
-            .q-card:focus-visible {
-                outline: 2px solid rgb(79, 70, 229);
-                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-            }
+            @keyframes spin {{
+                to {{ transform: rotate(360deg); }}
+            }}
         </style>
     ''')
 
@@ -472,14 +468,14 @@ def build_login_ui():
     with ui.column().classes('login-container'):
         with ui.card().classes('login-card'):
             # Header
-            ui.label('Advanced Chat').classes('login-title')
+            ui.label('PiXie Lite 2.0').classes('login-title')
             ui.label('Sign in to continue').classes('login-subtitle')
 
             # Username field
-            username_input = ui.input('Username', placeholder='Enter username').props('outlined dense').classes('mb-3')
+            username_input = ui.input('Username', placeholder='Enter username').props('outlined dense').classes('w-full mb-3')
 
             # Password field
-            password_input = ui.input('Password', placeholder='Enter password', password=True).props('outlined dense').classes('mb-3')
+            password_input = ui.input('Password', placeholder='Enter password', password=True).props('outlined dense').classes('w-full mb-3')
 
             # Error message
             error_message = ui.label('').classes('error-message').style('display: none')

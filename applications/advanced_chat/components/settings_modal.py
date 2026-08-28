@@ -5,6 +5,7 @@ from typing import Callable
 
 from nicegui import ui
 from utils.model_filtering import get_models
+from utils.theme import PXL_BLACK, PXL_GOLD
 
 
 class SettingsModal:
@@ -32,96 +33,94 @@ class SettingsModal:
     def build_ui(self):
         """Build settings modal UI."""
         # Add custom CSS for enhanced visual styling
-        ui.add_head_html('''
+        ui.add_head_html(f'''
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap');
 
-        .model-card {
+        .model-card {{
             transition: all 0.2s ease;
             cursor: pointer;
-        }
-        .model-card:hover {
+        }}
+        .model-card:hover {{
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
-        }
-        .model-name {
+            box-shadow: 0 4px 12px rgba(174, 154, 100, 0.25);
+        }}
+        .model-name {{
             font-family: 'IBM Plex Mono', monospace;
-        }
-        .metric-tile {
+        }}
+        .metric-tile {{
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             border-radius: 8px;
             padding: 8px;
-        }
-        .provider-badge {
-            background: linear-gradient(to right, rgb(79, 70, 229), rgb(147, 51, 234));
-            color: white;
+        }}
+        .provider-badge {{
+            background: {PXL_GOLD};
+            color: {PXL_BLACK};
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 0.75rem;
             font-weight: 600;
-        }
-        .price-cheap {
+        }}
+        .price-cheap {{
             color: rgb(22, 163, 74);
-        }
-        .price-moderate {
+        }}
+        .price-moderate {{
             color: rgb(217, 119, 6);
-        }
-        .price-expensive {
+        }}
+        .price-expensive {{
             color: rgb(220, 38, 38);
-        }
-        .search-input-loading {
+        }}
+        .search-input-loading {{
             opacity: 0.6;
             cursor: not-allowed;
-        }
-        .search-input-ready {
+        }}
+        .search-input-ready {{
             animation: searchReady 0.4s ease;
-        }
-        @keyframes searchReady {
-            0% { border-color: #e5e7eb; }
-            50% { border-color: rgb(79, 70, 229); box-shadow: 0 0 8px rgba(79, 70, 229, 0.3); }
-            100% { border-color: #e5e7eb; }
-        }
+        }}
+        @keyframes searchReady {{
+            0% {{ border-color: #e5e7eb; }}
+            50% {{ border-color: {PXL_GOLD}; box-shadow: 0 0 8px rgba(174, 154, 100, 0.4); }}
+            100% {{ border-color: #e5e7eb; }}
+        }}
         /* Selected indicator dot */
-        .selected-dot {
+        .selected-dot {{
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: linear-gradient(135deg, rgb(79, 70, 229), rgb(147, 51, 234));
+            background: {PXL_GOLD};
             animation: pulse-dot 2s ease-in-out infinite;
-        }
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.1); }
-        }
+        }}
+        @keyframes pulse-dot {{
+            0%, 100% {{ opacity: 1; transform: scale(1); }}
+            50% {{ opacity: 0.6; transform: scale(1.1); }}
+        }}
         /* Metric dividers */
-        .metric-divider {
+        .metric-divider {{
             width: 1px;
             height: 32px;
             background: linear-gradient(to bottom,
                 transparent 0%,
-                rgba(79, 70, 229, 0.2) 20%,
-                rgba(147, 51, 234, 0.2) 80%,
+                rgba(174, 154, 100, 0.3) 50%,
                 transparent 100%
             );
-        }
+        }}
         /* Pricing separator */
-        .pricing-separator {
+        .pricing-separator {{
             width: 100%;
             height: 1px;
             background: linear-gradient(to right,
                 transparent 0%,
-                rgba(79, 70, 229, 0.15) 20%,
-                rgba(147, 51, 234, 0.15) 80%,
+                rgba(174, 154, 100, 0.25) 50%,
                 transparent 100%
             );
             margin: 8px 0;
-        }
+        }}
         </style>
         ''')
 
         with ui.dialog().props('role="dialog" aria-labelledby="settings-title"') as dialog:
             with ui.card().classes('w-full max-w-2xl max-h-[80vh] overflow-y-auto'):
-                ui.label('Settings').classes('text-h6 font-bold').props('id="settings-title"')
+                ui.label('Settings').classes('pxl-heading text-h6').props('id="settings-title"')
 
                 with ui.tabs().classes('w-full') as tabs:
                     model_tab = ui.tab('Model Selection')
@@ -146,7 +145,7 @@ class SettingsModal:
                     ui.button(
                         'Save',
                         on_click=lambda: self._save_settings(dialog)
-                    ).props('unelevated aria-label="Save settings and apply changes"')
+                    ).props('unelevated color=primary text-color=black aria-label="Save settings and apply changes"')
 
         self.dialog = dialog
         return dialog
@@ -170,7 +169,7 @@ class SettingsModal:
             # Loading state
             loading_container = ui.column().classes('w-full items-center py-8')
             with loading_container:
-                ui.spinner(size='lg', color='indigo')
+                ui.spinner(size='lg', color='primary')
                 ui.label('Loading models...').classes('text-sm text-gray-600 mt-2')
 
             # Results container (hidden initially)
@@ -387,7 +386,7 @@ class SettingsModal:
             ui.label(model_info['provider']).classes('provider-badge')
             with ui.row().classes('gap-1 items-center'):
                 ui.element('div').classes('selected-dot')
-                ui.label('Selected').classes('text-xs text-indigo-600 font-semibold tracking-wide')
+                ui.label('Selected').classes('text-xs font-semibold tracking-wide').style(f'color: {PXL_GOLD}')
 
         # Model name with distinctive styling
         ui.label(model_info['full_model_name']).classes(
@@ -452,7 +451,7 @@ class SettingsModal:
         ui.separator().classes('my-6')
 
         ui.label('Temperature').classes('text-sm font-bold text-gray-700 mb-2')
-        temp_label = ui.label(f'{self.temperature:.1f}').classes('text-lg font-mono font-bold text-indigo-600 mb-2')
+        temp_label = ui.label(f'{self.temperature:.1f}').classes('text-lg font-mono font-bold mb-2').style(f'color: {PXL_GOLD}')
 
         def on_temp_change(e):
             self.temperature = e.value
@@ -464,7 +463,7 @@ class SettingsModal:
             step=0.1,
             value=self.temperature,
             on_change=on_temp_change
-        ).classes('w-full').props('color=indigo')
+        ).classes('w-full').props('color=primary')
 
         with ui.row().classes('w-full justify-between mt-2 mb-4'):
             ui.label('Deterministic').classes('text-xs text-gray-500 italic')

@@ -51,7 +51,7 @@ class ChatInterface:
             self.send_button = ui.button(
                 icon='send',
                 on_click=self._on_send_clicked
-            ).props('flat round aria-label="Send message"').classes('text-indigo-600')
+            ).props('flat round color=primary aria-label="Send message"')
 
         return self.chat_display, self.input_field
 
@@ -66,7 +66,9 @@ class ChatInterface:
 
         with self.chat_display:
             with ui.row().classes('w-full justify-end mb-2'):
-                with ui.card().classes('bg-indigo-100 border-indigo-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
+                with ui.card().classes('shadow-sm rounded-lg p-4').style(
+                    'max-width: 75%; background: #f5f0e6; border: 1px solid #e4d9c0'
+                ):
                     ui.label(html.escape(user_input)).classes('whitespace-pre-wrap text-sm text-gray-800')
 
         self._scroll_to_bottom()
@@ -116,7 +118,7 @@ class ChatInterface:
             with ui.row().classes('w-full mb-2') as thinking_row:
                 with ui.card().classes(f'{card_color} border-gray-200 shadow-sm rounded-lg p-4'):
                     with ui.row().classes('items-center gap-2'):
-                        ui.spinner(type='dots', size='2em', color='grey')
+                        ui.spinner(type='dots', size='2em', color='primary')
                         ui.label('Thinking...').classes('text-sm text-gray-400')
         self._scroll_to_bottom()
 
@@ -190,7 +192,8 @@ class ChatInterface:
             with copy_button_container:
                 ui.button(
                     icon='content_copy',
-                    on_click=lambda msg=partial_message: self._copy_to_clipboard(msg)
+                    on_click=lambda msg=partial_message: self._copy_to_clipboard(msg),
+                    color=None
                 ).props('flat dense round size=sm aria-label="Copy message to clipboard"').classes('text-gray-400 hover:text-gray-600')
 
         return partial_message, tool_calls
@@ -230,7 +233,7 @@ class ChatInterface:
             return
 
         try:
-            partial_message, tool_calls = await self._stream_llm_response(card_color='bg-purple-50')
+            partial_message, tool_calls = await self._stream_llm_response(card_color='bg-gray-100')
 
             # Add the text response to history
             if partial_message:
@@ -467,7 +470,9 @@ class ChatInterface:
         with self.chat_display:
             if role == 'user':
                 with ui.row().classes('w-full justify-end mb-2'):
-                    with ui.card().classes('bg-indigo-100 border-indigo-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
+                    with ui.card().classes('shadow-sm rounded-lg p-4').style(
+                    'max-width: 75%; background: #f5f0e6; border: 1px solid #e4d9c0'
+                ):
                         ui.label(html.escape(content)).classes('whitespace-pre-wrap text-sm text-gray-800')
             else:
                 with ui.row().classes('w-full mb-2'):
@@ -477,7 +482,8 @@ class ChatInterface:
                                 ui.markdown(content).classes('text-sm text-gray-700')
                             ui.button(
                                 icon='content_copy',
-                                on_click=lambda: self._copy_to_clipboard(content)
+                                on_click=lambda: self._copy_to_clipboard(content),
+                                color=None
                             ).props('flat dense round size=sm').classes('text-gray-400 hover:text-gray-600')
 
     def get_messages(self) -> list:
