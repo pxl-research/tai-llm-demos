@@ -203,7 +203,8 @@ class SettingsModal:
                         max_completion_price=100,  # Allow higher price for quality models
                         max_prompt_price=50,       # Allow higher price for quality models
                         skip_free=True,            # Exclude free/rate-limited models
-                        skip_experimental=True     # Exclude beta/experimental models
+                        skip_experimental=True,    # Exclude beta/experimental models
+                        skip_batch=True            # Exclude :batch model variants
                     )
 
                     # Convert DataFrame to list of dicts for easier template iteration

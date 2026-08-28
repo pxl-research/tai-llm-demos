@@ -17,7 +17,7 @@ def get_models(tools_only=False,
                max_prompt_price=0,
                skip_free=True,
                skip_experimental=True,
-               exacto_only=False):
+               skip_batch=False):
     """
     Fetch and filter models from OpenRouter API.
 
@@ -29,7 +29,7 @@ def get_models(tools_only=False,
         max_prompt_price: Maximum prompt price per million tokens
         skip_free: Skip free models (typically rate-limited)
         skip_experimental: Skip beta/experimental models
-        exacto_only: Only return exacto models
+        skip_batch: Skip :batch model variants (slower/cheaper async duplicates)
 
     Returns:
         DataFrame with filtered models
@@ -38,7 +38,7 @@ def get_models(tools_only=False,
     if tools_only:
         models_url += '?supported_parameters=tools'
 
-    response = requests.get(models_url)
+    response = requests.get(models_url, timeout=30)
     model_list = json.loads(response.text)
     print(f'{len(model_list["data"])} models are available.')
 
@@ -47,6 +47,9 @@ def get_models(tools_only=False,
     if skip_experimental:
         filtered_data = [m for m in filtered_data if
                          not any(term in m['id'] for term in ['beta', '-exp', ':free'])]
+
+    if skip_batch:
+        filtered_data = [m for m in filtered_data if ':batch' not in m['id']]
 
     # context
     if min_context > 0:
@@ -70,9 +73,6 @@ def get_models(tools_only=False,
         filtered_data = [m for m in filtered_data if
                          'image' in m.get('architecture', {}).get('input_modalities', [])
                          and 'text' in m.get('architecture', {}).get('input_modalities', [])]
-
-    if exacto_only:
-        filtered_data = [m for m in filtered_data if ':exacto' in m['id']]
 
     print(f'{len(filtered_data)} models left after filtering ...\n')
 
@@ -113,9 +113,5 @@ def get_models(tools_only=False,
         ascending=[True, False, False, False, False, False, True],
         inplace=True
     )
-
-    # styling
-    pd.set_option('display.width', 200)
-    pd.set_option('display.precision', 3)
 
     return df_models
