@@ -194,7 +194,7 @@ def build_authenticated_ui():
         with ui.column().classes('w-full gap-3 p-4 h-full overflow-auto'):
             # Header with close button
             with ui.row().classes('w-full items-center justify-between mb-2'):
-                ui.label('Documents & Tools').classes('text-lg font-semibold text-gray-800')
+                ui.label('Documents').classes('text-lg font-semibold text-gray-800')
                 ui.button(icon='close', on_click=drawer.toggle, color=None) \
                     .props('flat round') \
                     .classes('text-gray-600')

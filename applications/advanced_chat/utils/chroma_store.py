@@ -4,6 +4,16 @@ Self-contained for this application.
 """
 import chromadb
 from chromadb import QueryResult
+from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
+
+
+def warm_up_embeddings():
+    """Load the default embedding model, downloading it from Chroma's S3 bucket if needed.
+
+    That download has no timeout in Chroma itself, so triggering it once, eagerly, with
+    visible status is better than having it silently stall during a user's first upload.
+    """
+    DefaultEmbeddingFunction()(['warm up'])
 
 
 def repack_query_results(results: QueryResult):

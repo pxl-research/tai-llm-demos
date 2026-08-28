@@ -1,6 +1,7 @@
 """
 Document Panel Component: File upload and document management.
 """
+import asyncio
 import sys
 from pathlib import Path
 from typing import Callable
@@ -8,7 +9,7 @@ from typing import Callable
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nicegui import run, ui
+from nicegui import background_tasks, run, ui
 from services.rag_service import RAGService
 
 
@@ -34,8 +35,6 @@ class DocumentPanel:
     def build_ui(self):
         """Build document panel UI."""
         with ui.column().classes('w-full gap-3'):
-            ui.label('Documents').classes('text-h6 font-bold')
-
             # Upload area
             with ui.card().classes('w-full'):
                 ui.label('Upload Documents').classes('font-semibold text-sm')
@@ -53,7 +52,8 @@ class DocumentPanel:
                 ).props('accept=.pdf,.docx,.pptx,.xlsx,.xls max-file-size=26214400 aria-label="Upload documents for RAG. Supported: PDF, DOCX, PPTX, XLSX, XLS. Max 25 MB"')
 
             # Status
-            self.status_label = ui.label('Ready').classes('text-sm text-gray-600')
+            self.status_label = ui.label('Ready').classes('text-xs text-gray-500 italic')
+            background_tasks.create(self._warm_up_embeddings(), name='warm_up_embeddings')
 
             # Documents list
             ui.label('Indexed Documents').classes('font-semibold text-sm mt-3')
@@ -68,6 +68,21 @@ class DocumentPanel:
 
             # Initial load
             self._refresh_documents()
+
+    async def _warm_up_embeddings(self):
+        """Pre-load the embedding model so a real upload doesn't hit Chroma's unbounded
+        first-time model download mid-request, and so a blocked network fails loudly here
+        instead of hanging silently during "Indexing content..."."""
+        self.status_label.text = 'Preparing embedding model...'
+        try:
+            await asyncio.wait_for(run.io_bound(self.rag_service.warm_up_embeddings), timeout=120)
+            self.status_label.text = 'Ready'
+        except asyncio.TimeoutError:
+            self.status_label.text = 'Embedding model download timed out -- check network access'
+            ui.notify('Embedding model download timed out. Document upload may not work until this is resolved.', type='warning')
+        except Exception as e:
+            self.status_label.text = f'Embedding model error: {str(e)[:80]}'
+            ui.notify(f'Failed to prepare embedding model: {str(e)[:80]}', type='negative')
 
     async def _handle_file_upload(self, e):
         """Handle file upload with step-by-step progress."""

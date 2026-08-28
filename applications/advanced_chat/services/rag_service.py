@@ -4,7 +4,7 @@ RAG Service: Document indexing and retrieval.
 from pathlib import Path
 from typing import List, Dict, Any
 
-from utils.chroma_store import ChromaDocumentStore
+from utils.chroma_store import ChromaDocumentStore, warm_up_embeddings
 from utils.text_processing import document_to_markdown, chunk_markdown
 from utils.config import get_user_rag_db_path
 
@@ -18,6 +18,10 @@ class RAGService:
         rag_db_path = get_user_rag_db_path(username)
         rag_db_path.mkdir(parents=True, exist_ok=True)
         self.store = ChromaDocumentStore(path=str(rag_db_path))
+
+    def warm_up_embeddings(self) -> None:
+        """Load the embedding model so a real upload doesn't pay for Chroma's first-time download."""
+        warm_up_embeddings()
 
     def add_document(self, file_path: str) -> bool:
         """
