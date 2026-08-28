@@ -50,7 +50,10 @@ def chunk_markdown(md_text: str, chunk_size: int = 500, overlap: int = 50) -> li
         if chunk:
             chunks.append(chunk)
 
-        # Move start position with overlap
-        start = chunk_end - overlap if overlap > 0 else chunk_end
+        # Move start position with overlap, but always advance -- if chunk_end landed at
+        # or before start (e.g. md_text[start] is itself a space), chunk_end - overlap
+        # would move start backwards and loop forever.
+        next_start = chunk_end - overlap if overlap > 0 else chunk_end
+        start = max(next_start, start + 1)
 
     return chunks
