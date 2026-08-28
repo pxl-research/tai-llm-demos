@@ -59,7 +59,7 @@ def on_model_changed(model_name: str):
         if settings_service:
             settings_service.update_setting('model', model_name)
         if model_label:
-            model_label.text = f"Currently using: {model_name}"
+            model_label.text = model_name
 
 
 def on_settings_changed(settings: dict):
@@ -128,33 +128,42 @@ def build_authenticated_ui():
     settings_modal = SettingsModal(on_model_changed, on_settings_changed)
     settings_modal.build_ui()
 
+    # NiceGui's page content doesn't stretch to fill the viewport on its own -- without
+    # this, the chat area below had to guess its height in vh, which drifted out of sync
+    # with the header's real height and pushed the page taller than the viewport.
+    ui.add_head_html('''
+        <style>
+            .q-page { display: flex; flex-direction: column; }
+            .nicegui-content { flex: 1 1 auto; min-height: 0; }
+        </style>
+    ''')
+
     # Header with gradient
     with ui.header().classes('w-full text-white').style('background: linear-gradient(to right, rgb(79, 70, 229), rgb(147, 51, 234))').props('elevated'):
-        with ui.row().classes('w-full items-center justify-between px-4'):
-            ui.label('Advanced LLM Chat').classes('text-h5 font-bold')
-            with ui.row().classes('gap-2'):
+        with ui.row().classes('w-full items-center justify-between px-4 py-2 no-wrap'):
+            with ui.column().classes('gap-0'):
+                ui.label('Advanced LLM Chat').classes('text-lg font-bold leading-tight')
+                model_label = ui.label().classes('text-xs text-indigo-100 leading-tight')
+                model_label.text = llm_service.model_name
+            with ui.row().classes('items-center gap-1'):
                 ui.button(
-                    f'User: {current_user}',
+                    current_user,
                     icon='person',
                     on_click=lambda: show_logout_dialog()
-                ).props('flat aria-label="User menu - click to logout"').classes('text-sm hover:bg-white/10')
+                ).props('flat dense no-caps aria-label="User menu - click to logout"').classes('text-sm hover:bg-white/10')
                 ui.button(
                     icon='settings',
                     on_click=lambda: settings_modal.show()
-                ).props('flat round aria-label="Open settings"')
+                ).props('flat dense round aria-label="Open settings"')
 
-    # Model indicator
-    model_label = ui.label().classes('text-center text-xs text-gray-500 py-2 bg-gray-50')
-    model_label.text = f"Currently using: {llm_service.model_name}"
-
-    # Main content area - full width container
-    with ui.column().classes('w-full flex-grow items-center p-4').style('height: calc(100vh - 120px)'):
+    # Main content area - fills the space below the header (see the flex CSS above)
+    with ui.column().classes('w-full flex-grow min-h-0 items-center p-4'):
         # Chat takes full width of container, then centers content
-        with ui.column().classes('w-full').style('max-width: 1400px'):
+        with ui.column().classes('w-full flex-grow min-h-0').style('max-width: 1400px'):
             chat_interface.build_ui()
 
         # Conversation controls - centered to match chat
-        with ui.row().classes('gap-2 mt-2').style('max-width: 1200px; width: 100%'):
+        with ui.row().classes('gap-2 mt-2 shrink-0').style('max-width: 1200px; width: 100%'):
             def on_new_chat():
                 # Generate new conversation ID for next chat
                 chat_interface.conversation_id = None

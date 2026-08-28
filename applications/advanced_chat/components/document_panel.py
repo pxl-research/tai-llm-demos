@@ -8,7 +8,7 @@ from typing import Callable
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from nicegui import ui
+from nicegui import run, ui
 from services.rag_service import RAGService
 
 
@@ -69,7 +69,7 @@ class DocumentPanel:
             # Initial load
             self._refresh_documents()
 
-    def _handle_file_upload(self, e):
+    async def _handle_file_upload(self, e):
         """Handle file upload with step-by-step progress."""
         try:
             uploaded_file = e.file
@@ -131,8 +131,10 @@ class DocumentPanel:
             step3.set_text("⏳ Indexing content...")
             step3.classes(remove='text-gray-400', add='text-blue-600')
 
-            # Process document
-            success = self.rag_service.add_document(str(temp_path))
+            # Process document off the event loop -- conversion, chunking, and embedding
+            # are all blocking work that would otherwise freeze the UI's websocket
+            # connection (seen by the user as "Connection lost, trying to reconnect").
+            success = await run.io_bound(self.rag_service.add_document, str(temp_path))
 
             if success:
                 # Success
@@ -176,17 +178,18 @@ class DocumentPanel:
 
         documents = self.rag_service.list_documents()
 
-        if not documents:
-            ui.label('No documents uploaded yet').classes('text-gray-500 italic')
-        else:
-            for doc_name in documents:
-                with ui.card().classes('w-full'):
-                    with ui.row().classes('w-full justify-between items-center'):
-                        ui.label(doc_name).classes('flex-grow')
-                        ui.button(
-                            icon='delete',
-                            on_click=lambda d=doc_name: self._delete_document(d)
-                        ).props(f'flat small dense aria-label="Delete document {doc_name}"')
+        with self.documents_list:
+            if not documents:
+                ui.label('No documents uploaded yet').classes('text-gray-500 italic')
+            else:
+                for doc_name in documents:
+                    with ui.card().classes('w-full'):
+                        with ui.row().classes('w-full justify-between items-center'):
+                            ui.label(doc_name).classes('flex-grow')
+                            ui.button(
+                                icon='delete',
+                                on_click=lambda d=doc_name: self._delete_document(d)
+                            ).props(f'flat small dense aria-label="Delete document {doc_name}"')
 
     def get_documents(self) -> list:
         """Get list of indexed documents."""

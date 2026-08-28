@@ -35,14 +35,14 @@ class ChatInterface:
         Returns:
             Tuple of (chat_display, input_container)
         """
-        # Chat display area - full width with proper scrolling
-        self.scroll_area = ui.scroll_area().classes('w-full border rounded-lg shadow-inner bg-gray-50').style('height: calc(100vh - 300px)')
+        # Chat display area - full width, grows to fill the space left by the input row below
+        self.scroll_area = ui.scroll_area().classes('w-full flex-grow min-h-0 border rounded-lg shadow-inner bg-gray-50')
         self.scroll_area.props('role="log" aria-live="polite" aria-label="Chat conversation"')
         with self.scroll_area:
             self.chat_display = ui.column().classes('w-full gap-2 p-4')
 
-        # Input area - full width
-        with ui.row().classes('w-full gap-2 p-3 bg-white shadow-md rounded-lg mt-2'):
+        # Input area - full width, fixed height (doesn't get squeezed by the scroll area above)
+        with ui.row().classes('w-full shrink-0 gap-2 p-3 bg-white shadow-md rounded-lg mt-2'):
             self.input_field = ui.textarea(
                 placeholder='Enter your message (Shift+Enter for newline)...',
             ).props('outlined dense autogrow aria-label="Type your message. Press Enter to send, Shift+Enter for new line"').classes('flex-grow').style('min-height: 2.5em; max-height: 15em')
@@ -73,8 +73,15 @@ class ChatInterface:
 
         self.input_field.value = ''
 
-        # Get LLM response asynchronously
-        await self._get_llm_response()
+        # Disable input while waiting for a response, so it's clear something is happening
+        # and the user can't fire off a second message mid-stream.
+        self.input_field.disable()
+        self.send_button.disable()
+        try:
+            await self._get_llm_response()
+        finally:
+            self.input_field.enable()
+            self.send_button.enable()
 
     async def _stream_llm_response(self, card_color: str = 'bg-white'):
         """
@@ -103,6 +110,24 @@ class ChatInterface:
         thread = Thread(target=stream_worker, daemon=True)
         thread.start()
 
+        # Thinking indicator: shown until the first chunk (text or tool call) arrives,
+        # so a slow time-to-first-token doesn't look like the app has frozen.
+        with self.chat_display:
+            with ui.row().classes('w-full mb-2') as thinking_row:
+                with ui.card().classes(f'{card_color} border-gray-200 shadow-sm rounded-lg p-4'):
+                    with ui.row().classes('items-center gap-2'):
+                        ui.spinner(type='dots', size='2em', color='grey')
+                        ui.label('Thinking...').classes('text-sm text-gray-400')
+        self._scroll_to_bottom()
+
+        thinking_removed = False
+
+        def remove_thinking_indicator():
+            nonlocal thinking_removed
+            if not thinking_removed:
+                thinking_removed = True
+                thinking_row.delete()
+
         partial_message = ''
         tool_calls = []
         message_markdown = None
@@ -117,6 +142,7 @@ class ChatInterface:
 
                 # Handle errors from worker thread
                 if isinstance(chunk, tuple) and chunk[0] == 'error':
+                    remove_thinking_indicator()
                     raise chunk[1]
 
                 if chunk is None:  # Sentinel - stream complete
@@ -126,6 +152,7 @@ class ChatInterface:
                     # Handle text responses
                     if chunk.choices[0].delta.content is not None:
                         if not card_created:
+                            remove_thinking_indicator()
                             with self.chat_display:
                                 with ui.row().classes('w-full mb-2'):
                                     with ui.card().classes(f'{card_color} border-gray-200 shadow-sm rounded-lg p-4').style('max-width: 75%'):
@@ -142,6 +169,7 @@ class ChatInterface:
 
                     # Handle tool calls
                     if chunk.choices[0].delta.tool_calls is not None:
+                        remove_thinking_indicator()
                         for tool_call_chunk in chunk.choices[0].delta.tool_calls:
                             if tool_call_chunk.index >= len(tool_calls):
                                 tool_calls.insert(tool_call_chunk.index, tool_call_chunk)
@@ -154,6 +182,8 @@ class ChatInterface:
 
             # Yield to event loop to keep UI responsive
             await asyncio.sleep(0.01)
+
+        remove_thinking_indicator()
 
         # Add copy button after message is complete
         if card_created and partial_message and copy_button_container is not None:
