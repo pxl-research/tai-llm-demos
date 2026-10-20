@@ -20,7 +20,7 @@ for root, dirs, files in os.walk(REPO_ROOT):
   - package-ecosystem: pip
     directory: "/{relative_path}"
     schedule:
-      interval: daily
+      interval: weekly
       time: "04:00"
     groups:
       python-packages:
