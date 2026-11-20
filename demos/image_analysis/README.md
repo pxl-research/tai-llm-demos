@@ -7,7 +7,7 @@ This Streamlit application provides a chat interface that leverages the OpenRout
 - **Multimodal Chat:** Interact with AI models using both text and image inputs.
 - **Image Upload:** Easily upload images via a drag-and-drop interface.
 - **Dynamic Model Selection:** Choose from a curated list of OpenRouter models that support multimodal input.
-- **Capability-Based Sorting:** Models are sorted by their [LM Arena](https://lmarena.ai/) vision leaderboard scores, helping you identify the most capable options.
+- **Capability-Based Sorting:** Models are sorted by their [LM Arena](https://lmarena.ai/) vision leaderboard scores, helping you identify the most capable options. Models are matched to LM Arena by name tokens, never by look-alike spelling (a model listed at several effort levels, such as "(High)" and "(Max)", shows its best-scoring one); a model without an unambiguous match shows "N/A" rather than a guessed score.
 - **Detailed Model Information:** View comprehensive details for the selected model, including provider, pricing (per million tokens), context length, and maximum completion tokens.
 - **Modular Code Structure:** Well-organized codebase with clear separation of concerns for easier maintenance and extension.
 
