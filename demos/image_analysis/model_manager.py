@@ -7,7 +7,7 @@ from app_config import DEFAULT_MODEL, OPENROUTER_API_KEY
 from utils import call_openrouter_api
 
 sys.path.append('../../')
-from components.lmarena.lmarena_scoring import load_lmarena_scores, enrich_with_lmarena
+from components.lmarena.lmarena_scoring import best_entry_per_model, enrich_with_lmarena, load_lmarena_scores
 from components.open_router.or_model_filtering import get_models
 
 # Which components/lmarena/lmarena_download.py --subset CSV to blend in (run that script,
@@ -37,7 +37,7 @@ def load_and_sort_models():
         if score_df.empty:
             st.warning("Could not load LM Arena scores. Models are not sorted by capability.")
 
-        df_models = enrich_with_lmarena(df_models, score_df)
+        df_models = best_entry_per_model(enrich_with_lmarena(df_models, score_df))
         st.session_state.matched_models_count = int(df_models['lm_arena_score'].notna().sum())
 
         df_models = df_models.sort_values('lm_arena_score', ascending=False, na_position='last', kind='stable')

@@ -13,7 +13,7 @@ This folder contains a basic chatbot example where you can choose **which LLM yo
   ```
   `chat_with_model_choice.py` picks up whichever CSV matches its `LMARENA_SUBSET` constant (loads the most recent dated file for that subset). Only one subset is used at a time — they're on different scales and aren't blended.
 
-- `../../components/lmarena/lmarena_scoring.py`: Shared logic (not a script you run directly) for matching OpenRouter model ids to LM Arena entries and computing the cost columns above. Used by both `chat_with_model_choice.py` and `demos/image_analysis`.
+- `../../components/lmarena/lmarena_scoring.py`: Shared logic (not a script you run directly) for matching OpenRouter model ids to LM Arena entries and computing the cost columns above. Matching is by name tokens, never by look-alike spelling: a model listed at several effort levels on LM Arena ("(High)", "(Max)") shows its best-scoring one, and a model without an unambiguous match shows "N/A" rather than a guessed score. Used by both `chat_with_model_choice.py` and `demos/image_analysis`.
 
 - Report generation: the `build_model_report.py` and `html_report.py` scripts (a combined CSV + colorized HTML report of OpenRouter pricing and LM Arena scores) moved to their own repository, [tai-model-report](https://github.com/pxl-research/tai-model-report).
 

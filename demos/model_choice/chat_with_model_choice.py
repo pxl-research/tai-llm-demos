@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 sys.path.append('../../')
 
-from components.lmarena.lmarena_scoring import load_lmarena_scores, enrich_with_lmarena
+from components.lmarena.lmarena_scoring import best_entry_per_model, enrich_with_lmarena, load_lmarena_scores
 from components.open_router.open_router_client import OpenRouterClient
 from components.open_router.or_model_filtering import get_models
 
@@ -48,7 +48,7 @@ def on_load_ui():
                              skip_batch=True)
 
     score_df = load_lmarena_scores(LMARENA_SUBSET)
-    data_models = enrich_with_lmarena(data_models, score_df)
+    data_models = best_entry_per_model(enrich_with_lmarena(data_models, score_df))
 
     # set precision of price/score values
     price_columns = data_models.filter(like='price').columns
