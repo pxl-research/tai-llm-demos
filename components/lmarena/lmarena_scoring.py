@@ -397,6 +397,21 @@ def enrich_with_lmarena(data_models, score_df, arena_prices=None):
     of the entry being silently dropped. A sibling row keeps its source row's full_model_name
     unchanged (it's still the same OpenRouter listing) -- lm_arena_model_name and
     lm_arena_score are the only columns that differ, which is what tells the rows apart."""
+    columns = [
+        'full_model_name',
+        'lm_arena_score',
+        'lm_arena_model_name',
+        'prompt_price',
+        'completion_price',
+        'cost_estimate',
+        'scaled_cost_estimate',
+        'context_length',
+        'max_completion_tokens',
+        'provider',
+    ]
+    if data_models.empty:
+        return data_models.reindex(columns=columns)
+
     data_models = data_models.copy()
     matches = data_models.apply(
         lambda row: _best_match(
@@ -429,20 +444,7 @@ def enrich_with_lmarena(data_models, score_df, arena_prices=None):
     if sibling_rows:
         data_models = pd.concat([data_models, pd.DataFrame(sibling_rows)], ignore_index=True)
 
-    data_models = data_models[
-        [
-            'full_model_name',
-            'lm_arena_score',
-            'lm_arena_model_name',
-            'prompt_price',
-            'completion_price',
-            'cost_estimate',
-            'scaled_cost_estimate',
-            'context_length',
-            'max_completion_tokens',
-            'provider',
-        ]
-    ]
+    data_models = data_models[columns]
     return data_models.round(3)  # belt-and-suspenders: no long floating-point tails in any numeric column
 
 
@@ -467,5 +469,10 @@ def best_entry_per_model(data_models):
     """Collapses enrich_with_lmarena()'s effort-sibling rows to one row per full_model_name, keeping
     its best-scoring exact LM Arena entry (never a blend), for model pickers that list each
     OpenRouter model once. Keeps get_models()' row order and drops the internal lm_arena_model_name."""
+    # Ordered by first appearance, not index: get_models() sorts without resetting its index, and
+    # sibling rows are appended with fresh index values, so sort_index() would scramble both.
+    first_seen = {name: i for i, name in enumerate(data_models['full_model_name'].drop_duplicates())}
     best = data_models.sort_values('lm_arena_score', ascending=False, na_position='last', kind='stable')
-    return best.drop_duplicates('full_model_name').sort_index().drop(columns='lm_arena_model_name')
+    best = best.drop_duplicates('full_model_name')
+    best = best.sort_values('full_model_name', key=lambda names: names.map(first_seen), kind='stable')
+    return best.drop(columns='lm_arena_model_name')
